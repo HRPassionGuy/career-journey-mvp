@@ -20,7 +20,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
       subject,
       html,
       text: text || stripHtml(html),
-    }
+    })
     
     return { success: true }
   } catch (error) {
