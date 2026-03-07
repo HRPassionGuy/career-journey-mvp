@@ -20,15 +20,15 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
       subject,
       html,
       text: text || stripHtml(html),
-    })
+    }
     
     return { success: true }
   } catch (error) {
     console.error('Email send error:', error)
     return { success: false, error }
   }
-}
-}
+
+
 
 // Welcome email after signup
 export async function sendWelcomeEmail(
