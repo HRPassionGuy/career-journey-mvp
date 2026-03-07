@@ -22,11 +22,12 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
       text: text || stripHtml(html),
     })
     
-    return { success: true, id: data?.id || 'sent' }
+    return { success: true }
   } catch (error) {
     console.error('Email send error:', error)
     return { success: false, error }
   }
+}
 }
 
 // Welcome email after signup
