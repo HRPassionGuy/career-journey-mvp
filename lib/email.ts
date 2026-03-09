@@ -14,7 +14,7 @@ export interface EmailOptions {
 // Base email sender
 export async function sendEmail({ to, subject, html, text }: EmailOptions) {
   try {
-    const data = await resend.emails.send({
+    await resend.emails.send({
       from: FROM_EMAIL,
       to,
       subject,
@@ -27,8 +27,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
     console.error('Email send error:', error)
     return { success: false, error }
   }
-
-
+}
 
 // Welcome email after signup
 export async function sendWelcomeEmail(
