@@ -11,7 +11,7 @@ export default function LandingPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const handleSignUp = async (e: React.FormEvent) => {
+const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -27,14 +27,18 @@ export default function LandingPage() {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/assessment`,
         },
       })
 
       if (signUpError) throw signUpError
 
-      // Redirect to assessment
-      router.push('/assessment')
+      // Show success message instead of redirecting
+      alert(`✅ Success! Check your email (${email}) for a confirmation link to continue to your assessment.\n\nDon't see it? Check your spam folder.`)
+      
+      // Clear form
+      setEmail('')
+      setFullName('')
       
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.')
