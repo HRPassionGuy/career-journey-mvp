@@ -169,7 +169,14 @@ const handleSignUp = async (e: React.FormEvent) => {
                 No credit card required • Takes 5 minutes • Get instant results
               </p>
             </form>
-
+<div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <a href="/signin" className="text-primary-600 hover:text-primary-700 font-semibold">
+                  Sign In
+                </a>
+              </p>
+            </div>
             {/* Social Proof */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center mb-3">
