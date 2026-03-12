@@ -88,7 +88,3 @@ export default function SignInPage() {
     </div>
   )
 }
-
-**Once deployed, go to:**
-```
-https://career-journey-mvp.vercel.app/signin
