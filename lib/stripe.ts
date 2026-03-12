@@ -36,9 +36,7 @@ export async function createCheckoutSession({
   
   const price = MODULE_PRICES[moduleName]
   
-  if (price === 0) {
-    throw new Error('This module is free')
-  }
+  
 
   const session = await stripe.checkout.sessions.create({
     customer_email: userEmail,
