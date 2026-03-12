@@ -8,12 +8,13 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Module pricing (in cents)
 export const MODULE_PRICES = {
-  strengths: 2900,      // $29
-  resume: 15000,        // $150
-  networking: 0,        // FREE
-  innervue: 10000,      // $100
+  strengths: 6700,      // $67
+  resume: 19700,        // $197
+  networking: 9700,     // $97
+  innervue: 14700,      // $147
+  bundle_intro: 19700,  // $197 (intro offer)
+  bundle_regular: 39700, // $397 (regular price)
   annual: 21800,        // $218 (renewal)
-  bundle: 49700,        // $497 (first year all-inclusive)
 } as const
 
 export type ModuleName = keyof typeof MODULE_PRICES
@@ -75,25 +76,26 @@ export async function createCheckoutSession({
 // Helper: Get display name for module
 function getModuleDisplayName(moduleName: ModuleName): string {
   const names: Record<ModuleName, string> = {
-    strengths: 'Strengths Coaching Module',
-    resume: 'Resume Module + Professional Redo',
-    networking: 'Networking Module',
+    strengths: 'Strengths Discovery Module',
+    resume: 'Resume Mastery + Job Match System',
+    networking: 'Networking Accelerator',
     innervue: 'Inner Vue Interview Tool (1 Year Access)',
+    bundle_intro: 'Career Accelerator - Intro Offer',
+    bundle_regular: 'Career Accelerator - Regular Price',
     annual: 'Career Journey Annual Renewal',
-    bundle: 'Complete Career Journey Bundle',
   }
   return names[moduleName]
 }
-
 // Helper: Get description for module
 function getModuleDescription(moduleName: ModuleName): string {
   const descriptions: Record<ModuleName, string> = {
-    strengths: 'Discover your unique strengths and how to leverage them in your career',
-    resume: 'Professional resume analysis, templates, and automated optimization',
-    networking: 'Strategic networking frameworks and connection strategies',
-    innervue: 'AI-powered interview practice with personalized feedback',
-    annual: 'Continued access to all modules and Inner Vue tool',
-    bundle: 'Complete career transformation package - all modules included',
+    strengths: 'Discover your unique strengths and leverage them in your career',
+    resume: 'AI-powered resume rewrite in proven template + 12-15 targeted job matches + 5 custom variants',
+    networking: 'Strategic networking frameworks, templates, and LinkedIn optimization',
+    innervue: 'Unlimited AI-powered interview practice with personalized S.O.A.R. method feedback',
+    bundle_intro: 'Complete career transformation - All modules included (Limited Time: Save $311)',
+    bundle_regular: 'Complete career transformation - All modules included (Save $111)',
+    annual: 'Continued access to all modules, Inner Vue, and quarterly job market updates',
   }
   return descriptions[moduleName]
 }
