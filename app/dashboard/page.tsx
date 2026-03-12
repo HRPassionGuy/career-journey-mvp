@@ -51,7 +51,10 @@ export default function DashboardPage() {
         .from('module_progress')
         .select('*')
         .eq('user_id', user.id)
-
+const { data: purchaseData } = await supabase
+  .from('purchases')
+  .select('*')
+  .eq('user_id', user.id)
       const moduleDefinitions = [
   {
     name: 'assessment',
@@ -91,7 +94,7 @@ export default function DashboardPage() {
 ]
      const modulesWithProgress = moduleDefinitions.map(def => {
   const progress = progressData?.find(p => p.module_name === def.name)
-  const hasPurchased = purchases?.some(p => p.module_name === def.name)
+  const hasPurchased = purchaseData?.some(p => p.module_name === def.name)
   
   // Assessment and Networking are always unlocked (free)
   const isFreeModule = def.name === 'assessment' || def.name === 'networking'
@@ -210,7 +213,7 @@ setModules(modulesWithProgress)
         </div>
 
        {/* Bundle Offers (if nothing purchased yet) */}
-{(!purchases || purchases.length === 0) && (
+{(!purchases || purchaseData.length === 0) && (
   <div className="space-y-4 mb-12">
     {/* Intro Offer */}
     <div className="card bg-gradient-to-r from-green-600 to-green-700 text-white">
