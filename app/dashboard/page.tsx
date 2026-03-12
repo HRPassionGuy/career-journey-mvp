@@ -53,43 +53,42 @@ export default function DashboardPage() {
         .eq('user_id', user.id)
 
       const moduleDefinitions = [
-        {
-          name: 'assessment',
-          displayName: 'Career Breakthrough Assessment',
-          description: 'Discover your breakthrough type and get your personalized roadmap',
-          price: 0,
-          icon: '📊',
-        },
-        {
-          name: 'strengths',
-          displayName: 'Strengths Discovery Module',
-          description: 'Uncover your unique value proposition and leverage points',
-          price: 29,
-          icon: '💪',
-        },
-        {
-          name: 'resume',
-          displayName: 'Resume Mastery + Professional Redo',
-          description: 'ATS-optimized resume analysis, templates, and automated rewrite',
-          price: 150,
-          icon: '📄',
-        },
-        {
-          name: 'networking',
-          displayName: 'Strategic Networking Accelerator',
-          description: 'Build authentic connections that open doors (FREE after assessment)',
-          price: 0,
-          icon: '🤝',
-        },
-        {
-          name: 'innervue',
-          displayName: 'Inner Vue Interview Tool',
-          description: 'AI-powered interview practice with real-time feedback',
-          price: 100,
-          icon: '🎯',
-        },
-      ]
-
+  {
+    name: 'assessment',
+    displayName: 'Career Breakthrough Assessment',
+    description: 'Discover your breakthrough type and get your personalized roadmap',
+    price: 0,
+    icon: '📊',
+  },
+  {
+    name: 'strengths',
+    displayName: 'Strengths Discovery',
+    description: 'Uncover your unique value proposition and leverage points',
+    price: 67,
+    icon: '💪',
+  },
+  {
+    name: 'resume',
+    displayName: 'Resume Mastery + Job Match',
+    description: 'AI-powered resume rewrite + 12-15 targeted jobs + 5 custom variants',
+    price: 197,
+    icon: '📄',
+  },
+  {
+    name: 'networking',
+    displayName: 'Networking Accelerator',
+    description: 'Strategic frameworks, templates, and LinkedIn optimization',
+    price: 97,
+    icon: '🤝',
+  },
+  {
+    name: 'innervue',
+    displayName: 'Inner Vue Interview Tool',
+    description: 'Unlimited AI interview practice with personalized S.O.A.R. feedback',
+    price: 147,
+    icon: '🎯',
+  },
+]
       const modulesWithProgress = moduleDefinitions.map(def => {
         const progress = progressData?.find(p => p.module_name === def.name)
         return {
@@ -202,37 +201,70 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Bundle Offer (if nothing purchased yet) */}
-        {modules.filter(m => m.price > 0 && m.isUnlocked).length === 0 && (
-          <div className="card bg-gradient-to-r from-primary-600 to-primary-700 text-white mb-12">
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm font-semibold mb-3">
-                  💎 BEST VALUE
-                </div>
-                <h3 className="text-2xl font-bold mb-2">
-                  Complete Career Journey Bundle
-                </h3>
-                <p className="text-white/90 mb-4">
-                  Get all modules + 1 year Inner Vue access for one low price
-                </p>
-                <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-bold">$497</span>
-                  <span className="text-white/75 line-through">$279</span>
-                  <span className="bg-green-500 px-2 py-1 rounded text-sm font-semibold">
-                    Save $61
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => handlePurchase('bundle')}
-                className="bg-white text-primary-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
-              >
-                Get Complete Bundle →
-              </button>
-            </div>
+       {/* Bundle Offers (if nothing purchased yet) */}
+{modules.filter(m => m.price > 0 && m.isUnlocked).length === 0 && (
+  <div className="space-y-4 mb-12">
+    {/* Intro Offer */}
+    <div className="card bg-gradient-to-r from-green-600 to-green-700 text-white">
+      <div className="flex justify-between items-center">
+        <div>
+          <div className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm font-semibold mb-3">
+            🎉 EARLY BIRD SPECIAL
           </div>
-        )}
+          <h3 className="text-2xl font-bold mb-2">
+            Career Accelerator - Intro Offer
+          </h3>
+          <p className="text-white/90 mb-4">
+            Get ALL modules + 1 year Inner Vue access - Limited time only!
+          </p>
+          <div className="flex items-baseline gap-3">
+            <span className="text-4xl font-bold">$197</span>
+            <span className="text-white/75 line-through text-xl">$508</span>
+            <span className="bg-yellow-400 text-green-900 px-2 py-1 rounded text-sm font-semibold">
+              Save $311
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={() => handlePurchase('bundle_intro')}
+          className="bg-white text-green-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
+        >
+          Claim Intro Offer →
+        </button>
+      </div>
+    </div>
+
+    {/* Regular Bundle */}
+    <div className="card bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+      <div className="flex justify-between items-center">
+        <div>
+          <div className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm font-semibold mb-3">
+            💎 BEST VALUE
+          </div>
+          <h3 className="text-2xl font-bold mb-2">
+            Career Accelerator - Complete Bundle
+          </h3>
+          <p className="text-white/90 mb-4">
+            Everything you need to land your dream role
+          </p>
+          <div className="flex items-baseline gap-3">
+            <span className="text-4xl font-bold">$397</span>
+            <span className="text-white/75 line-through">$508</span>
+            <span className="bg-white/20 px-2 py-1 rounded text-sm font-semibold">
+              Save $111
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={() => handlePurchase('bundle_regular')}
+          className="bg-white text-primary-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
+        >
+          Get Complete Bundle →
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Modules Grid */}
         <div className="space-y-6">
