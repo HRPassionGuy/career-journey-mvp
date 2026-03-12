@@ -95,7 +95,7 @@ export default function DashboardPage() {
         .select('*')
         .eq('user_id', user.id)
 
-      setHasPurchases(purchaseData && purchaseData.length > 0)
+      setHasPurchases(!!(purchaseData && purchaseData.length > 0))
 
       const modulesWithProgress = moduleDefinitions.map(def => {
         const progress = progressData?.find(p => p.module_name === def.name)
