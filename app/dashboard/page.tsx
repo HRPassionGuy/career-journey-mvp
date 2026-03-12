@@ -18,6 +18,7 @@ interface Module {
 
 export default function DashboardPage() {
   const [modules, setModules] = useState<Module[]>([])
+  const [hasPurchases, setHasPurchases] = useState(false)
   const [loading, setLoading] = useState(true)
   const [userName, setUserName] = useState('')
   const router = useRouter()
