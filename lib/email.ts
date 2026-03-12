@@ -152,12 +152,18 @@ export async function sendPurchaseConfirmationEmail(
   accessUrl: string
 ) {
   const moduleDisplayNames: Record<string, string> = {
-    strengths: 'Strengths Coaching Module',
-    resume: 'Resume Module + Professional Redo',
+    strengths: 'Strengths Discovery Module',
+    resume: 'Resume Mastery + Job Match System',
+    networking: 'Networking Accelerator',
     innervue: 'Inner Vue Interview Tool',
-    bundle: 'Complete Career Journey Bundle',
+    bundle_intro: 'Career Accelerator - Intro Offer',
+    bundle_regular: 'Career Accelerator - Complete Bundle',
     annual: 'Annual Renewal',
   }
+
+  // Special handling for Inner Vue - include intake form
+  const isInnerVue = moduleName === 'innervue' || moduleName.includes('bundle')
+  const innerVueFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLSfZwXOXIqu3m3Z8_69v5lYWBSBbGfo7cLnBH4aEfkVfvGFGQQ/viewform?usp=header'
 
   return sendEmail({
     to: email,
@@ -173,9 +179,31 @@ export async function sendPurchaseConfirmationEmail(
             
             <p>Your payment of $${(amountPaid / 100).toFixed(2)} has been confirmed and your module is now unlocked.</p>
             
-            <a href="${accessUrl}" style="background-color: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0;">
-              Access Your Module Now →
-            </a>
+            ${isInnerVue ? `
+              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0;">
+                <h2 style="margin: 0 0 12px 0; color: #92400e;">🎯 Next Step: Complete Your Inner Vue Intake Form</h2>
+                <p style="margin: 0 0 12px 0; color: #78350f;">
+                  To receive your personalized S.O.A.R. interview responses, please complete this quick intake form:
+                </p>
+                <a href="${innerVueFormLink}" style="background-color: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                  Complete Intake Form →
+                </a>
+                <p style="margin: 12px 0 0 0; font-size: 14px; color: #78350f;">
+                  <strong>What to prepare:</strong><br>
+                  • Your current resume<br>
+                  • The job posting you're applying for<br>
+                  • Job description<br>
+                  • Your motivations for this role
+                </p>
+                <p style="margin: 12px 0 0 0; font-size: 14px; color: #78350f;">
+                  You'll receive your personalized interview prep within 15-30 minutes!
+                </p>
+              </div>
+            ` : `
+              <a href="${accessUrl}" style="background-color: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0;">
+                Access Your Module Now →
+              </a>
+            `}
             
             <p><strong>What's Next:</strong></p>
             <ul>
@@ -187,7 +215,8 @@ export async function sendPurchaseConfirmationEmail(
             <p>Remember: Knowledge without action is just information. Set aside time this week to work through the material.</p>
             
             <p>I'm here if you need anything,<br>
-            Marcus</p>
+            Marcus R. Holmes<br>
+            <em>The HR Passion Guy</em></p>
             
             <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
               <p>Receipt: Order #${Date.now().toString(36).toUpperCase()}</p>
