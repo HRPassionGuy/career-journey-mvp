@@ -213,7 +213,7 @@ setModules(modulesWithProgress)
         </div>
 
        {/* Bundle Offers (if nothing purchased yet) */}
-{(!purchases || purchaseData.length === 0) && (
+{(!purchaseData || purchaseData.length === 0) && (
   <div className="space-y-4 mb-12">
     {/* Intro Offer */}
     <div className="card bg-gradient-to-r from-green-600 to-green-700 text-white">
