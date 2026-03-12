@@ -88,13 +88,6 @@ export default function SignInPage() {
     </div>
   )
 }
-```
-
----
-
-**Commit:** "Add sign-in page"
-
-**Then add a sign-in link to the landing page too** - but let's test this first.
 
 **Once deployed, go to:**
 ```
