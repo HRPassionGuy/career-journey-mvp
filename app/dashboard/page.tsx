@@ -89,23 +89,26 @@ export default function DashboardPage() {
     icon: '🎯',
   },
 ]
-      const modulesWithProgress = moduleDefinitions.map(def => {
-        const progress = progressData?.find(p => p.module_name === def.name)
-        return {
-          ...def,
-          isUnlocked: progress?.is_unlocked || false,
-          isCompleted: progress?.is_completed || false,
-          progressPercent: progress?.progress_percent || 0,
-        }
-      })
-
-      setModules(modulesWithProgress)
-    } catch (error) {
-      console.error('Dashboard load error:', error)
-    } finally {
-      setLoading(false)
-    }
+     const modulesWithProgress = moduleDefinitions.map(def => {
+  const progress = progressData?.find(p => p.module_name === def.name)
+  const hasPurchased = purchases?.some(p => p.module_name === def.name)
+  
+  // Assessment and Networking are always unlocked (free)
+  const isFreeModule = def.name === 'assessment' || def.name === 'networking'
+  
+  return {
+    ...def,
+    isUnlocked: isFreeModule || hasPurchased || progress?.is_unlocked || false,
+    isCompleted: progress?.is_completed || false,
+    progressPercent: progress?.progress_percent || 0,
+    continueUrl: def.name === 'assessment' ? '/assessment' : 
+                 def.name === 'resume' ? '/modules/resume' :
+                 def.name === 'networking' ? '/modules/networking' :
+                 def.name === 'innervue' ? '/modules/innervue' :
+                 def.name === 'strengths' ? '/modules/strengths' : '#'
   }
+})
+setModules(modulesWithProgress)
 
   const handleModuleClick = async (module: Module) => {
     if (!module.isUnlocked && module.price > 0) {
@@ -202,7 +205,7 @@ export default function DashboardPage() {
         </div>
 
        {/* Bundle Offers (if nothing purchased yet) */}
-{modules.filter(m => m.price > 0 && m.isUnlocked).length === 0 && (
+{(!purchases || purchases.length === 0) && (
   <div className="space-y-4 mb-12">
     {/* Intro Offer */}
     <div className="card bg-gradient-to-r from-green-600 to-green-700 text-white">
