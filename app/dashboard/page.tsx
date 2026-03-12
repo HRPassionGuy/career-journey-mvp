@@ -109,7 +109,12 @@ export default function DashboardPage() {
   }
 })
 setModules(modulesWithProgress)
-
+} catch (error) {
+      console.error('Dashboard load error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
   const handleModuleClick = async (module: Module) => {
     if (!module.isUnlocked && module.price > 0) {
       // Redirect to payment
