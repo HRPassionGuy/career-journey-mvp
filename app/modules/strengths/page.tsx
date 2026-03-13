@@ -75,7 +75,7 @@ export default function StrengthsEnhancedPage() {
     }
   }
 
-  const handleStrengthsSubmit = async () => {
+ const handleStrengthsSubmit = async () => {
     const validStrengths = strengths.filter(s => s.description.trim().length > 0)
     
     if (validStrengths.length < 3) {
@@ -87,44 +87,13 @@ export default function StrengthsEnhancedPage() {
     setStep('analyzing')
 
     try {
-      const strengthsList = validStrengths.map((s, i) => `${i + 1}. ${s.description}`).join('\n')
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/analyze-strengths', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || '',
-          'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          messages: [{
-            role: 'user',
-            content: `You are an expert career coach analyzing professional strengths. For each strength description below, identify:
-
-1. Professional Competencies (Leadership, Strategic Thinking, Communication, Analytical Thinking, Emotional Intelligence, Problem Solving, Change Management, Coaching, Decision Making, etc.)
-2. Neurodynamic Performance Indicators (High Performance Energy, Connectors, Transformers, Innovators, Rhythms)
-3. Interview Positioning (how to articulate this professionally)
-
-Strengths:
-${strengthsList}
-
-Return ONLY valid JSON (no markdown, no backticks):
-{
-  "strengths": [
-    {
-      "original": "user description",
-      "competencies": ["Competency 1", "Competency 2", "Competency 3"],
-      "neurodynamic": ["Indicator 1", "Indicator 2"],
-      "positioning": "Professional statement",
-      "development_tip": "Specific action"
-    }
-  ],
-  "overall_profile": "2-3 sentence summary",
-  "top_growth_area": "Key development recommendation"
-}`
-          }]
+          strengths: validStrengths
         })
       })
 
