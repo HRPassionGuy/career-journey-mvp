@@ -75,7 +75,7 @@ export default function StrengthsEnhancedPage() {
     }
   }
 
- const handleStrengthsSubmit = async () => {
+const handleStrengthsSubmit = async () => {
     const validStrengths = strengths.filter(s => s.description.trim().length > 0)
     
     if (validStrengths.length < 3) {
@@ -125,7 +125,6 @@ export default function StrengthsEnhancedPage() {
       setLoading(false)
     }
   }
-
   const getEQScoreInterpretation = (score: number) => {
     if (score >= 9) return { label: "Exceptional Strength", color: "text-green-600", description: "You demonstrate mastery in this area." }
     if (score >= 7) return { label: "Strong Capability", color: "text-blue-600", description: "This is a solid strength." }
