@@ -136,7 +136,10 @@ const handleStrengthsSubmit = async () => {
   const calculateCategoryScores = () => {
     const categories = ['Self-Awareness', 'Self-Management', 'Social Awareness', 'Relationship Management']
     return categories.map(cat => {
-      const catAnswers = eqAnswers.filter(a => a.category === cat)
+      const catAnswers = eqAnswers.filter(a => a && a.category === cat)
+      if (catAnswers.length === 0) {
+        return { category: cat, score: 0 }
+      }
       const avg = catAnswers.reduce((sum, a) => sum + a.score, 0) / catAnswers.length
       return { category: cat, score: Math.round(avg * 10) / 10 }
     })
