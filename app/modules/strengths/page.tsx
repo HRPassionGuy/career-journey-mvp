@@ -325,7 +325,7 @@ const handleStrengthsSubmit = async () => {
             </div>
           </div>
         )}
-        {step === 'results' && analysisResults && (
+       {step === 'results' && analysisResults && eqAnswers.length > 0 && (
           <div className="card">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">🎯</div>
