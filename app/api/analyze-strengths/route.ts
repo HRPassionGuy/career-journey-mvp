@@ -45,11 +45,19 @@ Return ONLY valid JSON (no markdown, no backticks):
       })
     })
 
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('Anthropic API Error:', errorData)
+      return NextResponse.json({ error: 'Anthropic API failed', details: errorData }, { status: response.status })
+    }
+
     const data = await response.json()
+    
+    // Return the full Anthropic response (it has the structure the frontend expects)
     return NextResponse.json(data)
 
   } catch (error) {
-    console.error('Anthropic API Error:', error)
-    return NextResponse.json({ error: 'Analysis failed' }, { status: 500 })
+    console.error('API Route Error:', error)
+    return NextResponse.json({ error: 'Analysis failed', message: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
   }
 }
