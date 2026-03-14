@@ -107,15 +107,22 @@ const handleStrengthsSubmit = async () => {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
-        await supabase.from('module_progress').upsert({
+       const { error } = await supabase.from('module_progress').upsert({
   user_id: user.id,
-  module_name: 'strengths',
+  module_name: 'strengths', // or 'resume'
   is_unlocked: true,
   is_completed: true,
   progress_percent: 100,
   unlocked_at: new Date().toISOString(),
   completed_at: new Date().toISOString(),
+}, {
+  onConflict: 'user_id,module_name',
+  ignoreDuplicates: false
 })
+
+if (error) {
+  console.error('Supabase save error:', error)
+}
       }
       setStep('results')
     } catch (error) {
