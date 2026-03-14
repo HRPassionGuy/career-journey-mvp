@@ -115,8 +115,6 @@ const handleStrengthsSubmit = async () => {
   progress_percent: 100,
   unlocked_at: new Date().toISOString(),
   completed_at: new Date().toISOString(),
-}, {
-  onConflict: 'user_id,module_name'
 })
       }
       setStep('results')
