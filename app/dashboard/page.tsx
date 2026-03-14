@@ -130,7 +130,7 @@ export default function DashboardPage() {
         assessment: '/assessment',
         resume: '/modules/resume',
         networking: '/modules/networking',
-        inner-vue: '/modules/inner-vue',
+        innervue: '/modules/inner-vue',
         strengths: '/modules/strengths',
       }
       router.push(moduleRoutes[module.name] || '/dashboard')
