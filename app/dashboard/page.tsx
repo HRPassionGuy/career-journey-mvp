@@ -52,7 +52,7 @@ export default function DashboardPage() {
       icon: '🤝',
     },
     {
-      name: 'innervue',
+      name: 'inner-vue',
       displayName: 'Inner Vue Interview Tool',
       description: 'Unlimited AI interview practice with personalized S.O.A.R. feedback',
       price: 147,
@@ -130,7 +130,7 @@ export default function DashboardPage() {
         assessment: '/assessment',
         resume: '/modules/resume',
         networking: '/modules/networking',
-        innervue: '/modules/innervue',
+        inner-vue: '/modules/inner-vue',
         strengths: '/modules/strengths',
       }
       router.push(moduleRoutes[module.name] || '/dashboard')
