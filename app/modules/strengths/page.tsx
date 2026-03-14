@@ -118,7 +118,7 @@ const handleStrengthsSubmit = async () => {
 }, {
   onConflict: 'user_id,module_name'
 })
-
+      }
       setStep('results')
     } catch (error) {
       console.error('Error:', error)
