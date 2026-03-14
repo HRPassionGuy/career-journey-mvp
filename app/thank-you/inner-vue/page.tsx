@@ -44,12 +44,3 @@ export default function InnerVueThankYouPage() {
     </div>
   )
 }
-```
-
----
-
-## **IN YOUR STAN STORE:**
-
-Go to Stan Store settings and set the **redirect URL after purchase** to:
-```
-https://career-journey-mvp.vercel.app/thank-you/inner-vue
