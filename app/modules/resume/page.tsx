@@ -1,307 +1,349 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClientSupabaseClient } from '@/lib/supabase'
-import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function ResumeModulePage() {
-  const [file, setFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [analyzing, setAnalyzing] = useState(false)
-  const [analysis, setAnalysis] = useState<any>(null)
-  const [error, setError] = useState('')
+  const router = useRouter()
+  const [step, setStep] = useState<'upload' | 'processing' | 'results'>('upload')
+  const [loading, setLoading] = useState(false)
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [jobDescFiles, setJobDescFiles] = useState<File[]>([])
+  const [targetTitle, setTargetTitle] = useState('')
+  const [location, setLocation] = useState('')
+  const [salary, setSalary] = useState('')
+  const [results, setResults] = useState<any>(null)
+  const [jobs, setJobs] = useState<any>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile && selectedFile.type === 'application/pdf') {
-      setFile(selectedFile)
-      setError('')
-    } else {
-      setError('Please upload a PDF file')
+  const handleSubmit = async () => {
+    if (!resumeFile || !targetTitle || !location) {
+      alert('Please upload resume and fill in all required fields')
+      return
     }
-  }
 
-  const handleUploadAndAnalyze = async () => {
-    if (!file) return
-
-    setUploading(true)
-    setAnalyzing(true)
-    setError('')
+    setLoading(true)
+    setStep('processing')
 
     try {
-      const supabase = createClientSupabaseClient()
+      // Step 1: Process resume
+      const formData = new FormData()
+      formData.append('resume', resumeFile)
+      jobDescFiles.forEach(file => formData.append('jobDescriptions', file))
+      formData.append('targetTitle', targetTitle)
+      formData.append('location', location)
+      formData.append('salary', salary)
+
+      const resumeResponse = await fetch('/api/process-resume', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!resumeResponse.ok) {
+        throw new Error('Resume processing failed')
+      }
+
+      const resumeData = await resumeResponse.json()
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      // Convert PDF to base64
-      const base64 = await fileToBase64(file)
-
-      // Send to API for analysis
-      const response = await fetch('/api/resume/analyze', {
+      // Step 2: Search for jobs
+      const jobsResponse = await fetch('/api/search-jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fileName: file.name,
-          fileData: base64,
-        }),
+          resumeAnalysis: resumeData.analysis,
+          targetTitle,
+          location,
+          salary
+        })
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Analysis failed')
+      if (!jobsResponse.ok) {
+        throw new Error('Job search failed')
       }
 
-      setAnalysis(result.analysis)
+      const jobsData = await jobsResponse.json()
       
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong')
+      setResults(resumeData)
+      setJobs(jobsData)
+      
+      // Save completion status
+      const supabase = await createClientSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        await supabase.from('module_progress').upsert({
+          user_id: user.id,
+          module_name: 'resume',
+          is_unlocked: true,
+          is_completed: true,
+          progress_percent: 100,
+          unlocked_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+        })
+      }
+
+      setStep('results')
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error processing resume. Please try again.')
+      setStep('upload')
     } finally {
-      setUploading(false)
-      setAnalyzing(false)
+      setLoading(false)
     }
   }
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const result = reader.result as string
-        resolve(result.split(',')[1]) // Remove data:application/pdf;base64, prefix
-      }
-      reader.onerror = reject
-      reader.readAsDataURL(file)
-    })
+  const downloadResumePDF = async (resumeData: any, variant?: number) => {
+    const page1 = variant !== undefined ? resumeData.variants[variant].page1 : resumeData.master_resume.page1
+    const page2 = variant !== undefined ? resumeData.variants[variant].page2 : resumeData.master_resume.page2
+    
+    const content = `${page1}\n\n${page2}`
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = variant !== undefined ? `resume_variant_${variant + 1}.txt` : 'master_resume.txt'
+    a.click()
+  }
+
+  const downloadJobsExcel = () => {
+    if (!jobs || !jobs.jobs) return
+    
+    const headers = ['Title', 'Company', 'Location', 'PostingDate', 'Summary', 'Link']
+    const rows = jobs.jobs.map((job: any) => [
+      job.title,
+      job.company,
+      job.location,
+      job.posting_date,
+      job.summary,
+      job.link
+    ])
+    
+    const csv = [
+      headers.join('\t'),
+      ...rows.map((row: any[]) => row.join('\t'))
+    ].join('\n')
+    
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'job_opportunities.csv'
+    a.click()
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
         
-        <div className="mb-8">
-          <a href="/dashboard" className="text-primary-600 hover:text-primary-700">
-            ← Back to Dashboard
-          </a>
-        </div>
-
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Resume Mastery + Professional Redo
-        </h1>
-        <p className="text-xl text-gray-600 mb-12">
-          Get AI-powered resume analysis and optimization that beats ATS systems
-        </p>
-
-        {!analysis ? (
+        {step === 'upload' && (
           <div className="card">
-            <div className="text-center py-12">
-              <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Upload className="w-12 h-12 text-primary-600" />
-              </div>
-              
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Upload Your Resume
-              </h2>
-              <p className="text-gray-600 mb-8">
-                PDF format only • Maximum 5MB
-              </p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-6">
+              Resume Mastery + Job Match
+            </h1>
+            
+            <div className="bg-primary-50 border-l-4 border-primary-600 p-6 mb-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-3">What You'll Receive:</h2>
+              <ul className="space-y-2 text-gray-700">
+                <li>✅ Professional resume rewritten in proven template format</li>
+                <li>✅ 5 job-specific resume variants (if you provide job descriptions)</li>
+                <li>✅ 12-15 targeted job matches with application links</li>
+                <li>✅ Excel spreadsheet with all opportunities</li>
+                <li>✅ Downloadable PDF resumes ready to submit</li>
+              </ul>
+            </div>
 
-              <label className="inline-block">
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Upload Your Resume <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="file"
-                  accept=".pdf"
-                  onChange={handleFileChange}
-                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                  className="input"
                 />
-                <span className="btn-primary cursor-pointer inline-block">
-                  Choose File
-                </span>
-              </label>
+              </div>
 
-              {file && (
-                <div className="mt-6 bg-gray-50 p-4 rounded-lg inline-block">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-6 h-6 text-gray-600" />
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">{file.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={handleUploadAndAnalyze}
-                    disabled={uploading}
-                    className="btn-primary mt-4 w-full"
-                  >
-                    {uploading ? 'Analyzing...' : 'Analyze My Resume'}
-                  </button>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Upload Job Descriptions (Optional - up to 5)
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
+                  multiple
+                  onChange={(e) => setJobDescFiles(Array.from(e.target.files || []).slice(0, 5))}
+                  className="input"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Upload up to 5 job postings to get tailored resume variants
+                </p>
+              </div>
 
-              {error && (
-                <div className="mt-6 bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5" />
-                  {error}
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Target Job Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={targetTitle}
+                  onChange={(e) => setTargetTitle(e.target.value)}
+                  placeholder="e.g., Senior Sales Director"
+                  className="input"
+                />
+              </div>
 
-              {analyzing && (
-                <div className="mt-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">
-                    Analyzing your resume with AI... This takes 30-60 seconds
-                  </p>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Target Location <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="e.g., Remote (USA) or Detroit, MI"
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Desired Salary Range
+                </label>
+                <input
+                  type="text"
+                  value={salary}
+                  onChange={(e) => setSalary(e.target.value)}
+                  placeholder="e.g., $150,000 - $200,000"
+                  className="input"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !resumeFile || !targetTitle || !location}
+              className="btn btn-primary w-full mt-8"
+            >
+              Process Resume & Find Jobs →
+            </button>
+          </div>
+        )}
+
+        {step === 'processing' && (
+          <div className="card text-center">
+            <div className="text-6xl mb-6">📄</div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Processing Your Resume...</h2>
+            <p className="text-xl text-gray-600 mb-8">
+              Rewriting your resume and searching for opportunities...
+            </p>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600"></div>
             </div>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Overall Assessment */}
-            <div className="card bg-primary-50 border-primary-200">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Overall Assessment
-              </h2>
-              <p className="text-gray-700 mb-4">{analysis.overall_assessment}</p>
-              <div className="flex items-center gap-3">
-                <div className="text-4xl font-bold text-primary-600">
-                  {analysis.ats_score}/100
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">ATS Compatibility Score</div>
-                  <div className="text-sm text-gray-600">
-                    {analysis.ats_score >= 80 ? 'Excellent!' : 
-                     analysis.ats_score >= 60 ? 'Good, needs improvement' : 
-                     'Needs significant work'}
-                  </div>
-                </div>
-              </div>
+        )}
+
+        {step === 'results' && results && (
+          <div className="card">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">✅</div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-2">Your Resume Package is Ready!</h2>
             </div>
 
-            {/* Strengths */}
-            <div className="card">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <CheckCircle className="w-6 h-6 text-green-500" />
-                What's Working
-              </h2>
-              <ul className="space-y-2">
-                {analysis.strengths.map((strength: string, i: number) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-green-500 mt-1">✓</span>
-                    <span className="text-gray-700">{strength}</span>
-                  </li>
-                ))}
-              </ul>
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 pb-3 border-b-2 border-primary-600">
+                Master Resume
+              </h3>
+              <button
+                onClick={() => downloadResumePDF(results)}
+                className="btn btn-primary"
+              >
+                📄 Download Master Resume
+              </button>
             </div>
 
-            {/* Improvement Areas */}
-            <div className="card">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <AlertCircle className="w-6 h-6 text-amber-500" />
-                Areas to Improve
-              </h2>
-              <ul className="space-y-2">
-                {analysis.improvement_areas.map((area: string, i: number) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-amber-500 mt-1">⚠</span>
-                    <span className="text-gray-700">{area}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Specific Recommendations */}
-            <div className="card">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Specific Recommendations
-              </h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Format Fixes:</h3>
-                  <ul className="list-disc list-inside space-y-1">
-                    {analysis.specific_recommendations.format.map((rec: string, i: number) => (
-                      <li key={i} className="text-gray-700">{rec}</li>
-                    ))}
-                  </ul>
+            {results.variants && results.variants.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4 pb-3 border-b-2 border-primary-600">
+                  Job-Specific Resume Variants
+                </h3>
+                <div className="space-y-4">
+                  {results.variants.map((variant: any, idx: number) => (
+                    <div key={idx} className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-gray-700 mb-3">
+                        <strong>Variant {idx + 1}:</strong> {variant.tailoring_focus}
+                      </p>
+                      <button
+                        onClick={() => downloadResumePDF(results, idx)}
+                        className="btn btn-outline"
+                      >
+                        📄 Download Variant {idx + 1}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Content Improvements:</h3>
-                  <ul className="list-disc list-inside space-y-1">
-                    {analysis.specific_recommendations.content.map((rec: string, i: number) => (
-                      <li key={i} className="text-gray-700">{rec}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Missing Keywords:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {analysis.specific_recommendations.keywords.map((keyword: string, i: number) => (
-                      <span key={i} className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm">
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Rewritten Sections */}
-            {analysis.rewritten_sections && (
-              <div className="card bg-green-50 border-green-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  ✨ Suggested Rewrites
-                </h2>
-                
-                {analysis.rewritten_sections.professional_summary && (
-                  <div className="mb-4">
-                    <h3 className="font-bold text-gray-900 mb-2">Professional Summary:</h3>
-                    <p className="text-gray-700 bg-white p-4 rounded-lg">
-                      {analysis.rewritten_sections.professional_summary}
-                    </p>
-                  </div>
-                )}
-
-                {analysis.rewritten_sections.experience_bullets && (
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-2">Experience Bullets:</h3>
-                    <ul className="space-y-2">
-                      {analysis.rewritten_sections.experience_bullets.map((bullet: string, i: number) => (
-                        <li key={i} className="text-gray-700 bg-white p-3 rounded-lg">
-                          • {bullet}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* Actions */}
+            {jobs && jobs.jobs && (
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4 pb-3 border-b-2 border-primary-600">
+                  Job Opportunities ({jobs.jobs.length} matches)
+                </h3>
+                <button
+                  onClick={downloadJobsExcel}
+                  className="btn btn-primary mb-6"
+                >
+                  📊 Download Job List (Excel)
+                </button>
+
+                <div className="space-y-4">
+                  {jobs.jobs.slice(0, 5).map((job: any, idx: number) => (
+                    <div key={idx} className="p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-bold text-gray-900 mb-2">{job.title}</h4>
+                      <p className="text-sm text-gray-600 mb-2">{job.company} • {job.location}</p>
+                      <p className="text-gray-700 mb-3">{job.summary}</p>
+                      <a 
+                        href={job.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:underline"
+                      >
+                        Apply Now →
+                      </a>
+                    </div>
+                  ))}
+                  <p className="text-gray-600 text-center">
+                    ...and {jobs.jobs.length - 5} more opportunities in the Excel file
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-4">
               <button
-                onClick={() => {
-                  setAnalysis(null)
-                  setFile(null)
-                }}
-                className="btn-secondary"
+                onClick={() => router.push('/dashboard')}
+                className="btn btn-primary flex-1"
               >
-                Upload Another Resume
+                Return to Dashboard
               </button>
               <button
-                onClick={() => window.print()}
-                className="btn-primary"
+                onClick={() => {
+                  setStep('upload')
+                  setResumeFile(null)
+                  setJobDescFiles([])
+                  setResults(null)
+                  setJobs(null)
+                }}
+                className="btn btn-outline flex-1"
               >
-                Download Analysis (PDF)
+                Process Another Resume
               </button>
             </div>
           </div>
         )}
+
       </div>
     </div>
   )
