@@ -108,13 +108,16 @@ const handleStrengthsSubmit = async () => {
 
       if (user) {
         await supabase.from('module_progress').upsert({
-          user_id: user.id,
-          module_name: 'strengths',
-          is_completed: true,
-          progress_percent: 100,
-          updated_at: new Date().toISOString(),
-        })
-      }
+  user_id: user.id,
+  module_name: 'strengths',
+  is_unlocked: true,
+  is_completed: true,
+  progress_percent: 100,
+  unlocked_at: new Date().toISOString(),
+  completed_at: new Date().toISOString(),
+}, {
+  onConflict: 'user_id,module_name'
+})
 
       setStep('results')
     } catch (error) {
