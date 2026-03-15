@@ -182,15 +182,33 @@ Return ONLY valid JSON (no markdown):
   const downloadJobsExcel = () => {
     if (!jobs || !jobs.jobs) return
     
-    const headers = ['Title', 'Company', 'Location', 'PostingDate', 'Summary', 'Link']
+    // Create properly formatted CSV with all columns
+    const headers = ['Match %', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
+    
     const rows = jobs.jobs.map((job: any) => [
+      `${job.match_score}%`,
       job.title,
       job.company,
       job.location,
       job.posting_date,
       job.summary,
-      job.link
+      job.link  // This will be a clickable link when opened in Excel
     ])
+    
+    // Tab-separated values (Excel recognizes this format and makes links clickable)
+    const csv = [
+      headers.join('\t'),
+      ...rows.map((row: any[]) => row.join('\t'))
+    ].join('\n')
+    
+    const blob = new Blob([csv], { type: 'text/tab-separated-values' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
     
     const csv = [
       headers.join('\t'),
