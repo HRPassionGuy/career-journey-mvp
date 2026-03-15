@@ -436,7 +436,9 @@ Return ONLY valid JSON (no markdown):
                   {results.variants.map((variant: any, idx: number) => (
                     <div key={idx} className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-gray-700 mb-3">
-                        <strong>Variant {idx + 1}:</strong> {variant.tailoring_focus}
+                        <strong>Variant {idx + 1} - {variant.job_title} at {variant.company}</strong>
+<br />
+<span className="text-sm text-gray-600">{variant.tailoring_focus}</span>
                       </p>
                       <button
                         onClick={() => downloadResumePDF(results, idx)}
