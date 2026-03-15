@@ -37,6 +37,44 @@ export default function ResumeModulePage() {
     try {
       const resumeText = await resumeFile.text()
       
+      // Call server-side API route instead of direct Anthropic call
+      const analysisResponse = await fetch('/api/analyze-resume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeText,
+          targetTitle,
+          location
+        })
+      })
+
+      if (!analysisResponse.ok) {
+        throw new Error('Analysis failed')
+      }
+
+      const analysisData = await analysisResponse.json()
+      const analysisText = analysisData.content[0].text
+      const analysis = JSON.parse(analysisText.replace(/```json\n?|\n?```/g, '').trim())
+      
+      setAnalysisResult(analysis)
+      setStep('analysis')
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error analyzing resume. Please try again.')
+      setStep('upload')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+    setLoading(true)
+    setStep('analyzing')
+
+    try {
+      const resumeText = await resumeFile.text()
+      
       // Step 1: Analyze the resume first
       const analysisResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
