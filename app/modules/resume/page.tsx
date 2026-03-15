@@ -209,7 +209,7 @@ Return ONLY valid JSON (no markdown):
     a.click()
     URL.revokeObjectURL(url)
   }
-    
+}
     const csv = [
       headers.join('\t'),
       ...rows.map((row: any[]) => row.join('\t'))
