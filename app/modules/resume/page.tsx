@@ -182,7 +182,6 @@ Return ONLY valid JSON (no markdown):
   const downloadJobsExcel = () => {
     if (!jobs || !jobs.jobs) return
     
-    // Create properly formatted CSV with all columns
     const headers = ['Match %', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
     
     const rows = jobs.jobs.map((job: any) => [
@@ -192,10 +191,9 @@ Return ONLY valid JSON (no markdown):
       job.location,
       job.posting_date,
       job.summary,
-      job.link  // This will be a clickable link when opened in Excel
+      job.link
     ])
     
-    // Tab-separated values (Excel recognizes this format and makes links clickable)
     const csv = [
       headers.join('\t'),
       ...rows.map((row: any[]) => row.join('\t'))
@@ -208,19 +206,6 @@ Return ONLY valid JSON (no markdown):
     a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
     a.click()
     URL.revokeObjectURL(url)
-  }
-}
-    const csv = [
-      headers.join('\t'),
-      ...rows.map((row: any[]) => row.join('\t'))
-    ].join('\n')
-    
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'job_opportunities.csv'
-    a.click()
   }
 
   return (
