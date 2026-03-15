@@ -4,7 +4,6 @@ export async function POST(request: NextRequest) {
   try {
     const { resumeAnalysis, targetTitle, location, salary } = await request.json()
     
-    // Call Anthropic to search for jobs
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -17,31 +16,31 @@ export async function POST(request: NextRequest) {
         max_tokens: 8000,
         messages: [{
           role: 'user',
-          content: `You are a job search expert. Find 12-15 REAL, CURRENT job opportunities that match this candidate's profile.
+          content: `You are a bespoke and boutique recruiter tasked with finding matching roles/jobs based on the information provided by the client.
 
-TARGET JOB TITLE: ${targetTitle}
-LOCATION: ${location}
-SALARY RANGE: ${salary}
+CLIENT INFORMATION:
+Target Job Title: ${targetTitle}
+Location: ${location}
+Salary Range: ${salary}
 
 CANDIDATE PROFILE:
 ${JSON.stringify(resumeAnalysis, null, 2)}
 
 CRITICAL REQUIREMENTS:
-1. Find 12-15 real job postings (minimum 12, maximum 15)
-2. Each job MUST include a match score (0-100%) based on candidate fit
-3. Sort results by match score (highest match first)
-4. Provide realistic company career page URLs
-5. Focus on senior/executive level positions
-6. Include specific requirements in summary (years experience, education, skills)
+- Source roles from LinkedIn Jobs, official company career pages, and other reputable job platforms
+- Include ONLY roles with verifiable postings and a real application page
+- Do NOT infer or fabricate any listings
+- Return 12-15 roles that meet these criteria and are actively recruiting
+- Each role must have a match score (1-10 scale, with 10 being the closest match possible)
 
 For EACH job, provide:
-- title: Exact job title
-- company: Company name  
-- location: City/Country or "Remote"
+- title: Exact job title from the posting
+- company: Company name
+- location: City/State/Country or "Remote"
 - posting_date: Today's date (2026-03-14) in YYYY-MM-DD format
-- match_score: Number 0-100 representing % match to candidate
-- summary: 2-3 sentences including key requirements (education, years experience, specific skills)
-- link: Direct application URL (format: https://careers.COMPANY.com/JOB-TITLE/job)
+- match_score: Integer 1-10 (10 = closest match)
+- summary: 2-3 sentences with key requirements from the actual posting
+- link: Direct URL to the application page (must be real and verifiable)
 
 Return ONLY valid JSON (no markdown, no backticks):
 {
@@ -51,12 +50,14 @@ Return ONLY valid JSON (no markdown, no backticks):
       "company": "Microsoft",
       "location": "Remote (USA)",
       "posting_date": "2026-03-14",
-      "match_score": 95,
-      "summary": "Leads enterprise sales strategy across North America; manages $200M+ portfolio and team of 30+ sales professionals; requires 10+ years enterprise software sales experience, proven track record of exceeding $50M revenue targets, and MBA preferred.",
-      "link": "https://careers.microsoft.com/senior-sales-director/job"
+      "match_score": 9,
+      "summary": "Leads enterprise sales strategy; requires 10+ years experience and proven $50M+ revenue track record.",
+      "link": "https://careers.microsoft.com/us/en/job/1234567/Senior-Sales-Director"
     }
   ]
-}`
+}
+
+IMPORTANT: Jobs must be REAL current postings with REAL application links. Do not generate fake examples.`
         }]
       })
     })
@@ -71,7 +72,7 @@ Return ONLY valid JSON (no markdown, no backticks):
     const jobsText = data.content[0].text
     const jobsData = JSON.parse(jobsText.replace(/```json\n?|\n?```/g, '').trim())
     
-    // Sort by match score (highest first) - ensure it's sorted
+    // Sort by match score (highest first)
     if (jobsData.jobs) {
       jobsData.jobs.sort((a: any, b: any) => (b.match_score || 0) - (a.match_score || 0))
     }
