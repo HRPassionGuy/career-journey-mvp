@@ -56,13 +56,15 @@ Return ONLY valid JSON (no markdown):
     "page2": "Full formatted text for page 2"
   },
   "variants": [
-    {
-      "job_number": 1,
-      "tailoring_focus": "How this is tailored",
-      "page1": "Variant page 1",
-      "page2": "Variant page 2"
-    }
-  ],
+  {
+    "job_number": 1,
+    "job_title": "Exact job title extracted from uploaded job description",
+    "company": "Company name from job description",
+    "tailoring_focus": "How this resume is customized for this specific role",
+    "page1": "Variant page 1 text",
+    "page2": "Variant page 2 text"
+  }
+]
   "analysis": {
     "key_strengths": ["strength 1", "strength 2"],
     "target_roles": ["role 1", "role 2"],
