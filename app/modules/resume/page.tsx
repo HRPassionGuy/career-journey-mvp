@@ -4,31 +4,98 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientSupabaseClient } from '@/lib/supabase'
 
+type AnalysisResult = {
+  key_strengths: string[]
+  areas_for_improvement: string[]
+  recommended_keywords: string[]
+  target_roles: string[]
+  summary: string
+}
+
 export default function ResumeModulePage() {
   const router = useRouter()
-  const [step, setStep] = useState<'upload' | 'processing' | 'results'>('upload')
+  const [step, setStep] = useState<'upload' | 'analyzing' | 'analysis' | 'processing' | 'results'>('upload')
   const [loading, setLoading] = useState(false)
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [jobDescFiles, setJobDescFiles] = useState<File[]>([])
   const [targetTitle, setTargetTitle] = useState('')
   const [location, setLocation] = useState('')
   const [salary, setSalary] = useState('')
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [results, setResults] = useState<any>(null)
   const [jobs, setJobs] = useState<any>(null)
 
-  const handleSubmit = async () => {
+  const handleAnalyze = async () => {
     if (!resumeFile || !targetTitle || !location) {
       alert('Please upload resume and fill in all required fields')
       return
     }
 
     setLoading(true)
+    setStep('analyzing')
+
+    try {
+      const resumeText = await resumeFile.text()
+      
+      // Step 1: Analyze the resume first
+      const analysisResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || '',
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4000,
+          messages: [{
+            role: 'user',
+            content: `Analyze this resume for a ${targetTitle} role in ${location}.
+
+RESUME:
+${resumeText}
+
+Provide:
+1. Key strengths
+2. Areas for improvement
+3. Recommended keywords for ${targetTitle}
+4. Target roles this resume qualifies for
+
+Return ONLY valid JSON (no markdown):
+{
+  "key_strengths": ["strength 1", "strength 2", "strength 3"],
+  "areas_for_improvement": ["area 1", "area 2", "area 3"],
+  "recommended_keywords": ["keyword 1", "keyword 2", "keyword 3"],
+  "target_roles": ["role 1", "role 2", "role 3"],
+  "summary": "2-3 sentence overall assessment"
+}`
+          }]
+        })
+      })
+
+      const analysisData = await analysisResponse.json()
+      const analysisText = analysisData.content[0].text
+      const analysis = JSON.parse(analysisText.replace(/```json\n?|\n?```/g, '').trim())
+      
+      setAnalysisResult(analysis)
+      setStep('analysis')
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error analyzing resume. Please try again.')
+      setStep('upload')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRewrite = async () => {
+    setLoading(true)
     setStep('processing')
 
     try {
-      // Step 1: Process resume
+      // Step 2: Process resume with rewrite
       const formData = new FormData()
-      formData.append('resume', resumeFile)
+      formData.append('resume', resumeFile!)
       jobDescFiles.forEach(file => formData.append('jobDescriptions', file))
       formData.append('targetTitle', targetTitle)
       formData.append('location', location)
@@ -45,7 +112,7 @@ export default function ResumeModulePage() {
 
       const resumeData = await resumeResponse.json()
       
-      // Step 2: Search for jobs
+      // Step 3: Search for jobs
       const jobsResponse = await fetch('/api/search-jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,29 +138,29 @@ export default function ResumeModulePage() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
-       const { error } = await supabase.from('module_progress').upsert({
-  user_id: user.id,
-  module_name: 'strengths', // or 'resume'
-  is_unlocked: true,
-  is_completed: true,
-  progress_percent: 100,
-  unlocked_at: new Date().toISOString(),
-  completed_at: new Date().toISOString(),
-}, {
-  onConflict: 'user_id,module_name',
-  ignoreDuplicates: false
-})
-
-if (error) {
-  console.error('Supabase save error:', error)
-}
+        const { error } = await supabase.from('module_progress').upsert({
+          user_id: user.id,
+          module_name: 'resume',
+          is_unlocked: true,
+          is_completed: true,
+          progress_percent: 100,
+          unlocked_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,module_name',
+          ignoreDuplicates: false
+        })
+        
+        if (error) {
+          console.error('Supabase save error:', error)
+        }
       }
 
       setStep('results')
     } catch (error) {
       console.error('Error:', error)
       alert('Error processing resume. Please try again.')
-      setStep('upload')
+      setStep('analysis')
     } finally {
       setLoading(false)
     }
@@ -151,11 +218,11 @@ if (error) {
             <div className="bg-primary-50 border-l-4 border-primary-600 p-6 mb-8">
               <h2 className="text-xl font-bold text-gray-900 mb-3">What You'll Receive:</h2>
               <ul className="space-y-2 text-gray-700">
-                <li>✅ Professional resume rewritten in proven template format</li>
+                <li>✅ Professional resume analysis with recommendations</li>
+                <li>✅ Resume rewritten in proven template format</li>
                 <li>✅ 5 job-specific resume variants (if you provide job descriptions)</li>
                 <li>✅ 12-15 targeted job matches with application links</li>
                 <li>✅ Excel spreadsheet with all opportunities</li>
-                <li>✅ Downloadable PDF resumes ready to submit</li>
               </ul>
             </div>
 
@@ -229,21 +296,108 @@ if (error) {
             </div>
 
             <button
-              onClick={handleSubmit}
+              onClick={handleAnalyze}
               disabled={loading || !resumeFile || !targetTitle || !location}
               className="btn btn-primary w-full mt-8"
             >
-              Process Resume & Find Jobs →
+              Analyze My Resume →
             </button>
+          </div>
+        )}
+
+        {step === 'analyzing' && (
+          <div className="card text-center">
+            <div className="text-6xl mb-6">🔍</div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Analyzing Your Resume...</h2>
+            <p className="text-xl text-gray-600 mb-8">
+              Identifying strengths and opportunities for improvement...
+            </p>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600"></div>
+            </div>
+          </div>
+        )}
+
+        {step === 'analysis' && analysisResult && (
+          <div className="card">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">📊</div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-2">Resume Analysis Complete</h2>
+              <p className="text-xl text-gray-600">{analysisResult.summary}</p>
+            </div>
+
+            <div className="space-y-8 mb-8">
+              <div className="p-6 bg-green-50 rounded-lg border-l-4 border-green-600">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">✅ Key Strengths</h3>
+                <ul className="space-y-2">
+                  {analysisResult.key_strengths.map((strength, idx) => (
+                    <li key={idx} className="text-gray-700">• {strength}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-6 bg-yellow-50 rounded-lg border-l-4 border-yellow-600">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">⚡ Areas for Improvement</h3>
+                <ul className="space-y-2">
+                  {analysisResult.areas_for_improvement.map((area, idx) => (
+                    <li key={idx} className="text-gray-700">• {area}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-6 bg-blue-50 rounded-lg border-l-4 border-blue-600">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">🎯 Recommended Keywords</h3>
+                <div className="flex flex-wrap gap-2">
+                  {analysisResult.recommended_keywords.map((keyword, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-blue-600 text-white rounded-full text-sm">
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-6 bg-purple-50 rounded-lg border-l-4 border-purple-600">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">💼 Target Roles</h3>
+                <ul className="space-y-2">
+                  {analysisResult.target_roles.map((role, idx) => (
+                    <li key={idx} className="text-gray-700">• {role}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-primary-50 border-l-4 border-primary-600 p-6 mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Ready to Rewrite?</h3>
+              <p className="text-gray-700">
+                Based on this analysis, I'll now rewrite your resume in a professional executive format,
+                incorporating these recommendations and optimizing for {targetTitle} roles.
+              </p>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setStep('upload')}
+                className="btn btn-outline flex-1"
+              >
+                ← Back
+              </button>
+              <button
+                onClick={handleRewrite}
+                disabled={loading}
+                className="btn btn-primary flex-1"
+              >
+                Rewrite My Resume →
+              </button>
+            </div>
           </div>
         )}
 
         {step === 'processing' && (
           <div className="card text-center">
             <div className="text-6xl mb-6">📄</div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Processing Your Resume...</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Rewriting Your Resume...</h2>
             <p className="text-xl text-gray-600 mb-8">
-              Rewriting your resume and searching for opportunities...
+              Creating professional resume and searching for opportunities...
             </p>
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600"></div>
@@ -340,6 +494,7 @@ if (error) {
                   setStep('upload')
                   setResumeFile(null)
                   setJobDescFiles([])
+                  setAnalysisResult(null)
                   setResults(null)
                   setJobs(null)
                 }}
