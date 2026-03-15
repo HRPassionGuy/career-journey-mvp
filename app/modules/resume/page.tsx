@@ -169,14 +169,96 @@ Return ONLY valid JSON (no markdown):
   const downloadResumePDF = async (resumeData: any, variant?: number) => {
     const page1 = variant !== undefined ? resumeData.variants[variant].page1 : resumeData.master_resume.page1
     const page2 = variant !== undefined ? resumeData.variants[variant].page2 : resumeData.master_resume.page2
+    const fileName = variant !== undefined ? `resume_variant_${variant + 1}` : 'master_resume'
     
-    const content = `${page1}\n\n${page2}`
-    const blob = new Blob([content], { type: 'text/plain' })
+    // Create HTML for PDF
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${fileName}</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 0.5in;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.4;
+      color: #000;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2, h3 {
+      color: #1e3a8a;
+      margin-top: 0;
+    }
+    h1 {
+      font-size: 20pt;
+      margin-bottom: 4pt;
+    }
+    h2 {
+      font-size: 14pt;
+      margin-top: 12pt;
+      margin-bottom: 6pt;
+      border-bottom: 2px solid #1e3a8a;
+      padding-bottom: 2pt;
+    }
+    h3 {
+      font-size: 12pt;
+      margin-top: 8pt;
+      margin-bottom: 4pt;
+    }
+    p {
+      margin: 4pt 0;
+    }
+    ul {
+      margin: 4pt 0;
+      padding-left: 20pt;
+    }
+    li {
+      margin: 2pt 0;
+    }
+    .page-break {
+      page-break-after: always;
+    }
+    strong {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-1">
+    ${page1.replace(/\n/g, '<br>')}
+  </div>
+  <div class="page-break"></div>
+  <div class="page-2">
+    ${page2.replace(/\n/g, '<br>')}
+  </div>
+</body>
+</html>
+    `
+    
+    // Create blob and download
+    const blob = new Blob([htmlContent], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = variant !== undefined ? `resume_variant_${variant + 1}.txt` : 'master_resume.txt'
+    a.download = `${fileName}.html`
     a.click()
+    URL.revokeObjectURL(url)
+    
+    // Open in new window for print-to-PDF
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(htmlContent)
+      printWindow.document.close()
+      setTimeout(() => {
+        printWindow.print()
+      }, 250)
+    }
   }
 
   const downloadJobsExcel = () => {
