@@ -185,7 +185,7 @@ Return ONLY valid JSON (no markdown):
     const headers = ['Match %', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
     
     const rows = jobs.jobs.map((job: any) => [
-      `${job.match_score}%`,
+      `${job.match_score}/10`,
       job.title,
       job.company,
       job.location,
