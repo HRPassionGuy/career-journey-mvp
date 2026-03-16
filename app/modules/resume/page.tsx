@@ -154,9 +154,7 @@ export default function ResumeModulePage() {
             })
         }
         
-        if (error) {
-          console.error('Supabase save error:', error)
-        }
+        
       }
 
       setStep('results')
