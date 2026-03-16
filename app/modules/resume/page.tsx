@@ -116,22 +116,43 @@ export default function ResumeModulePage() {
       setJobs(jobsData)
       
       // Save completion status
-      const supabase = await createClientSupabaseClient()
+      const supabase = createClientSupabaseClient()
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
-        const { error } = await supabase.from('module_progress').upsert({
-          user_id: user.id,
-          module_name: 'resume',
-          is_unlocked: true,
-          is_completed: true,
-          progress_percent: 100,
-          unlocked_at: new Date().toISOString(),
-          completed_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,module_name',
-          ignoreDuplicates: false
-        })
+        // First, check if record exists
+        const { data: existing } = await supabase
+          .from('module_progress')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('module_name', 'resume')
+          .single()
+
+        if (existing) {
+          // Update existing record
+          await supabase
+            .from('module_progress')
+            .update({
+              is_completed: true,
+              progress_percent: 100,
+              completed_at: new Date().toISOString(),
+            })
+            .eq('user_id', user.id)
+            .eq('module_name', 'resume')
+        } else {
+          // Insert new record
+          await supabase
+            .from('module_progress')
+            .insert({
+              user_id: user.id,
+              module_name: 'resume',
+              is_unlocked: true,
+              is_completed: true,
+              progress_percent: 100,
+              unlocked_at: new Date().toISOString(),
+              completed_at: new Date().toISOString(),
+            })
+        }
         
         if (error) {
           console.error('Supabase save error:', error)
