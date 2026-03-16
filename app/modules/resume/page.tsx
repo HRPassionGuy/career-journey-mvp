@@ -70,62 +70,7 @@ export default function ResumeModulePage() {
   }
 
     setLoading(true)
-    setStep('analyzing')
-
-    try {
-      const resumeText = await resumeFile.text()
-      
-      // Step 1: Analyze the resume first
-      const analysisResponse = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || '',
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          messages: [{
-            role: 'user',
-            content: `Analyze this resume for a ${targetTitle} role in ${location}.
-
-RESUME:
-${resumeText}
-
-Provide:
-1. Key strengths
-2. Areas for improvement
-3. Recommended keywords for ${targetTitle}
-4. Target roles this resume qualifies for
-
-Return ONLY valid JSON (no markdown):
-{
-  "key_strengths": ["strength 1", "strength 2", "strength 3"],
-  "areas_for_improvement": ["area 1", "area 2", "area 3"],
-  "recommended_keywords": ["keyword 1", "keyword 2", "keyword 3"],
-  "target_roles": ["role 1", "role 2", "role 3"],
-  "summary": "2-3 sentence overall assessment"
-}`
-          }]
-        })
-      })
-
-      const analysisData = await analysisResponse.json()
-      const analysisText = analysisData.content[0].text
-      const analysis = JSON.parse(analysisText.replace(/```json\n?|\n?```/g, '').trim())
-      
-      setAnalysisResult(analysis)
-      setStep('analysis')
-    } catch (error) {
-      console.error('Error:', error)
-      alert('Error analyzing resume. Please try again.')
-      setStep('upload')
-    } finally {
-      setLoading(false)
-    }
-  }
-
+   
   const handleRewrite = async () => {
     setLoading(true)
     setStep('processing')
