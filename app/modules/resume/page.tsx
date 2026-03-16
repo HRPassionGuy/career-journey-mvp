@@ -36,10 +36,17 @@ export default function ResumeModulePage() {
 
     try {
       // Convert file to base64
-      const fileBuffer = await resumeFile.arrayBuffer()
-      const base64File = btoa(
-        new Uint8Array(fileBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-      )
+      const reader = new FileReader()
+      const base64File = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string
+          // Remove the data:application/pdf;base64, prefix
+          const base64 = result.split(',')[1]
+          resolve(base64)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(resumeFile)
+      })
       
       // Call server-side API route
       const analysisResponse = await fetch('/api/analyze-resume', {
