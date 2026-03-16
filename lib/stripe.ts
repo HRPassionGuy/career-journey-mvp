@@ -6,14 +6,13 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 })
 
-// Module pricing (in cents)
 export const MODULE_PRICES = {
   strengths: 6700,      // $67
   resume: 19700,        // $197
-  networking: 9700,     // $97
+  networking: 0,        // FREE
   innervue: 14700,      // $147
-  bundle_intro: 19700,  // $197 (intro offer)
-  bundle_regular: 39700, // $397 (regular price)
+  bundle_intro: 19700,  // $197 (launch special - first 30 days only)
+  bundle_regular: 49700, // $497 (regular price - after 30 days)
   annual: 21800,        // $218 (renewal)
 } as const
 
