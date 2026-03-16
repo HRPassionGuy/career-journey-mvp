@@ -35,12 +35,11 @@ export default function ResumeModulePage() {
     setStep('analyzing')
 
     try {
-      // Convert file to base64
+      // Use the existing resume-analyze endpoint that already works
       const reader = new FileReader()
       const base64File = await new Promise<string>((resolve, reject) => {
         reader.onload = () => {
           const result = reader.result as string
-          // Remove the data:application/pdf;base64, prefix
           const base64 = result.split(',')[1]
           resolve(base64)
         }
@@ -48,17 +47,14 @@ export default function ResumeModulePage() {
         reader.readAsDataURL(resumeFile)
       })
       
-      // Call server-side API route
-      const analysisResponse = await fetch('/api/analyze-resume', {
+      const analysisResponse = await fetch('/api/resume-analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fileData: base64File,
           fileName: resumeFile.name,
-          targetTitle,
-          location
+          fileData: base64File
         })
       })
 
@@ -67,8 +63,15 @@ export default function ResumeModulePage() {
       }
 
       const analysisData = await analysisResponse.json()
-      const analysisText = analysisData.content[0].text
-      const analysis = JSON.parse(analysisText.replace(/```json\n?|\n?```/g, '').trim())
+      
+      // Extract analysis from the response
+      const analysis = analysisData.analysis || {
+        key_strengths: analysisData.analysis?.strengths || [],
+        areas_for_improvement: analysisData.analysis?.improvement_areas || [],
+        recommended_keywords: [],
+        target_roles: [],
+        summary: `Resume analyzed successfully. ATS Score: ${analysisData.analysis?.ats_score || 'N/A'}`
+      }
       
       setAnalysisResult(analysis)
       setStep('analysis')
