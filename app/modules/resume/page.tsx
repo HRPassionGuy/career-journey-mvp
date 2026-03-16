@@ -69,7 +69,6 @@ export default function ResumeModulePage() {
     }
   }
 
-    setLoading(true)
    
   const handleRewrite = async () => {
     setLoading(true)
