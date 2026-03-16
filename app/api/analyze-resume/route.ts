@@ -1,9 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
+// @ts-ignore
+import pdf from 'pdf-parse'
 
 export async function POST(request: NextRequest) {
   try {
-    const { resumeText, targetTitle, location } = await request.json()
+    const { fileData, fileName, targetTitle, location } = await request.json()
     
+    // Convert base64 to buffer
+    const buffer = Buffer.from(fileData, 'base64')
+    
+    // Extract text from PDF
+    let resumeText = ''
+    
+    if (fileName.toLowerCase().endsWith('.pdf')) {
+      const pdfData = await pdf(buffer)
+      resumeText = pdfData.text
+    } else {
+      // For .txt, .doc, .docx files
+      resumeText = buffer.toString('utf-8')
+    }
+    
+    if (!resumeText || resumeText.trim().length < 100) {
+      return NextResponse.json({
+        error: 'Could not extract text from file. Please ensure it\'s not a scanned image or password-protected.'
+      }, { status: 400 })
+    }
+    
+    // Call Anthropic API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
