@@ -49,13 +49,13 @@ const handleSignUp = async (e: React.FormEvent) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
-     <a href="/signin" className="text-gray-600 hover:text-gray-900">
+      {/* Header */}
+      <header className="container mx-auto px-4 py-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-primary-600">Career Journey</h1>
+          <a href="/signin" className="text-gray-600 hover:text-gray-900">
             Already have an account? <span className="text-primary-600 font-semibold">Sign In</span>
           </a>
-          <h1 className="text-2xl font-bold text-primary-600">Career Journey</h1>
-          <button className="text-gray-600 hover:text-gray-900">
-            Already have an account? <span className="text-primary-600">Sign In</span>
-          </button>
         </div>
       </header>
 
