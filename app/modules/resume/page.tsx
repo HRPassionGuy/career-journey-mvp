@@ -35,16 +35,21 @@ export default function ResumeModulePage() {
     setStep('analyzing')
 
     try {
-      const resumeText = await resumeFile.text()
+      // Convert file to base64
+      const fileBuffer = await resumeFile.arrayBuffer()
+      const base64File = btoa(
+        new Uint8Array(fileBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      )
       
-      // Call server-side API route instead of direct Anthropic call
+      // Call server-side API route
       const analysisResponse = await fetch('/api/analyze-resume', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          resumeText,
+          fileData: base64File,
+          fileName: resumeFile.name,
           targetTitle,
           location
         })
