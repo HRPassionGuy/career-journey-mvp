@@ -47,7 +47,7 @@ export default function ResumeModulePage() {
         reader.readAsDataURL(resumeFile)
       })
       
-      const analysisResponse = await fetch('/api/resume-analyze', {
+      const analysisResponse = await fetch('/api/analyze-resume', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,15 +63,8 @@ export default function ResumeModulePage() {
       }
 
       const analysisData = await analysisResponse.json()
-      
-      // Extract analysis from the response
-      const analysis = analysisData.analysis || {
-        key_strengths: analysisData.analysis?.strengths || [],
-        areas_for_improvement: analysisData.analysis?.improvement_areas || [],
-        recommended_keywords: [],
-        target_roles: [],
-        summary: `Resume analyzed successfully. ATS Score: ${analysisData.analysis?.ats_score || 'N/A'}`
-      }
+      const analysisText = analysisData.content[0].text
+      const analysis = JSON.parse(analysisText.replace(/```json\n?|\n?```/g, '').trim())
       
       setAnalysisResult(analysis)
       setStep('analysis')
