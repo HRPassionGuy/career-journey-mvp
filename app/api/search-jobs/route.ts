@@ -55,6 +55,9 @@ Include the link to each job application and a match score for each (scale 1-10,
     const data = await response.json()
     let jobsText = data.choices[0].message.content.trim()
     
+    // Log what ChatGPT returned
+    console.log('ChatGPT Response:', jobsText.substring(0, 500))
+    
     // Remove markdown code blocks if present
     jobsText = jobsText.replace(/```json\n?|\n?```/g, '').trim()
     
