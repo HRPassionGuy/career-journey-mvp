@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
-  try {
+     console.log('Job search API called - v2')
+     try {
     const { resumeAnalysis, targetTitle, location, salary } = await request.json()
     
     const response = await fetch('https://api.anthropic.com/v1/messages', {
