@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import OpenAI from 'openai'
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+})
 
 export async function POST(request: NextRequest) {
   try {
     const { resumeAnalysis, targetTitle, location, salary } = await request.json()
     
-    // Call OpenAI (ChatGPT) with web browsing capability
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [{
-          role: 'user',
-          content: `You are a bespoke and boutique recruiter tasked with finding matching roles/jobs based on the information provided by the client regarding job title; location and role. Source roles from LinkedIn jobs, official company career pages and other reputable job platforms. Include only roles with verifiable postings and a real application page. Do not infer or fabricate any listings. Return 12-15 roles that meet these criteria and are actively recruiting.
+    // Use Responses API with web_search tool
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{
+        role: 'user',
+        content: `You are a bespoke and boutique recruiter. Use web search to find 12-15 REAL current job postings.
 
 TARGET JOB TITLE: ${targetTitle}
 LOCATION: ${location}
@@ -24,52 +23,54 @@ SALARY RANGE: ${salary}
 CANDIDATE PROFILE:
 ${JSON.stringify(resumeAnalysis, null, 2)}
 
-Deliverables: Return ONLY a JSON object with this exact structure (no markdown, no explanation):
+Search LinkedIn Jobs, Indeed, company career pages, and other job platforms for REAL current openings.
+
+Return ONLY a JSON array (no markdown, no explanation):
 
 {
   "jobs": [
     {
-      "title": "Exact job title",
-      "company": "Company name",
-      "location": "City, State or Remote",
-      "posting_date": "2026-03-17",
-      "match_score": 9,
-      "summary": "2-3 sentences about the role",
-      "link": "https://actual-application-url.com"
+      "title": "exact job title from posting",
+      "company": "company name",
+      "location": "city, state or Remote",
+      "posting_date": "YYYY-MM-DD",
+      "match_score": 8,
+      "summary": "2-3 sentences about requirements",
+      "link": "actual application URL"
     }
   ]
 }
 
-Include the link to each job application and a match score for each (scale 1-10, with 10 being the closest match possible).`
-        }],
-        temperature: 0.7
-      })
+Match score 1-10 (10 = best match). Include REAL application links only.`
+      }],
+      tools: [{
+        type: 'function',
+        function: {
+          name: 'web_search',
+          description: 'Search the web for current job postings'
+        }
+      }]
     })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error('OpenAI API Error:', errorData)
-      return NextResponse.json({ error: 'Job search failed' }, { status: response.status })
+    const content = response.choices[0].message.content
+    
+    if (!content) {
+      throw new Error('No response from OpenAI')
     }
 
-    const data = await response.json()
-    let jobsText = data.choices[0].message.content.trim()
+    console.log('OpenAI Response:', content.substring(0, 500))
+
+    // Parse JSON from response
+    let jobsText = content.trim().replace(/```json\n?|\n?```/g, '').trim()
     
-    // Log what ChatGPT returned
-    console.log('ChatGPT Response:', jobsText.substring(0, 500))
-    
-    // Remove markdown code blocks if present
-    jobsText = jobsText.replace(/```json\n?|\n?```/g, '').trim()
-    
-    // Extract JSON
     const jsonMatch = jobsText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      throw new Error('No JSON found in ChatGPT response')
+      throw new Error('No JSON found in response')
     }
     
     const jobsData = JSON.parse(jsonMatch[0])
     
-    // Sort by match score (highest first)
+    // Sort by match score
     if (jobsData.jobs) {
       jobsData.jobs.sort((a: any, b: any) => (b.match_score || 0) - (a.match_score || 0))
     }
