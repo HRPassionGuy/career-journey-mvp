@@ -37,19 +37,20 @@ For EACH job, provide:
 - title: Exact job title from the posting
 - company: Company name
 - location: City/State/Country or "Remote"
-- posting_date: Today's date (2026-03-14) in YYYY-MM-DD format
+- posting_date: Today's date (2026-03-17) in YYYY-MM-DD format
 - match_score: Integer 1-10 (10 = closest match)
 - summary: 2-3 sentences with key requirements from the actual posting
 - link: Direct URL to the application page (must be real and verifiable)
 
-Return ONLY valid JSON (no markdown, no backticks):
+YOUR RESPONSE MUST BE ONLY THE JSON OBJECT BELOW. DO NOT include any explanatory text, markdown formatting, or backticks. Start your response with the opening brace {
+
 {
   "jobs": [
     {
       "title": "Senior Sales Director",
       "company": "Microsoft",
       "location": "Remote (USA)",
-      "posting_date": "2026-03-14",
+      "posting_date": "2026-03-17",
       "match_score": 9,
       "summary": "Leads enterprise sales strategy; requires 10+ years experience and proven $50M+ revenue track record.",
       "link": "https://careers.microsoft.com/us/en/job/1234567/Senior-Sales-Director"
@@ -69,8 +70,18 @@ IMPORTANT: Jobs must be REAL current postings with REAL application links. Do no
     }
 
     const data = await response.json()
-    const jobsText = data.content[0].text
-    const jobsData = JSON.parse(jobsText.replace(/```json\n?|\n?```/g, '').trim())
+    let jobsText = data.content[0].text
+    
+    // Remove any markdown code blocks
+    jobsText = jobsText.replace(/```json\n?|\n?```/g, '').trim()
+    
+    // Try to extract JSON if Claude added extra text
+    const jsonMatch = jobsText.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      jobsText = jsonMatch[0]
+    }
+    
+    const jobsData = JSON.parse(jobsText)
     
     // Sort by match score (highest first)
     if (jobsData.jobs) {
