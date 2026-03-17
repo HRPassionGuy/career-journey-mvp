@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${process.env.KIMI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'kimi-search', // Use the search-enabled model
+       model: 'moonshot-v1-128k',
         messages: [{
           role: 'system',
           content: 'You are a professional recruiter. Use web search to find REAL current job postings from LinkedIn, Indeed, company career pages, and other job platforms.'
