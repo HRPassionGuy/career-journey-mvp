@@ -4,87 +4,50 @@ export async function POST(request: NextRequest) {
   try {
     const { resumeAnalysis, targetTitle, location, salary } = await request.json()
     
-    // Call Kimi API with search model
-    const response = await fetch('https://api.moonshot.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.KIMI_API_KEY}`
-      },
-      body: JSON.stringify({
-       model: 'moonshot-v1-128k',
-        messages: [{
-          role: 'system',
-          content: 'You are a professional recruiter. Use web search to find REAL current job postings from LinkedIn, Indeed, company career pages, and other job platforms.'
-        }, {
-          role: 'user',
-          content: `Search the web for 12-15 REAL current job postings that match this profile:
-
-TARGET JOB TITLE: ${targetTitle}
-LOCATION: ${location}
-SALARY RANGE: ${salary}
-
-CANDIDATE PROFILE:
-${JSON.stringify(resumeAnalysis, null, 2)}
-
-Find REAL jobs from:
-- LinkedIn Jobs
-- Indeed
-- Official company career pages
-- Other reputable job platforms
-
-Return ONLY a JSON object (no markdown, no explanation):
-
-{
-  "jobs": [
-    {
-      "title": "exact job title from posting",
-      "company": "company name",
-      "location": "city, state or Remote",
-      "posting_date": "2026-03-17",
-      "match_score": 8,
-      "summary": "2-3 sentences about the role requirements",
-      "link": "actual application URL from the job posting"
-    }
-  ]
-}
-
-Match score: 1-10 (10 = best match). Include REAL application links only.`
-        }],
-        temperature: 0.7,
-        max_tokens: 8000
-      })
-    })
+    // Build search query
+    const searchQuery = `${targetTitle} ${location}`
+    
+    // Call JSearch API
+    const response = await fetch(
+      `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&num_pages=1`,
+      {
+        method: 'GET',
+        headers: {
+          'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '',
+          'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
+        }
+      }
+    )
 
     if (!response.ok) {
       const errorData = await response.json()
-      console.error('Kimi API Error:', errorData)
+      console.error('JSearch API Error:', errorData)
       return NextResponse.json({ error: 'Job search failed' }, { status: response.status })
     }
 
     const data = await response.json()
-    let jobsText = data.choices[0].message.content.trim()
     
-    console.log('Kimi Response (first 500 chars):', jobsText.substring(0, 500))
-    
-    // Remove markdown code blocks
-    jobsText = jobsText.replace(/```json\n?|\n?```/g, '').trim()
-    
-    // Extract JSON
-    const jsonMatch = jobsText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      console.error('No JSON found in Kimi response')
-      throw new Error('No JSON found in response')
+    if (!data.data || data.data.length === 0) {
+      return NextResponse.json({ 
+        jobs: [],
+        message: 'No jobs found for this search'
+      })
     }
-    
-    const jobsData = JSON.parse(jsonMatch[0])
-    
-    // Sort by match score
-    if (jobsData.jobs) {
-      jobsData.jobs.sort((a: any, b: any) => (b.match_score || 0) - (a.match_score || 0))
-    }
-    
-    return NextResponse.json(jobsData)
+
+    // Transform JSearch results to our format
+    const jobs = data.data.slice(0, 15).map((job: any, index: number) => ({
+      title: job.job_title || 'Unknown Title',
+      company: job.employer_name || 'Unknown Company',
+      location: job.job_city && job.job_state 
+        ? `${job.job_city}, ${job.job_state}` 
+        : job.job_country || 'Remote',
+      posting_date: job.job_posted_at_datetime_utc?.split('T')[0] || new Date().toISOString().split('T')[0],
+      match_score: 10 - index, // Simple scoring: first results get higher scores
+      summary: job.job_description?.substring(0, 200) || 'No description available',
+      link: job.job_apply_link || job.job_google_link || '#'
+    }))
+
+    return NextResponse.json({ jobs })
 
   } catch (error) {
     console.error('Job Search API Error:', error)
