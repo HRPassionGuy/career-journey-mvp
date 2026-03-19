@@ -1,29 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import formidable from 'formidable'
-import fs from 'fs/promises'
 // @ts-ignore
 import pdf from 'pdf-parse'
-
-
-
-async function parseFormData(req: NextRequest) {
-  const formData = await req.formData()
-  const resume = formData.get('resume') as File
-  const targetTitle = formData.get('targetTitle') as string
-  const location = formData.get('location') as string
-  const salary = formData.get('salary') as string
-  
-  const jobDescriptions: File[] = []
-  let index = 0
-  while (formData.has('jobDescriptions')) {
-    const file = formData.get('jobDescriptions') as File
-    if (file) jobDescriptions.push(file)
-    index++
-    if (index > 10) break
-  }
-  
-  return { resume, targetTitle, location, salary, jobDescriptions }
-}
 
 async function extractText(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer())
@@ -38,7 +15,12 @@ async function extractText(file: File): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { resume, targetTitle, location, salary, jobDescriptions } = await parseFormData(request)
+    const formData = await request.formData()
+    
+    const resume = formData.get('resume') as File
+    const targetTitle = formData.get('targetTitle') as string
+    const location = formData.get('location') as string
+    const salary = formData.get('salary') as string
     
     if (!resume) {
       return NextResponse.json({ error: 'Resume file is required' }, { status: 400 })
@@ -53,10 +35,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Extract text from job descriptions
-    const jobDescTexts = await Promise.all(
-      jobDescriptions.map(file => extractText(file))
-    )
+    // Extract job descriptions
+    const jobDescTexts: string[] = []
+    const jobDescFiles = formData.getAll('jobDescriptions') as File[]
+    
+    for (const file of jobDescFiles.slice(0, 5)) {
+      if (file && file.size > 0) {
+        const text = await extractText(file)
+        if (text) jobDescTexts.push(text)
+      }
+    }
 
     // Call Anthropic API to rewrite resume
     const response = await fetch('https://api.anthropic.com/v1/messages', {
