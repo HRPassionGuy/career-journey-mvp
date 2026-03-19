@@ -214,42 +214,59 @@ export default function ResumeModulePage() {
   }
 
   const downloadJobsExcel = () => {
-    if (!jobs || !jobs.jobs) return
-    
-    const headers = ['Match Score', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
-    
-    const rows = jobs.jobs.map((job: any) => [
-      `${job.match_score}/10`,
-      job.title,
-      job.company,
-      job.location,
-      job.posting_date,
-      job.summary,
-      job.link
-    ])
-    
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row: string[]) => 
-        row.map(cell => {
-          const cellStr = String(cell || '')
-          if (cellStr.includes(',') || cellStr.includes('\n') || cellStr.includes('"')) {
-            return `"${cellStr.replace(/"/g, '""')}"`
-          }
-          return cellStr
-        }).join(',')
-      )
-    ].join('\n')
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
+  if (!jobs || !jobs.jobs) return
+  
+  // Create proper Excel format with working hyperlinks
+  let xlsContent = `
+<html xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head>
+  <xml>
+    <x:ExcelWorkbook>
+      <x:ExcelWorksheets>
+        <x:ExcelWorksheet>
+          <x:Name>Job Opportunities</x:Name>
+          <x:WorksheetOptions>
+            <x:Print>
+              <x:ValidPrinterInfo/>
+            </x:Print>
+          </x:WorksheetOptions>
+        </x:ExcelWorksheet>
+      </x:ExcelWorksheets>
+    </x:ExcelWorkbook>
+  </xml>
+</head>
+<body>
+  <table border="1">
+    <tr style="background-color: #1e3a8a; color: white; font-weight: bold;">
+      <th>Match Score</th>
+      <th>Title</th>
+      <th>Company</th>
+      <th>Location</th>
+      <th>Posted Date</th>
+      <th>Summary</th>
+      <th>Application Link</th>
+    </tr>
+${jobs.jobs.map((job: any) => `    <tr>
+      <td>${job.match_score}/10</td>
+      <td>${job.title}</td>
+      <td>${job.company}</td>
+      <td>${job.location}</td>
+      <td>${job.posting_date}</td>
+      <td>${job.summary}</td>
+      <td><a href="${job.link}" target="_blank">Apply Now</a></td>
+    </tr>`).join('\n')}
+  </table>
+</body>
+</html>`
+  
+  const blob = new Blob([xlsContent], { type: 'application/vnd.ms-excel' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
+  a.click()
+  URL.revokeObjectURL(url)
+}
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
