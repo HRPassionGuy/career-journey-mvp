@@ -271,19 +271,44 @@ export default function ResumeModulePage() {
   }
 
   const downloadJobsExcel = () => {
-    if (!jobs || !jobs.jobs) return
-    
-    const headers = ['Match %', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
-    
-    const rows = jobs.jobs.map((job: any) => [
-      `${job.match_score}/10`,
-      job.title,
-      job.company,
-      job.location,
-      job.posting_date,
-      job.summary,
-      job.link
-    ])
+  if (!jobs || !jobs.jobs) return
+  
+  // Create properly formatted CSV
+  const headers = ['Match Score', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
+  
+  const rows = jobs.jobs.map((job: any) => [
+    `${job.match_score}/10`,
+    job.title,
+    job.company,
+    job.location,
+    job.posting_date,
+    job.summary,
+    job.link
+  ])
+  
+  // Create CSV with proper escaping
+  const csvContent = [
+    headers.join(','),
+    ...rows.map((row: string[]) => 
+      row.map(cell => {
+        const cellStr = String(cell || '')
+        // Escape quotes and wrap in quotes if contains comma, newline, or quote
+        if (cellStr.includes(',') || cellStr.includes('\n') || cellStr.includes('"')) {
+          return `"${cellStr.replace(/"/g, '""')}"`
+        }
+        return cellStr
+      }).join(',')
+    )
+  ].join('\n')
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
     
     const csv = [
       headers.join('\t'),
