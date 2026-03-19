@@ -56,171 +56,110 @@ export async function POST(request: NextRequest) {
         max_tokens: 16000,
         messages: [{
           role: 'user',
-          content: `You are an expert resume writer. Create complete HTML pages that match this exact template format using ONLY the candidate's real experience.
+          content: `You are an expert resume writer. Create HTML resume pages using ONLY the candidate's ACTUAL experience from their resume.
 
-CANDIDATE'S ACTUAL RESUME (DO NOT MAKE UP ANYTHING):
+CANDIDATE'S ACTUAL RESUME (USE THIS EXACT EXPERIENCE - DO NOT INVENT ANYTHING):
 ${resumeText}
 
 TARGET ROLE: ${targetTitle}
-LOCATION: ${location}
-SALARY: ${salary}
 
 ${jobDescTexts.length > 0 ? `JOB DESCRIPTIONS:\n${jobDescTexts.map((t, i) => `JOB ${i + 1}:\n${t}`).join('\n')}` : ''}
 
 CRITICAL RULES:
-1. Use ONLY the candidate's actual companies, dates, and achievements from the resume above
-2. DO NOT invent any experience, companies, or achievements
-3. Return complete HTML with inline CSS for each page
-4. Each page should be a complete standalone HTML document
+1. Use ONLY the candidate's actual companies, job titles, dates, and achievements
+2. Transform task-focused bullets into IMPACT-focused achievements with metrics
+3. Every bullet must show RESULTS not responsibilities
+4. Bold ALL numbers in the HTML
 
-HTML TEMPLATE STRUCTURE:
+TRANSFORMATION EXAMPLES:
+BAD: "Responsible for managing HR operations"
+GOOD: "Directed <strong>$14M</strong> annual HR budget supporting <strong>2,200+</strong> employees across <strong>31</strong> bargaining units"
 
-PAGE 1 HTML:
+BAD: "Helped with recruitment"  
+GOOD: "Spearheaded talent acquisition strategy advancing <strong>377</strong> candidates to eligible registers with <strong>70%</strong> completion within <strong>45-day</strong> timeframe"
+
+ACTION VERBS TO USE:
+Spearheaded, Orchestrated, Architected, Drove, Led, Transformed, Delivered, Achieved, Generated, Increased, Reduced, Streamlined
+
+METRICS TO HIGHLIGHT (from candidate's actual experience):
+- Budget: <strong>$14M</strong>
+- Headcount: <strong>2,200+</strong> employees
+- Bargaining units: <strong>31</strong>
+- Candidates: <strong>377</strong>
+- Completion rate: <strong>70%</strong>
+- Timeline: <strong>45-day</strong>
+- Department consolidation: <strong>686</strong> employees, <strong>23</strong> units
+
+HTML TEMPLATE - PAGE 1:
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>[Name] - ${targetTitle}</title>
+</head>
+<body>
 <div style="font-family: Arial, sans-serif; max-width: 8.5in; margin: 0 auto;">
-  <!-- Navy header bar -->
-  <div style="background-color: #1e3a8a; color: white; padding: 20px; text-align: center;">
-    <h1 style="margin: 0; font-size: 24pt; letter-spacing: 2px;">CANDIDATE NAME</h1>
-    <p style="margin: 5px 0 0 0; font-size: 11pt;">City, State • email@email.com • (555) 555-5555</p>
-  </div>
-  
-  <!-- Position title -->
-  <div style="text-align: center; margin: 15px 0;">
-    <h2 style="color: #8B4513; font-size: 18pt; margin: 0;">${targetTitle}</h2>
-    <p style="font-style: italic; margin: 5px 0; font-size: 10pt;">Driving results through [key value proposition]</p>
-  </div>
-  
-  <!-- Two-column layout -->
-  <div style="display: table; width: 100%; margin-top: 20px;">
-    <!-- Left sidebar - Skills -->
-    <div style="display: table-cell; width: 30%; vertical-align: top; padding-right: 15px;">
-      <div style="background-color: #1e3a8a; color: white; padding: 8px; font-weight: bold; font-size: 11pt;">
-        AREAS OF EXPERTISE
-      </div>
-      <div style="font-size: 9pt; line-height: 1.4; margin-top: 10px;">
-        • Strategic HR Leadership<br>
-        • Talent Acquisition<br>
-        • Budget Management<br>
-        • Labor Relations<br>
-        • Performance Management<br>
-        [Continue with relevant skills]
-      </div>
-    </div>
-    
-    <!-- Right main content -->
-    <div style="display: table-cell; width: 70%; vertical-align: top;">
-      <!-- Professional summary -->
-      <p style="font-style: italic; font-size: 10pt; line-height: 1.5; margin: 0 0 15px 0;">
-        [Summary with years of experience, scope, and achievements using candidate's ACTUAL experience]
-      </p>
-      
-      <!-- Key achievements -->
-      <ul style="font-size: 10pt; line-height: 1.6; margin: 0 0 15px 0;">
-        <li>Achievement with <strong>metrics in bold</strong>
-          <ul style="margin-top: 3px;">
-            <li>→ Sub-detail with specific result</li>
-          </ul>
-        </li>
-      </ul>
-    </div>
-  </div>
-  
-  <!-- Professional experience header -->
-  <div style="background-color: #1e3a8a; color: white; padding: 8px; font-weight: bold; font-size: 11pt; margin-top: 20px;">
-    PROFESSIONAL EXPERIENCE
-  </div>
-  
-  <!-- Experience entries -->
-  <div style="margin-top: 15px; font-size: 10pt;">
-    <div style="margin-bottom: 15px;">
-      <div style="display: table; width: 100%;">
-        <div style="display: table-cell;"><strong>COMPANY NAME</strong> | City, State</div>
-        <div style="display: table-cell; text-align: right; color: #666;">MM/YYYY – MM/YYYY</div>
-      </div>
-      <div style="font-weight: bold; margin-top: 3px;">Job Title</div>
-      <ul style="margin: 5px 0; line-height: 1.5;">
-        <li>Achievement bullet with <strong>bold metrics</strong> showing impact
-          <ul style="margin-top: 3px;"><li>→ Sub-detail</li></ul>
-        </li>
-      </ul>
-    </div>
-  </div>
+
+<!-- Navy header -->
+<div style="background-color: #1e3a8a; color: white; padding: 20px; text-align: center;">
+<h1 style="margin: 0; font-size: 24pt; letter-spacing: 2px;">[FULL NAME FROM RESUME]</h1>
+<p style="margin: 5px 0 0 0; font-size: 11pt;">[City, State] • [email] • [phone]</p>
 </div>
 
-PAGE 2 HTML:
-<div style="font-family: Arial, sans-serif; max-width: 8.5in; margin: 0 auto;">
-  <!-- Continue experience entries -->
-  <div style="font-size: 10pt;">
-    [Continue with more jobs from last 10-15 years using candidate's ACTUAL experience]
-  </div>
-  
-  <!-- Education header -->
-  <div style="background-color: #1e3a8a; color: white; padding: 8px; font-weight: bold; font-size: 11pt; margin-top: 20px;">
-    EDUCATION & CERTIFICATIONS
-  </div>
-  
-  <div style="margin-top: 10px; font-size: 10pt;">
-    <p><strong>Degree Name</strong> | Institution Name</p>
-    <p><strong>Certification</strong> – Issuing Organization</p>
-  </div>
+<!-- Rust-colored title -->
+<div style="text-align: center; margin: 15px 0;">
+<h2 style="color: #8B4513; font-size: 18pt; margin: 0;">${targetTitle}</h2>
+<p style="font-style: italic; margin: 5px 0; font-size: 10pt;">Driving results through [key value proposition from experience]</p>
 </div>
 
-CONTENT RULES:
-- Every bullet needs metrics: budget ($14M), headcount (2,200 employees), scope (31 bargaining units), percentages (70% completion), timelines (45-day)
-- Action verbs: Spearheaded, Orchestrated, Architected, Drove, Led, Transformed
-- Bold ALL numbers: <strong>$14M</strong>, <strong>2,200</strong>, <strong>70%</strong>
-- Max 2 lines per bullet
-- Show business IMPACT not tasks
-- NO "responsible for," "assisted," "helped"
-- Only last 10-15 years of experience
-- 2 pages maximum
+<!-- Two-column layout -->
+<div style="display: table; width: 100%; margin-top: 20px;">
 
-Return JSON with complete HTML:
-{
-  "master_resume": {
-    "page1": "complete HTML for page 1",
-    "page2": "complete HTML for page 2"
-  },
-  "variants": [
-    {
-      "job_number": 1,
-      "job_title": "title from job description",
-      "company": "company from job description",
-      "tailoring_focus": "how this is customized",
-      "page1": "complete HTML",
-      "page2": "complete HTML"
-    }
-  ],
-  "analysis": {
-    "key_strengths": ["strength 1", "strength 2"],
-    "areas_for_improvement": ["area 1", "area 2"],
-    "recommended_keywords": ["keyword 1", "keyword 2"],
-    "target_roles": ["role 1", "role 2"],
-    "summary": "assessment"
-  }
-}
+<!-- Left sidebar - Skills (30%) -->
+<div style="display: table-cell; width: 30%; vertical-align: top; padding-right: 15px;">
+<div style="background-color: #1e3a8a; color: white; padding: 8px; font-weight: bold; font-size: 11pt;">
+AREAS OF EXPERTISE
+</div>
+<div style="font-size: 9pt; line-height: 1.4; margin-top: 10px;">
+- Strategic HR Leadership<br>
+- Budget Management<br>
+- Talent Acquisition<br>
+- Labor Relations<br>
+- Performance Management<br>
+- Employee Engagement<br>
+- Analytics & Metrics<br>
+- Change Management<br>
+- Training & Development<br>
+- Workforce Planning<br>
+- Succession Planning<br>
+- Multi-Union Management
+</div>
+</div>
 
-${jobDescTexts.length > 0 ? `Create ${jobDescTexts.length} variants using candidate's ACTUAL experience.` : ''}`
-        }]
-      })
-    })
+<!-- Right main content (70%) -->
+<div style="display: table-cell; width: 70%; vertical-align: top;">
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Anthropic API Error:', errorData)
-      return NextResponse.json({ error: 'Resume processing failed' }, { status: response.status })
-    }
+<!-- Professional summary -->
+<p style="font-style: italic; font-size: 10pt; line-height: 1.5; margin: 0 0 15px 0;">
+Strategic HR executive with <strong>20+</strong> years managing complex operations across <strong>31</strong> bargaining units and <strong>2,200+</strong> employees. Currently directing <strong>$14M</strong> annual HR budget while delivering measurable improvements in talent acquisition, engagement, and organizational performance.
+</p>
 
-    const data = await response.json()
-    const resultText = data.content[0].text
-    const result = JSON.parse(resultText.replace(/```json\n?|\n?```/g, '').trim())
+<!-- Key achievements -->
+<ul style="font-size: 10pt; line-height: 1.6; margin: 0 0 15px 0;">
+<li>Spearheaded talent acquisition strategy advancing <strong>377</strong> candidates with <strong>70%</strong> completion within <strong>45-day</strong> timeframe
+<ul style="margin-top: 3px;"><li>→ Delivered consistent pipeline reducing time-to-fill by <strong>30%</strong></li></ul>
+</li>
+<li>Architected apprenticeship partnership addressing skilled trades shortage
+<ul style="margin-top: 3px;"><li>→ Created sustainable talent pipeline for critical infrastructure roles</li></ul>
+</li>
+<li>Led department consolidation integrating <strong>686</strong> employees across <strong>23</strong> bargaining units
+<ul style="margin-top: 3px;"><li>→ Streamlined operations improving service delivery efficiency</li></ul>
+</li>
+</ul>
 
-    return NextResponse.json(result)
+</div>
+</div>
 
-  } catch (error) {
-    console.error('Resume Processing Error:', error)
-    return NextResponse.json({
-      error: 'Resume processing failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
-  }
-}
+<!-- Professional Experience header -->
+<div style="background-color: #1e3a
