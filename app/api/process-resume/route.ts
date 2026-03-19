@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Resume file is required' }, { status: 400 })
     }
 
-    // Extract text from resume
     const resumeText = await extractText(resume)
     
     if (!resumeText || resumeText.trim().length < 100) {
@@ -35,7 +34,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Extract job descriptions
     const jobDescTexts: string[] = []
     const jobDescFiles = formData.getAll('jobDescriptions') as File[]
     
@@ -46,7 +44,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Call Anthropic API to rewrite resume
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -59,50 +56,49 @@ export async function POST(request: NextRequest) {
         max_tokens: 16000,
         messages: [{
           role: 'user',
-          content: `You are an expert resume writer. Rewrite this resume in a professional executive format optimized for ${targetTitle} roles.
+          content: `You are an expert resume writer. Create a resume that EXACTLY matches this template format using ONLY the candidate's ACTUAL experience.
 
-ORIGINAL RESUME:
+ORIGINAL RESUME - USE THIS EXACT EXPERIENCE:
 ${resumeText}
 
-TARGET ROLE: ${targetTitle}
+TARGET: ${targetTitle}
 LOCATION: ${location}
-SALARY RANGE: ${salary}
+SALARY: ${salary}
 
-${jobDescTexts.length > 0 ? `JOB DESCRIPTIONS TO TAILOR FOR:\n${jobDescTexts.map((text, i) => `\nJOB ${i + 1}:\n${text}`).join('\n')}` : ''}
+${jobDescTexts.length > 0 ? `JOBS TO TAILOR FOR:\n${jobDescTexts.map((t, i) => `JOB ${i + 1}:\n${t}`).join('\n')}` : ''}
 
-FORMAT REQUIREMENTS:
-- 2 pages maximum
-- Executive format with navy blue headers (#1e3a8a)
-- Professional sections: Contact | Summary | Areas of Expertise (3 columns) | Professional Experience | Education
-- Use metrics and achievements with specific numbers
-- ATS-optimized with relevant keywords for ${targetTitle}
+TEMPLATE FORMAT:
 
-Return ONLY valid JSON (no markdown):
+PAGE 1:
+- Navy header with name, contact (City, State • email • phone)
+- Position title in rust color with tagline
+- LEFT: Skills in 3 columns under "AREAS OF EXPERTISE"
+- RIGHT: Summary + achievements with metrics in bold, bullets with → sub-bullets
+- Navy "PROFESSIONAL EXPERIENCE" header
+- Jobs: COMPANY | Location, dates | Title | bullets with metrics
+
+PAGE 2:
+- Continue jobs (last 10-15 years only)
+- Navy "EDUCATION" header
+- Degree | Institution | Certifications
+
+RULES:
+- Use ONLY candidate's actual experience
+- Every bullet needs metrics (budget, headcount, %, results)
+- Action verbs: Spearheaded, Orchestrated, Led, Drove
+- Bold all numbers
+- Max 2 lines per bullet
+- Talk like owner, not task executor
+- 2 pages max
+
+Return JSON only:
 {
-  "master_resume": {
-    "page1": "First page content with proper formatting",
-    "page2": "Second page content"
-  },
-  "variants": [
-    {
-      "job_number": 1,
-      "job_title": "Extract exact job title from job description 1",
-      "company": "Extract company name from job description 1",
-      "tailoring_focus": "How this resume is customized for this specific role",
-      "page1": "Variant page 1 tailored for this job",
-      "page2": "Variant page 2 tailored for this job"
-    }
-  ],
-  "analysis": {
-    "key_strengths": ["strength 1", "strength 2"],
-    "areas_for_improvement": ["area 1", "area 2"],
-    "recommended_keywords": ["keyword 1", "keyword 2"],
-    "target_roles": ["role 1", "role 2"],
-    "summary": "Brief assessment"
-  }
+  "master_resume": {"page1": "html", "page2": "html"},
+  "variants": [{"job_number": 1, "job_title": "title", "company": "co", "tailoring_focus": "focus", "page1": "html", "page2": "html"}],
+  "analysis": {"key_strengths": [], "areas_for_improvement": [], "recommended_keywords": [], "target_roles": [], "summary": "text"}
 }
 
-${jobDescTexts.length > 0 ? `Create ${jobDescTexts.length} variants, one for each job description provided.` : 'No variants needed - only create master_resume.'}`
+${jobDescTexts.length > 0 ? `Create ${jobDescTexts.length} variants using candidate's ACTUAL experience.` : 'Master resume only.'}`
         }]
       })
     })
