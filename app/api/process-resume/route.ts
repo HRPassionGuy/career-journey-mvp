@@ -4,11 +4,7 @@ import fs from 'fs/promises'
 // @ts-ignore
 import pdf from 'pdf-parse'
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
+
 
 async function parseFormData(req: NextRequest) {
   const formData = await req.formData()
