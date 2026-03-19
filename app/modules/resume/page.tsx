@@ -216,20 +216,15 @@ export default function ResumeModulePage() {
   const downloadJobsExcel = () => {
   if (!jobs || !jobs.jobs) return
   
-  // Create proper Excel format with working hyperlinks
-  let xlsContent = `
+  let xlsContent = `<?xml version="1.0" encoding="UTF-8"?>
 <html xmlns:x="urn:schemas-microsoft-com:office:excel">
 <head>
+  <meta charset="UTF-8">
   <xml>
     <x:ExcelWorkbook>
       <x:ExcelWorksheets>
         <x:ExcelWorksheet>
           <x:Name>Job Opportunities</x:Name>
-          <x:WorksheetOptions>
-            <x:Print>
-              <x:ValidPrinterInfo/>
-            </x:Print>
-          </x:WorksheetOptions>
         </x:ExcelWorksheet>
       </x:ExcelWorksheets>
     </x:ExcelWorkbook>
@@ -247,7 +242,7 @@ export default function ResumeModulePage() {
       <th>Application Link</th>
     </tr>
 ${jobs.jobs.map((job: any) => `    <tr>
-     <td style="mso-number-format:'\@';">${job.match_score}/10</td>
+      <td style="mso-number-format:'\\@';">${job.match_score}/10</td>
       <td>${job.title}</td>
       <td>${job.company}</td>
       <td>${job.location}</td>
@@ -259,7 +254,7 @@ ${jobs.jobs.map((job: any) => `    <tr>
 </body>
 </html>`
   
-  const blob = new Blob([xlsContent], { type: 'application/vnd.ms-excel' })
+  const blob = new Blob(['\ufeff' + xlsContent], { type: 'application/vnd.ms-excel;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
