@@ -247,7 +247,7 @@ export default function ResumeModulePage() {
       <th>Application Link</th>
     </tr>
 ${jobs.jobs.map((job: any) => `    <tr>
-      <td>${job.match_score}/10</td>
+     <td style="mso-number-format:'\@';">${job.match_score}/10</td>
       <td>${job.title}</td>
       <td>${job.company}</td>
       <td>${job.location}</td>
