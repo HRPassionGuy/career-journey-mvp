@@ -19,8 +19,6 @@ export async function POST(request: NextRequest) {
     
     const resume = formData.get('resume') as File
     const targetTitle = formData.get('targetTitle') as string
-    const location = formData.get('location') as string
-    const salary = formData.get('salary') as string
     
     if (!resume) {
       return NextResponse.json({ error: 'Resume file is required' }, { status: 400 })
@@ -54,126 +52,57 @@ export async function POST(request: NextRequest) {
         max_tokens: 16000,
         messages: [{
           role: 'user',
-          content: `Create professional resume HTML using candidate's ACTUAL experience. Use exact template structure.
+          content: `Transform this resume into professional HTML format. Use ONLY candidate's actual experience.
 
-CANDIDATE RESUME (USE ACTUAL EXPERIENCE ONLY):
+RESUME:
 ${resumeText}
 
-TARGET: ${targetTitle}
+TARGET ROLE: ${targetTitle}
 
-CRITICAL SCOPE DATA:
-- Current role oversees: 10,000+ employees (total City workforce)
-- Budget: $14M
-- Bargaining units: 31+
-- Previous role (2003-2005): supported 2,200 employees (subset of departments)
+${jobDescTexts.length > 0 ? `JOB DESCRIPTIONS FOR VARIANTS:\n${jobDescTexts.map((t, i) => `JOB ${i+1}:\n${t}\n`).join('\n')}` : ''}
 
-TRANSFORMATION RULES:
-Transform tasks into IMPACT with metrics. Examples:
-- BAD: "Managed HR operations" 
-- GOOD: "Directed <strong>$14M</strong> annual HR budget supporting <strong>10,000+</strong> employees across <strong>31</strong> bargaining units"
+COLORS: Navy #2F5496, Rust/Orange #B24C00
+FONT: Calibri
 
-Use verbs: Spearheaded, Orchestrated, Architected, Drove, Led, Delivered
-Bold ALL numbers: <strong>$14M</strong>, <strong>10,000+</strong>, <strong>70%</strong>
+CRITICAL RULES:
+1. Use candidate's ACTUAL companies, titles, dates - DO NOT INVENT
+2. Current role scope: 10,000+ employees (NOT 2,200 - that was old role)
+3. Transform tasks to IMPACT: "Managed operations" → "Directed <strong>$14M</strong> budget supporting <strong>10,000+</strong> employees"
+4. Bold ALL numbers with <strong> tags
+5. Use verbs: Spearheaded, Orchestrated, Architected, Drove, Led
 
-EXACT HTML STRUCTURE - PAGE 1:
+STRUCTURE:
+- Navy header bar with white name box, contact info
+- Rust/orange title centered
+- Two columns: 27% left (skills sidebar), 73% right (summary + achievements)
+- Navy "PROFESSIONAL EXPERIENCE" header
+- Job entries with company, dates, bullets with → sub-bullets
+- Page 2: Continue jobs, navy "EDUCATION" header
 
-<div style="font-family: Calibri, Arial, sans-serif; max-width: 8.5in; margin: 0; padding: 0;">
-<div style="background: linear-gradient(to bottom, #2F5496 0%, #2F5496 100%); padding: 15px; text-align: center;">
-<div style="background-color: white; display: inline-block; padding: 8px 40px; margin-bottom: 8px;">
-<h1 style="margin: 0; color: #2F5496; font-size: 20pt; font-weight: bold; letter-spacing: 1px;">[NAME FROM RESUME]</h1>
-</div>
-<p style="margin: 0; color: white; font-size: 10pt;">[Address] • [City, State ZIP] • [Phone] • [Email]</p>
-</div>
-
-<div style="text-align: center; margin: 12px 0;">
-<h2 style="color: #B24C00; font-size: 14pt; font-weight: bold; margin: 0; text-transform: uppercase;">${targetTitle}</h2>
-</div>
-
-<table style="width: 100%; border-collapse: collapse;">
-<tr>
-<td style="width: 27%; vertical-align: top; padding-right: 15px;">
-
-<div style="background-color: #2F5496; color: white; padding: 6px; font-weight: bold; font-size: 10pt; text-align: center; margin-bottom: 8px;">
-AREAS OF EXPERTISE
-</div>
-
-<div style="font-size: 9pt; line-height: 1.6; text-align: center;">
-Strategic HR Leadership<br>
-Budget Management ($14M+)<br>
-Talent Acquisition<br>
-Workforce Planning<br>
-Labor Relations<br>
-Performance Management<br>
-Employee Engagement<br>
-Training & Development<br>
-Analytics & Metrics<br>
-Change Management<br>
-Partnership Development<br>
-Compliance Management<br>
-Cultural Transformation<br>
-Executive Advisory
-</div>
-
-</td>
-<td style="width: 73%; vertical-align: top; padding-left: 15px;">
-
-<p style="font-size: 10pt; line-height: 1.5; margin: 0 0 12px 0; font-style: italic;">
-Strategic HR executive with <strong>20+</strong> years managing human capital for <strong>10,000+</strong> employees across <strong>31</strong> bargaining units. Directing <strong>$14M</strong> annual budgets, orchestrating talent initiatives achieving <strong>70%</strong> on-time delivery, architecting organizational transformations for <strong>686+</strong> employee departments.
-</p>
-
-<div style="font-size: 10pt; line-height: 1.5; margin-bottom: 12px;">
-<div style="margin-bottom: 8px;">
-→ <strong>Spearheaded city-wide recruitment transformation achieving 70% on-time delivery</strong><br>
-<span style="margin-left: 15px; font-style: italic;">Directed comprehensive job fair initiatives moving <strong>377</strong> candidates to eligible registers with <strong>45-day</strong> processing framework</span>
-</div>
-
-<div style="margin-bottom: 8px;">
-→ <strong>Architected strategic apprenticeship program addressing critical talent gaps</strong><br>
-<span style="margin-left: 15px; font-style: italic;">Orchestrated third-party partnerships for DDOT mechanic apprenticeship targeting Detroit residents</span>
-</div>
-
-<div style="margin-bottom: 8px;">
-→ <strong>Led organizational restructuring creating 686-employee General Services Department</strong><br>
-<span style="margin-left: 15px; font-style: italic;">Managed complex integration across <strong>23</strong> bargaining units with comprehensive HR project leadership</span>
-</div>
-</div>
-
-</td>
-</tr>
-</table>
-
-<div style="background-color: #2F5496; color: white; padding: 6px; font-weight: bold; font-size: 11pt; margin-top: 15px; text-align: center;">
-PROFESSIONAL EXPERIENCE
-</div>
-
-<div style="margin-top: 12px; font-size: 10pt;">
-
-<div style="margin-bottom: 12px;">
-<div style="font-weight: bold;">Operations General Manager – Human Resources</div>
-<div style="font-style: italic;">City of Detroit | January 2018 – Present</div>
-<ul style="margin: 5px 0; padding-left: 20px; line-height: 1.4;">
-<li>Spearheaded preparation and monitoring of <strong>$14M</strong> annual HR budget ensuring optimal resource allocation</li>
-<li>Architected community and employee engagement programs enhancing employee experience and organizational brand</li>
-<li>Delivered comprehensive analytics solutions supporting executive talent decision-making and strategic workforce planning</li>
-</ul>
-</div>
-
-<div style="margin-bottom: 12px;">
-<div style="font-weight: bold;">Manager II – Human Resources</div>
-<div style="font-style: italic;">City of Detroit | January 2013 – January 2018</div>
-<ul style="margin: 5px 0; padding-left: 20px; line-height: 1.4;">
-<li>Orchestrated city-wide recruiting moving <strong>377</strong> candidates to registers with <strong>70%</strong> completion within <strong>45-day</strong> timeframe</li>
-<li>Drove strategic partnership launching DDOT mechanic apprenticeship program targeting Detroit residents in 2015</li>
-<li>Provided executive advisory maximizing human capital impact on organizational mission and value proposition</li>
-</ul>
-</div>
-
-</div>
-</div>
-
-PAGE 2: Continue with remaining jobs, education section with navy header.
-
-Return complete HTML in JSON format.`
+Return ONLY valid JSON:
+{
+  "master_resume": {
+    "page1": "<complete HTML page 1>",
+    "page2": "<complete HTML page 2>"
+  },
+  "variants": [${jobDescTexts.length > 0 ? `
+    {
+      "job_number": 1,
+      "job_title": "from job desc",
+      "company": "from job desc", 
+      "tailoring_focus": "how tailored",
+      "page1": "<HTML>",
+      "page2": "<HTML>"
+    }` : ''}
+  ],
+  "analysis": {
+    "key_strengths": ["strength 1", "strength 2", "strength 3"],
+    "areas_for_improvement": ["area 1", "area 2"],
+    "recommended_keywords": ["keyword1", "keyword2", "keyword3"],
+    "target_roles": ["role 1", "role 2"],
+    "summary": "Brief assessment"
+  }
+}`
         }]
       })
     })
@@ -181,12 +110,26 @@ Return complete HTML in JSON format.`
     if (!response.ok) {
       const errorData = await response.json()
       console.error('API Error:', errorData)
-      return NextResponse.json({ error: 'Processing failed' }, { status: response.status })
+      return NextResponse.json({ error: 'Processing failed', details: errorData }, { status: response.status })
     }
 
     const data = await response.json()
     const resultText = data.content[0].text
-    const result = JSON.parse(resultText.replace(/```json\n?|\n?```/g, '').trim())
+    
+    // Clean the response
+    let cleanText = resultText.replace(/```json\n?|\n?```/g, '').trim()
+    
+    // Parse JSON
+    const result = JSON.parse(cleanText)
+    
+    // Validate structure
+    if (!result.master_resume || !result.master_resume.page1 || !result.master_resume.page2) {
+      console.error('Invalid response structure:', result)
+      return NextResponse.json({ 
+        error: 'Invalid response format',
+        received: result 
+      }, { status: 500 })
+    }
 
     return NextResponse.json(result)
 
