@@ -35,7 +35,6 @@ export default function ResumeModulePage() {
     setStep('analyzing')
 
     try {
-      // Use the existing resume-analyze endpoint that already works
       const reader = new FileReader()
       const base64File = await new Promise<string>((resolve, reject) => {
         reader.onload = () => {
@@ -77,13 +76,11 @@ export default function ResumeModulePage() {
     }
   }
 
-   
   const handleRewrite = async () => {
     setLoading(true)
     setStep('processing')
 
     try {
-      // Step 2: Process resume with rewrite
       const formData = new FormData()
       formData.append('resume', resumeFile!)
       jobDescFiles.forEach(file => formData.append('jobDescriptions', file))
@@ -102,7 +99,6 @@ export default function ResumeModulePage() {
 
       const resumeData = await resumeResponse.json()
       
-      // Step 3: Search for jobs
       const jobsResponse = await fetch('/api/search-jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -123,12 +119,10 @@ export default function ResumeModulePage() {
       setResults(resumeData)
       setJobs(jobsData)
       
-      // Save completion status
       const supabase = createClientSupabaseClient()
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
-        // First, check if record exists
         const { data: existing } = await supabase
           .from('module_progress')
           .select('*')
@@ -137,7 +131,6 @@ export default function ResumeModulePage() {
           .single()
 
         if (existing) {
-          // Update existing record
           await supabase
             .from('module_progress')
             .update({
@@ -148,7 +141,6 @@ export default function ResumeModulePage() {
             .eq('user_id', user.id)
             .eq('module_name', 'resume')
         } else {
-          // Insert new record
           await supabase
             .from('module_progress')
             .insert({
@@ -161,8 +153,6 @@ export default function ResumeModulePage() {
               completed_at: new Date().toISOString(),
             })
         }
-        
-        
       }
 
       setStep('results')
@@ -180,7 +170,6 @@ export default function ResumeModulePage() {
     const page2 = variant !== undefined ? resumeData.variants[variant].page2 : resumeData.master_resume.page2
     const fileName = variant !== undefined ? `resume_variant_${variant + 1}` : 'master_resume'
     
-    // Create HTML for PDF
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -193,64 +182,19 @@ export default function ResumeModulePage() {
       margin: 0.5in;
     }
     body {
-      font-family: Arial, sans-serif;
-      font-size: 11pt;
-      line-height: 1.4;
-      color: #000;
       margin: 0;
       padding: 0;
-    }
-    h1, h2, h3 {
-      color: #1e3a8a;
-      margin-top: 0;
-    }
-    h1 {
-      font-size: 20pt;
-      margin-bottom: 4pt;
-    }
-    h2 {
-      font-size: 14pt;
-      margin-top: 12pt;
-      margin-bottom: 6pt;
-      border-bottom: 2px solid #1e3a8a;
-      padding-bottom: 2pt;
-    }
-    h3 {
-      font-size: 12pt;
-      margin-top: 8pt;
-      margin-bottom: 4pt;
-    }
-    p {
-      margin: 4pt 0;
-    }
-    ul {
-      margin: 4pt 0;
-      padding-left: 20pt;
-    }
-    li {
-      margin: 2pt 0;
-    }
-    .page-break {
-      page-break-after: always;
-    }
-    strong {
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="page-1">
-    ${page1.replace(/\n/g, '<br>')}
-  </div>
-  <div class="page-break"></div>
-  <div class="page-2">
-    ${page2.replace(/\n/g, '<br>')}
-  </div>
+  ${page1}
+  <div style="page-break-after: always;"></div>
+  ${page2}
 </body>
 </html>
     `
     
-    // Create blob and download
     const blob = new Blob([htmlContent], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -259,7 +203,6 @@ export default function ResumeModulePage() {
     a.click()
     URL.revokeObjectURL(url)
     
-    // Open in new window for print-to-PDF
     const printWindow = window.open('', '_blank')
     if (printWindow) {
       printWindow.document.write(htmlContent)
@@ -271,55 +214,38 @@ export default function ResumeModulePage() {
   }
 
   const downloadJobsExcel = () => {
-  if (!jobs || !jobs.jobs) return
-  
-  // Create properly formatted CSV
-  const headers = ['Match Score', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
-  
-  const rows = jobs.jobs.map((job: any) => [
-    `${job.match_score}/10`,
-    job.title,
-    job.company,
-    job.location,
-    job.posting_date,
-    job.summary,
-    job.link
-  ])
-  
-  // Create CSV with proper escaping
-  const csvContent = [
-    headers.join(','),
-    ...rows.map((row: string[]) => 
-      row.map(cell => {
-        const cellStr = String(cell || '')
-        // Escape quotes and wrap in quotes if contains comma, newline, or quote
-        if (cellStr.includes(',') || cellStr.includes('\n') || cellStr.includes('"')) {
-          return `"${cellStr.replace(/"/g, '""')}"`
-        }
-        return cellStr
-      }).join(',')
-    )
-  ].join('\n')
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
-}
+    if (!jobs || !jobs.jobs) return
     
-    const csv = [
-      headers.join('\t'),
-      ...rows.map((row: any[]) => row.join('\t'))
+    const headers = ['Match Score', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
+    
+    const rows = jobs.jobs.map((job: any) => [
+      `${job.match_score}/10`,
+      job.title,
+      job.company,
+      job.location,
+      job.posting_date,
+      job.summary,
+      job.link
+    ])
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row: string[]) => 
+        row.map(cell => {
+          const cellStr = String(cell || '')
+          if (cellStr.includes(',') || cellStr.includes('\n') || cellStr.includes('"')) {
+            return `"${cellStr.replace(/"/g, '""')}"`
+          }
+          return cellStr
+        }).join(',')
+      )
     ].join('\n')
     
-    const blob = new Blob([csv], { type: 'text/tab-separated-values' })
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
+    a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -553,8 +479,8 @@ export default function ResumeModulePage() {
                     <div key={idx} className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-gray-700 mb-3">
                         <strong>Variant {idx + 1} - {variant.job_title} at {variant.company}</strong>
-<br />
-<span className="text-sm text-gray-600">{variant.tailoring_focus}</span>
+                        <br />
+                        <span className="text-sm text-gray-600">{variant.tailoring_focus}</span>
                       </p>
                       <button
                         onClick={() => downloadResumePDF(results, idx)}
