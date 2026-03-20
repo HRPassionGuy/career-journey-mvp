@@ -16,94 +16,74 @@ export async function POST(request: NextRequest) {
 
     const event = verifyWebhookSignature(body, signature)
 
+    console.log('Webhook event type:', event.type)
+
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as any
       
-      // Get module name from metadata (API checkout) or line items (Payment Link)
+      console.log('Session metadata:', session.metadata)
+      console.log('Customer email:', session.customer_details?.email)
+      console.log('Payment link:', session.payment_link)
+      
       let moduleName = session.metadata?.moduleName
       let userId = session.metadata?.userId
       
-      // If no metadata, this came from a Payment Link - get from line items
+      // If no metadata, this came from a Payment Link
       if (!moduleName || !userId) {
         const supabase = await createServiceSupabaseClient()
         
-        // Get line items to find product
-        const lineItems = await fetch(
-          `https://api.stripe.com/v1/checkout/sessions/${session.id}/line_items`,
-          {
-            headers: {
-              'Authorization': `Bearer ${process.env.STRIPE_SECRET_KEY}`
-            }
-          }
-        )
-        const lineItemsData = await lineItems.json()
-        const priceId = lineItemsData.data[0]?.price?.id
-        
-        // Map price ID to module name
-        if (priceId === 'price_1TBPYyBx8VCQp7jpuOkqHsId') {
-          moduleName = 'innervue'
-        }
-        
-        // Get userId from customer email
-        const customerEmail = session.customer_details?.email || session.customer_email
+        // Get customer email
+        const customerEmail = session.customer_details?.email
+        console.log('Looking up user with email:', customerEmail)
         
         if (customerEmail) {
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('id')
-            .eq('email', customerEmail)
+            .select('id, email')
+            .ilike('email', customerEmail)
             .single()
           
-          userId = profile?.id
+          console.log('Profile lookup result:', { profile, profileError })
+          
+          if (profile) {
+            userId = profile.id
+            console.log('Found userId:', userId)
+          }
+        }
+        
+        // Hardcode module name for this payment link
+        if (session.payment_link === 'plink_1TCsXMBx8VCQp7jplRInlBiI') {
+          moduleName = 'innervue'
+          console.log('Set moduleName to innervue from payment link')
         }
       }
       
+      console.log('Final values - userId:', userId, 'moduleName:', moduleName)
+      
       if (!userId || !moduleName) {
-        console.error('Missing userId or moduleName:', { userId, moduleName })
+        console.error('Missing userId or moduleName')
         return NextResponse.json({ error: 'Missing required data' }, { status: 400 })
       }
 
       const amountPaid = session.amount_total
       const supabase = await createServiceSupabaseClient()
 
-      // Record purchase
-      await supabase.from('purchases').insert({
-        user_id: userId,
-        module_name: moduleName,
-        amount_paid: amountPaid,
-        stripe_payment_intent_id: session.payment_intent,
-        stripe_customer_id: session.customer,
-        status: 'completed',
-      })
+      console.log('Inserting purchase...')
+      const { data: purchase, error: purchaseError } = await supabase
+        .from('purchases')
+        .insert({
+          user_id: userId,
+          module_name: moduleName,
+          amount_paid: amountPaid,
+          stripe_payment_intent_id: session.payment_intent,
+          stripe_customer_id: session.customer,
+          status: 'completed',
+        })
+        .select()
 
-      // Unlock module
-      await supabase.rpc('unlock_module', {
-        p_user_id: userId,
-        p_module_name: moduleName,
-      })
+      console.log('Purchase insert result:', { purchase, purchaseError })
 
-      // Get user profile for email
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email, full_name')
-        .eq('id', userId)
-        .single()
-
-      if (profile) {
-        await sendPurchaseConfirmationEmail(
-          profile.email,
-          profile.full_name || 'there',
-          moduleName,
-          amountPaid,
-          `${process.env.NEXT_PUBLIC_APP_URL}/modules/${moduleName}`
-        )
-      }
-    }
-
-    return NextResponse.json({ received: true })
-    
-  } catch (error: any) {
-    console.error('Webhook error:', error)
-    return NextResponse.json({ error: error.message }, { status: 400 })
-  }
-}
+      console.log('Unlocking module...')
+      const { data: unlock, error: unlockError } = await supabase
+        .rpc('unlock_module', {
+          p_user_
