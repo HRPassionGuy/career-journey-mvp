@@ -9,25 +9,61 @@ export async function POST(request: NextRequest) {
     const body = await request.text()
     const headersList = headers()
     const signature = headersList.get('stripe-signature')
-
+    
     if (!signature) {
-      return NextResponse.json(
-        { error: 'No signature' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'No signature' }, { status: 400 })
     }
 
-    // Verify webhook signature
     const event = verifyWebhookSignature(body, signature)
 
-    // Handle successful payment
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as any
+      
+      // Get module name from metadata (API checkout) or line items (Payment Link)
+      let moduleName = session.metadata?.moduleName
+      let userId = session.metadata?.userId
+      
+      // If no metadata, this came from a Payment Link - get from line items
+      if (!moduleName || !userId) {
+        const supabase = await createServiceSupabaseClient()
+        
+        // Get line items to find product
+        const lineItems = await fetch(
+          `https://api.stripe.com/v1/checkout/sessions/${session.id}/line_items`,
+          {
+            headers: {
+              'Authorization': `Bearer ${process.env.STRIPE_SECRET_KEY}`
+            }
+          }
+        )
+        const lineItemsData = await lineItems.json()
+        const priceId = lineItemsData.data[0]?.price?.id
+        
+        // Map price ID to module name
+        if (priceId === 'price_1TBPYyBx8VCQp7jpuOkqHsId') {
+          moduleName = 'innervue'
+        }
+        
+        // Get userId from customer email
+        const customerEmail = session.customer_details?.email || session.customer_email
+        
+        if (customerEmail) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', customerEmail)
+            .single()
+          
+          userId = profile?.id
+        }
+      }
+      
+      if (!userId || !moduleName) {
+        console.error('Missing userId or moduleName:', { userId, moduleName })
+        return NextResponse.json({ error: 'Missing required data' }, { status: 400 })
+      }
 
-      const userId = session.metadata.userId
-      const moduleName = session.metadata.moduleName
       const amountPaid = session.amount_total
-
       const supabase = await createServiceSupabaseClient()
 
       // Record purchase
@@ -54,7 +90,6 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (profile) {
-        // Send confirmation email
         await sendPurchaseConfirmationEmail(
           profile.email,
           profile.full_name || 'there',
@@ -69,9 +104,6 @@ export async function POST(request: NextRequest) {
     
   } catch (error: any) {
     console.error('Webhook error:', error)
-    return NextResponse.json(
-      { error: error.message },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: error.message }, { status: 400 })
   }
 }
