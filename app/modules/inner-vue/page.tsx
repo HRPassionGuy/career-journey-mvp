@@ -45,7 +45,7 @@ export default function InnerVuePage() {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-  moduleName: 'inner_vue'
+  moduleName: 'innervue'
 })
 })
       const data = await response.json()
