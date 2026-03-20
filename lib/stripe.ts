@@ -35,8 +35,21 @@ export async function createCheckoutSession({
   
   const price = MODULE_PRICES[moduleName]
   
+  // Build price_data based on whether it's recurring or one-time
+  const priceData: any = {
+    currency: 'usd',
+    product_data: {
+      name: getModuleDisplayName(moduleName),
+      description: getModuleDescription(moduleName),
+    },
+    unit_amount: price,
+  }
   
-
+  // Add recurring if it's annual subscription
+  if (moduleName === 'annual') {
+    priceData.recurring = { interval: 'year' }
+  }
+  
   const session = await stripe.checkout.sessions.create({
     customer_email: userEmail,
     client_reference_id: userId,
@@ -44,18 +57,7 @@ export async function createCheckoutSession({
     mode: moduleName === 'annual' ? 'subscription' : 'payment',
     line_items: [
       {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: getModuleDisplayName(moduleName),
-            description: getModuleDescription(moduleName),
-          },
-          ...(moduleName === 'annual' 
-            ? { recurring: { interval: 'year' } }
-            : {}
-          ),
-          unit_amount: price,
-        },
+        price_data: priceData,
         quantity: 1,
       },
     ],
@@ -66,7 +68,7 @@ export async function createCheckoutSession({
     success_url: successUrl,
     cancel_url: cancelUrl,
   })
-
+  
   return session
 }
 
