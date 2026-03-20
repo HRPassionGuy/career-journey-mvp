@@ -52,7 +52,7 @@ export default function DashboardPage() {
       icon: '🤝',
     },
     {
-      name: 'inner-vue',
+      name: 'innervue',
       displayName: 'Inner Vue Interview Tool',
       description: 'Unlimited AI interview practice with personalized S.O.A.R. feedback',
       price: 147,
