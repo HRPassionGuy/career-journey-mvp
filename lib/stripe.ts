@@ -36,29 +36,44 @@ export async function createCheckoutSession({
   const price = MODULE_PRICES[moduleName]
   const isSubscription = moduleName === 'annual'
   
+  // Build line items differently based on subscription vs one-time
+  const lineItems = isSubscription 
+    ? [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: getModuleDisplayName(moduleName),
+              description: getModuleDescription(moduleName),
+            },
+            unit_amount: price,
+            recurring: {
+              interval: 'year' as const
+            }
+          },
+          quantity: 1,
+        }
+      ]
+    : [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: getModuleDisplayName(moduleName),
+              description: getModuleDescription(moduleName),
+            },
+            unit_amount: price,
+          },
+          quantity: 1,
+        }
+      ]
+  
   const session = await stripe.checkout.sessions.create({
     customer_email: userEmail,
     client_reference_id: userId,
     payment_method_types: ['card'],
     mode: isSubscription ? 'subscription' : 'payment',
-    line_items: [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: getModuleDisplayName(moduleName),
-            description: getModuleDescription(moduleName),
-          },
-          unit_amount: price,
-          ...(isSubscription && {
-            recurring: {
-              interval: 'year'
-            }
-          })
-        },
-        quantity: 1,
-      },
-    ],
+    line_items: lineItems,
     metadata: {
       userId,
       moduleName,
@@ -69,7 +84,6 @@ export async function createCheckoutSession({
   
   return session
 }
-
 // Helper: Get display name for module
 function getModuleDisplayName(moduleName: ModuleName): string {
   const names: Record<ModuleName, string> = {
