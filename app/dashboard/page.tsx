@@ -99,7 +99,7 @@ export default function DashboardPage() {
 
       const modulesWithProgress = moduleDefinitions.map(def => {
         const progress = progressData?.find(p => p.module_name === def.name)
-        const hasPurchased = purchaseData?.some(p => p.module_name === def.name)
+        const hasPurchased = purchaseData?.some(p => p.product_id === 'innervue' || p.product_id === 'bundle_intro' || p.product_id === 'bundle_regular')
         
         // Assessment and Networking are always unlocked (free)
         const isFreeModule = def.name === 'assessment' || def.name === 'networking'
