@@ -8,6 +8,7 @@ export default function InnerVuePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
+  const [purchasing, setPurchasing] = useState(false)
 
   useEffect(() => {
     checkAccess()
@@ -28,18 +29,39 @@ export default function InnerVuePage() {
       .select('*')
       .eq('user_id', user.id)
       .in('product_id', ['bundle_intro', 'bundle_regular', 'inner_vue'])
-      .single()
 
-    if (purchases) {
+    if (purchases && purchases.length > 0) {
       setHasAccess(true)
     }
     
     setLoading(false)
   }
 
-  const handlePurchase = () => {
-    // Redirect to Stripe payment link for Inner Vue
-    window.location.href = 'YOUR_STRIPE_PAYMENT_LINK_HERE'
+  const handlePurchase = async () => {
+    setPurchasing(true)
+    
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: 'inner_vue'
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert('Error creating checkout session')
+        setPurchasing(false)
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      alert('Error processing purchase')
+      setPurchasing(false)
+    }
   }
 
   if (loading) {
@@ -117,9 +139,10 @@ export default function InnerVuePage() {
 
           <button
             onClick={handlePurchase}
+            disabled={purchasing}
             className="btn btn-primary w-full text-xl py-4"
           >
-            Purchase Inner Vue - $147/year →
+            {purchasing ? 'Processing...' : 'Purchase Inner Vue - $147/year →'}
           </button>
         </div>
       </div>
