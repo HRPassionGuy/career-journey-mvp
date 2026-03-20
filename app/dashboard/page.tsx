@@ -140,9 +140,9 @@ export default function DashboardPage() {
   const handlePurchase = async (moduleName: string) => {
   // Use direct Stripe payment link for innervue
   if (moduleName === 'innervue') {
-    window.location.href = 'https://buy.stripe.com/14AcN4fF59TNbYP9ajdfG02'
-    return
-  }
+  window.location.href = 'https://buy.stripe.com/test_eVq7sK8cDfe7fb1euDdfG00'
+  return
+}
   
   // Original code for other modules
   try {
