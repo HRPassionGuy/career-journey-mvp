@@ -41,14 +41,13 @@ export default function InnerVuePage() {
     setPurchasing(true)
     
     try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: 'inner_vue'
-        })
-      })
-
+      const response = await fetch('/api/stripe/create-checkout', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    productId: 'inner_vue'
+  })
+})
       const data = await response.json()
       
       if (data.url) {
