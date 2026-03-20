@@ -23,12 +23,12 @@ export default function InnerVuePage() {
       return
     }
 
-    // Check if user has purchased bundle or inner_vue
+    // Check if user has purchased bundle or innervue
     const { data: purchases } = await supabase
       .from('purchases')
       .select('*')
       .eq('user_id', user.id)
-      .in('product_id', ['bundle_intro', 'bundle_regular', 'inner_vue'])
+      .in('product_id', ['bundle_intro', 'bundle_regular', 'innervue'])
 
     if (purchases && purchases.length > 0) {
       setHasAccess(true)
@@ -83,7 +83,7 @@ export default function InnerVuePage() {
             
             <div className="bg-primary-50 border-l-4 border-primary-600 p-6 mb-8">
               <p className="text-gray-700 mb-4">
-                Complete this form to receive your personalized interview preparation materials within 48 hours.
+                Complete this form to receive your personalized interview preparation materials within an hour.
               </p>
             </div>
 
