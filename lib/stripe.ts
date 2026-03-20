@@ -34,30 +34,28 @@ export async function createCheckoutSession({
 }): Promise<Stripe.Checkout.Session> {
   
   const price = MODULE_PRICES[moduleName]
-  
-  // Build price_data based on whether it's recurring or one-time
-  const priceData: any = {
-    currency: 'usd',
-    product_data: {
-      name: getModuleDisplayName(moduleName),
-      description: getModuleDescription(moduleName),
-    },
-    unit_amount: price,
-  }
-  
-  // Add recurring if it's annual subscription
-  if (moduleName === 'annual') {
-    priceData.recurring = { interval: 'year' }
-  }
+  const isSubscription = moduleName === 'annual'
   
   const session = await stripe.checkout.sessions.create({
     customer_email: userEmail,
     client_reference_id: userId,
     payment_method_types: ['card'],
-    mode: moduleName === 'annual' ? 'subscription' : 'payment',
+    mode: isSubscription ? 'subscription' : 'payment',
     line_items: [
       {
-        price_data: priceData,
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: getModuleDisplayName(moduleName),
+            description: getModuleDescription(moduleName),
+          },
+          unit_amount: price,
+          ...(isSubscription && {
+            recurring: {
+              interval: 'year'
+            }
+          })
+        },
         quantity: 1,
       },
     ],
@@ -85,6 +83,7 @@ function getModuleDisplayName(moduleName: ModuleName): string {
   }
   return names[moduleName]
 }
+
 // Helper: Get description for module
 function getModuleDescription(moduleName: ModuleName): string {
   const descriptions: Record<ModuleName, string> = {
@@ -121,11 +120,11 @@ export async function getOrCreateStripeCustomer(
     email,
     limit: 1,
   })
-
+  
   if (existingCustomers.data.length > 0) {
     return existingCustomers.data[0]
   }
-
+  
   // Create new customer
   return await stripe.customers.create({
     email,
