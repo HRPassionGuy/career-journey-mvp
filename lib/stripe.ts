@@ -15,7 +15,9 @@ export const MODULE_PRICES = {
   bundle_regular: 49700, // $497 (regular price - after 30 days)
   annual: 21800,        // $218 (renewal)
 } as const
-
+export const STRIPE_PRICE_IDS = {
+  innervue: 'price_1TBPYyBx8VCQp7jpuOkqHsId',
+} as const
 export type ModuleName = keyof typeof MODULE_PRICES
 
 // Create Stripe checkout session
@@ -33,10 +35,34 @@ export async function createCheckoutSession({
   cancelUrl: string
 }): Promise<Stripe.Checkout.Session> {
   
+  // Use pre-created Stripe price for innervue
+  if (moduleName === 'innervue') {
+    const session = await stripe.checkout.sessions.create({
+      customer_email: userEmail,
+      client_reference_id: userId,
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: [
+        {
+          price: 'price_1TBPYyBx8VCQp7jpuOkqHsId',
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        userId,
+        moduleName,
+      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    })
+    
+    return session
+  }
+  
+  // For other products, use dynamic pricing (old code)
   const price = MODULE_PRICES[moduleName]
   const isSubscription = moduleName === 'annual'
   
-  // Build line items differently based on subscription vs one-time
   const lineItems = isSubscription 
     ? [
         {
