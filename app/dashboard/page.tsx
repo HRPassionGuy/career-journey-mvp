@@ -138,22 +138,29 @@ export default function DashboardPage() {
   }
 
   const handlePurchase = async (moduleName: string) => {
-    try {
-      const response = await fetch('/api/stripe/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ moduleName }),
-      })
-
-      const { url } = await response.json()
-      if (url) {
-        window.location.href = url
-      }
-    } catch (error) {
-      console.error('Purchase error:', error)
-      alert('Something went wrong. Please try again.')
-    }
+  // Use direct Stripe payment link for innervue
+  if (moduleName === 'innervue') {
+    window.location.href = 'https://buy.stripe.com/14AcN4fF59TNbYP9ajdfG02'
+    return
   }
+  
+  // Original code for other modules
+  try {
+    const response = await fetch('/api/stripe/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ moduleName }),
+    })
+
+    const { url } = await response.json()
+    if (url) {
+      window.location.href = url
+    }
+  } catch (error) {
+    console.error('Purchase error:', error)
+    alert('Something went wrong. Please try again.')
+  }
+}
 
   if (loading) {
     return (
