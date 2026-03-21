@@ -23,12 +23,11 @@ export default function InnerVuePage() {
       return
     }
 
-    // Check if user has purchased bundle or innervue
     const { data: purchases } = await supabase
       .from('purchases')
       .select('*')
       .eq('user_id', user.id)
-      .in('product_id', ['bundle_intro', 'bundle_regular', 'innervue'])
+      .in('module_name', ['bundle_intro', 'bundle_regular', 'innervue'])
 
     if (purchases && purchases.length > 0) {
       setHasAccess(true)
@@ -38,29 +37,7 @@ export default function InnerVuePage() {
   }
 
   const handlePurchase = async () => {
-    setPurchasing(true)
-    
-    try {
-      const response = await fetch('/api/stripe/create-checkout', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-  moduleName: 'innervue'
-})
-})
-      const data = await response.json()
-      
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        alert('Error creating checkout session')
-        setPurchasing(false)
-      }
-    } catch (error) {
-      console.error('Checkout error:', error)
-      alert('Error processing purchase')
-      setPurchasing(false)
-    }
+    window.location.href = 'https://buy.stripe.com/test_eVq7sK8cDfe7fb1euDdfG00'
   }
 
   if (loading) {
@@ -71,11 +48,19 @@ export default function InnerVuePage() {
     )
   }
 
-  // If user has access, show Google Form
   if (hasAccess) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
+          
+          {/* Back to Dashboard Button */}
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="mb-6 text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2 transition"
+          >
+            <span>←</span> Back to Dashboard
+          </button>
+
           <div className="card">
             <h1 className="text-4xl font-bold text-gray-900 mb-6">
               Inner Vue - Interview Preparation
@@ -104,10 +89,18 @@ export default function InnerVuePage() {
     )
   }
 
-  // If no access, show purchase page
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
+        
+        {/* Back to Dashboard Button */}
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="mb-6 text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2 transition"
+        >
+          <span>←</span> Back to Dashboard
+        </button>
+
         <div className="card">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">
             Inner Vue: Interview Mastery
