@@ -36,7 +36,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <span className="text-2xl">🚀</span>
-              <span className="text-xl font-bold text-gray-900">Career Journey</span>
+              <span className="text-xl font-bold text-gray-900">Career Journey MVP</span>
             </div>
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
@@ -50,7 +50,7 @@ export default function LandingPage() {
                 <>
                   <button
                     onClick={() => router.push('/sign-in')}
-                    className="btn btn-outline"
+                    className="text-gray-700 hover:text-gray-900 font-medium"
                   >
                     Sign In
                   </button>
@@ -82,7 +82,7 @@ export default function LandingPage() {
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                 Land Your Dream Role in{' '}
                 <span className="text-primary-600 relative">
-                  30 Days
+                  30 Days*
                   <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
                     <path d="M2 10C60 3 140 3 198 10" stroke="#2563eb" strokeWidth="3" strokeLinecap="round"/>
                   </svg>
@@ -91,13 +91,13 @@ export default function LandingPage() {
               
               <p className="text-xl text-gray-600 leading-relaxed">
                 Transform your career with AI-powered resume optimization, targeted job matching, 
-                and proven interview strategies. Join thousands who've accelerated their career growth.
+                and proven interview strategies. Join hundreds who've accelerated their career growth.
               </p>
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-6 py-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900">10K+</div>
+                  <div className="text-3xl font-bold text-gray-900">100+</div>
                   <div className="text-sm text-gray-600">Success Stories</div>
                 </div>
                 <div className="text-center">
@@ -105,8 +105,8 @@ export default function LandingPage() {
                   <div className="text-sm text-gray-600">Interview Rate</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900">30 Day</div>
-                  <div className="text-sm text-gray-600">Avg. Placement</div>
+                  <div className="text-3xl font-bold text-gray-900">27 Yrs</div>
+                  <div className="text-sm text-gray-600">HR Expertise</div>
                 </div>
               </div>
 
@@ -135,11 +135,16 @@ export default function LandingPage() {
                     <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 border-2 border-white"></div>
                   ))}
                 </div>
-                <span>Join 10,000+ professionals who've transformed their careers</span>
+                <span>Join hundreds of professionals who've transformed their careers</span>
               </div>
+
+              {/* Disclaimer */}
+              <p className="text-xs text-gray-500">
+                *Average time to job offer for engaged users. Results vary based on individual effort, market conditions, and experience level.
+              </p>
             </div>
 
-            {/* Right: Visual/Image Placeholder */}
+            {/* Right: Visual */}
             <div className="relative hidden lg:block animate-float">
               <div className="aspect-square bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-3xl shadow-2xl transform rotate-3 hover:rotate-6 transition-transform duration-300">
                 <div className="absolute inset-0 flex items-center justify-center text-white">
@@ -188,14 +193,14 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Your Career Transformation in 3 Steps
+              Your Career Transformation in 5 Steps
             </h2>
             <p className="text-xl text-gray-600">
               A proven system built on 27 years of HR expertise
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
                 step: '1',
@@ -205,19 +210,31 @@ export default function LandingPage() {
               },
               {
                 step: '2',
+                icon: '💪',
+                title: 'Strengths Discovery',
+                description: 'Uncover your unique value proposition and leverage points that make you irresistible to employers.'
+              },
+              {
+                step: '3',
                 icon: '📄',
                 title: 'Resume + Job Match',
                 description: 'AI rewrites your resume in proven format + delivers 12-15 targeted job matches with 90%+ fit.'
               },
               {
-                step: '3',
+                step: '4',
+                icon: '🤝',
+                title: 'Networking Accelerator',
+                description: 'Master strategic networking with templates, scripts, and LinkedIn optimization to unlock hidden opportunities.'
+              },
+              {
+                step: '5',
                 icon: '🎯',
                 title: 'Interview Mastery',
                 description: 'Master the S.O.A.R. framework with unlimited AI practice and land offers faster.'
               }
             ].map((item, idx) => (
               <div key={idx} className="relative group">
-                <div className="bg-gray-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                <div className="bg-gray-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full">
                   <div className="absolute -top-4 -left-4 w-12 h-12 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
                     {item.step}
                   </div>
@@ -270,11 +287,11 @@ export default function LandingPage() {
               <div className="p-8 space-y-4">
                 {[
                   'Free Career Breakthrough Assessment',
+                  'Strengths Discovery Module',
                   'AI-Powered Resume Rewrite + 5 Variants',
                   '12-15 Targeted Job Matches (90%+ Fit)',
-                  'Inner Vue Interview Tool (1 Year Access)',
                   'Networking Accelerator Templates',
-                  'Strengths Discovery Module',
+                  'Inner Vue Interview Tool (1 Year Access)',
                   'Email Support from Marcus (24hr response)'
                 ].map((feature, idx) => (
                   <div key={idx} className="flex items-start space-x-3">
@@ -304,11 +321,15 @@ export default function LandingPage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="mb-6">
-            <div className="text-2xl font-bold mb-2">Career Journey</div>
+            <div className="text-2xl font-bold mb-2">Career Journey MVP</div>
             <p className="text-gray-400">Powered by The HR Passion Guy</p>
           </div>
           <div className="text-gray-400 text-sm">
-            <p>marcus@hrpassionguy.com</p>
+            <p>
+              <a href="mailto:mgrmarcus@hrpassion.com" className="hover:text-white">
+                mgrmarcus@hrpassion.com
+              </a>
+            </p>
             <p className="mt-2">© 2026 HR Passion LLC. All rights reserved.</p>
           </div>
         </div>
