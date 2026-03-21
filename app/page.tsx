@@ -248,7 +248,7 @@ export default function LandingPage() {
 
           <div className="text-center mt-12">
             <button
-              onClick={() => router.push('/sign-up')}
+              onClick={() => router.push('/signup')}
               className="btn btn-primary text-lg px-8 py-4"
             >
               Start Your Free Assessment →
@@ -303,7 +303,7 @@ export default function LandingPage() {
 
               <div className="p-8 bg-gray-50">
                 <button
-                  onClick={() => router.push('/sign-up')}
+                  onClick={() => router.push('/signup')}
                   className="w-full btn btn-primary text-lg py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
                 >
                   Claim Launch Offer →
