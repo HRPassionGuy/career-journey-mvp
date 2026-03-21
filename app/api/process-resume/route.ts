@@ -52,47 +52,113 @@ export async function POST(request: NextRequest) {
         max_tokens: 16000,
         messages: [{
           role: 'user',
-          content: `Transform this resume into professional HTML format. Use ONLY candidate's actual experience.
+          content: `You are a professional resume writer. Extract information from the candidate's resume and rewrite it using the EXACT template structure below.
 
-RESUME:
+CANDIDATE'S RESUME:
 ${resumeText}
 
 TARGET ROLE: ${targetTitle}
 
-${jobDescTexts.length > 0 ? `JOB DESCRIPTIONS FOR VARIANTS:\n${jobDescTexts.map((t, i) => `JOB ${i+1}:\n${t}\n`).join('\n')}` : ''}
+${jobDescTexts.length > 0 ? `JOB DESCRIPTIONS FOR TAILORED VARIANTS:\n${jobDescTexts.map((t, i) => `\nJOB ${i+1}:\n${t}\n`).join('\n')}` : ''}
 
-COLORS: Navy #2F5496, Rust/Orange #B24C00
-FONT: Calibri
+CRITICAL CONTENT RULES:
+1. Extract candidate's ACTUAL name, contact info, companies, titles, dates, achievements from their resume
+2. DO NOT INVENT any information - use only what's in the resume
+3. Transform weak task descriptions into IMPACT statements with metrics
+4. Current scope correction: If candidate mentions "10,000+ employees" use that; if old role mentions "2,200 employees" that was a subset
+5. ALWAYS bold numbers and metrics using **bold** in markdown
+6. Use strong action verbs: Spearheaded, Orchestrated, Architected, Drove, Led, Directed
 
-CRITICAL RULES:
-1. Use candidate's ACTUAL companies, titles, dates - DO NOT INVENT
-2. Current role scope: 10,000+ employees (NOT 2,200 - that was old role)
-3. Transform tasks to IMPACT: "Managed operations" → "Directed <strong>$14M</strong> budget supporting <strong>10,000+</strong> employees"
-4. Bold ALL numbers with <strong> tags
-5. Use verbs: Spearheaded, Orchestrated, Architected, Drove, Led
+MARKDOWN TEMPLATE TO FOLLOW EXACTLY:
+---
+# {{FULL NAME}}
+**{{City, State}}** | **{{Email Address}}** | **{{Phone Number}}**
 
-STRUCTURE:
-- Navy header bar with white name box, contact info
-- Rust/orange title centered
-- Two columns: 27% left (skills sidebar), 73% right (summary + achievements)
-- Navy "PROFESSIONAL EXPERIENCE" header
-- Job entries with company, dates, bullets with → sub-bullets
-- Page 2: Continue jobs, navy "EDUCATION" header
+## {{CURRENT PROFESSIONAL TITLE}}
+> *{{A high-level mission statement based on their experience}}*
+
+---
+
+### EXECUTIVE SUMMARY
+{{2-3 sentence professional summary highlighting their expertise and value proposition. Include specific metrics.}}
+
+---
+
+### AREAS OF EXPERTISE
+| | | |
+| :--- | :--- | :--- |
+| • {{Skill 1}} | • {{Skill 4}} | • {{Skill 7}} |
+| • {{Skill 2}} | • {{Skill 5}} | • {{Skill 8}} |
+| • {{Skill 3}} | • {{Skill 6}} | • {{Skill 9}} |
+
+---
+
+### PROFESSIONAL EXPERIENCE
+
+#### {{COMPANY NAME}} | {{Location}}
+**{{Most Recent Job Title}}** | *{{Start Date - End Date}}*
+
+**Key Responsibilities:**
+* {{Responsibility 1 with scope/metrics}}
+* {{Responsibility 2 with scope/metrics}}
+* {{Responsibility 3 with scope/metrics}}
+
+**Selected Achievements:**
+* **{{Category}}:** {{Achievement with **bolded metrics** - e.g., Achieved **100%+** profitable sales growth over **3-year** period (**$192M** to **$450M**)}}
+* **{{Category}}:** {{Achievement with **bolded metrics**}}
+* **{{Category}}:** {{Achievement with **bolded metrics**}}
+
+---
+
+#### {{PREVIOUS COMPANY NAME}} | {{Location}}
+**{{Previous Job Title}}** | *{{Start Date - End Date}}*
+
+* {{Achievement bullet with **bolded metrics**}}
+* {{Achievement bullet with **bolded metrics**}}
+* {{Achievement bullet with **bolded metrics**}}
+
+---
+
+### EARLY CAREER
+* **{{Title}}** – {{Organization}} ({{Years}})
+* **{{Title}}** – {{Organization}} ({{Years}})
+
+---
+
+### EDUCATION & CERTIFICATIONS
+* **{{Degree}}** – {{University Name}}
+* **{{Certification}}** – {{Institution}}
+
+---
+
+CONVERT THIS MARKDOWN TO HTML WITH THESE EXACT STYLES:
+
+**COLORS:**
+- Navy header/sections: #2F5496
+- Rust/orange title: #B24C00
+- Font: Calibri, sans-serif
+
+**LAYOUT:**
+- Page 1: Header (navy bar with white name box) + Title (rust) + Two columns: 27% left sidebar (expertise table), 73% right (summary + first job)
+- Page 2: Continue professional experience + early career + education
+
+**HTML STRUCTURE:**
+Use professional styling with proper spacing, borders, and the exact color scheme.
 
 Return ONLY valid JSON:
 {
   "master_resume": {
-    "page1": "<complete HTML page 1>",
-    "page2": "<complete HTML page 2>"
+    "page1": "<complete HTML with inline styles>",
+    "page2": "<complete HTML with inline styles>"
   },
   "variants": [${jobDescTexts.length > 0 ? `
     {
       "job_number": 1,
-      "job_title": "from job desc",
-      "company": "from job desc", 
-      "tailoring_focus": "how tailored",
-      "page1": "<HTML>",
-      "page2": "<HTML>"
+      "job_title": "extracted from job description",
+      "company": "extracted from job description",
+      "tailoring_focus": "brief description of how resume was tailored",
+      "page1": "<HTML page 1 with inline styles>",
+      "page2": "<HTML page 2 with inline styles>"
     }` : ''}
   ],
   "analysis": {
@@ -100,7 +166,7 @@ Return ONLY valid JSON:
     "areas_for_improvement": ["area 1", "area 2"],
     "recommended_keywords": ["keyword1", "keyword2", "keyword3"],
     "target_roles": ["role 1", "role 2"],
-    "summary": "Brief assessment"
+    "summary": "Brief 2-sentence assessment"
   }
 }`
         }]
