@@ -1,9 +1,22 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+
 export default function NetworkingModulePage() {
+  const router = useRouter()
+  
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
+        
+        {/* Back to Dashboard Button */}
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="mb-6 text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2 transition"
+        >
+          <span>←</span> Back to Dashboard
+        </button>
+
         <div className="card">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">
             Networking Mastery
@@ -18,7 +31,6 @@ export default function NetworkingModulePage() {
               that accelerate your career growth.
             </p>
           </div>
-
           <div className="aspect-w-16 aspect-h-9 mb-8">
             <iframe
               src="https://www.youtube.com/embed/eKVUIAP9rnM"
@@ -28,7 +40,6 @@ export default function NetworkingModulePage() {
               className="w-full h-[500px] rounded-lg"
             ></iframe>
           </div>
-
           <div className="bg-gray-50 p-6 rounded-lg">
             <h3 className="font-bold text-gray-900 mb-3">Key Takeaways:</h3>
             <ul className="space-y-2 text-gray-700">
