@@ -170,6 +170,12 @@ export default function DashboardPage() {
     }
   }
 
+  const handleSignOut = async () => {
+    const supabase = createClientSupabaseClient()
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -184,14 +190,22 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome back, {userName}! 👋
-          </h1>
-          <p className="text-xl text-gray-600">
-            Your career transformation journey continues here
-          </p>
+        {/* Header with Sign Out */}
+        <div className="flex justify-between items-start mb-12">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Welcome back, {userName}! 👋
+            </h1>
+            <p className="text-xl text-gray-600">
+              Your career transformation journey continues here
+            </p>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="btn btn-outline"
+          >
+            Sign Out
+          </button>
         </div>
 
         {/* All Modules Complete Celebration */}
