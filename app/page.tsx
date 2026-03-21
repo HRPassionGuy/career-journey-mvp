@@ -1,246 +1,356 @@
 'use client'
 
-import { useState } from 'react'
-import { createClientSupabaseClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { createClientSupabaseClient } from '@/lib/supabase'
 
 export default function LandingPage() {
-  const [email, setEmail] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+  useEffect(() => {
+    checkAuth()
+  }, [])
 
-    try {
-      const supabase = createClientSupabaseClient()
-      
-      // Sign up user
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password: Math.random().toString(36).slice(-12), // Generate random password
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/assessment`,
-        },
-      })
+  async function checkAuth() {
+    const supabase = createClientSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    setIsAuthenticated(!!user)
+    setLoading(false)
+  }
 
-      if (signUpError) throw signUpError
-
-      // Show success message instead of redirecting
-      alert(`✅ Success! Check your email (${email}) for a confirmation link to continue to your assessment.\n\nDon't see it? Check your spam folder.`)
-      
-      // Clear form
-      setEmail('')
-      setFullName('')
-      
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
-      {/* Header */}
-      <header className="container mx-auto px-4 py-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary-600">Career Journey</h1>
-          <a href="/signin" className="text-gray-600 hover:text-gray-900">
-            Already have an account? <span className="text-primary-600 font-semibold">Sign In</span>
-          </a>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50">
+      {/* Navigation */}
+      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl">🚀</span>
+              <span className="text-xl font-bold text-gray-900">Career Journey</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              {isAuthenticated ? (
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="btn btn-primary"
+                >
+                  Go to Dashboard →
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => router.push('/sign-in')}
+                    className="btn btn-outline"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => router.push('/sign-up')}
+                    className="btn btn-primary"
+                  >
+                    Get Started
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      </header>
+      </nav>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 py-16 max-w-6xl">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          
-          {/* Left Column - Value Prop */}
-          <div>
-            <div className="inline-block bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-              ✨ From the HR Passion Guy - 27 Years of HR Expertise
-            </div>
-            
-            <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-              Land Your Dream Role in 90 Days
-            </h2>
-            
-            <p className="text-xl text-gray-600 mb-8">
-              Stop sending resumes into the void. Get the exact system that helped 500+ professionals land $100K+ roles, negotiate 20%+ raises, and pivot into careers they love.
-            </p>
-
-            <div className="space-y-4 mb-8">
-              {[
-                'AI-powered interview prep that actually works',
-                'Resume optimization that beats ATS systems',
-                'Proven networking strategies from an HR insider',
-                'Personalized coaching from Marcus Holmes (SHRM-CP, PHR)',
-              ].map((benefit, i) => (
-                <div key={i} className="flex items-start">
-                  <svg className="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+      <section className="relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Text Content */}
+            <div className="space-y-8 animate-fade-in">
+              <div className="inline-block">
+                <span className="bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold">
+                  ✨ Powered by The HR Passion Guy
+                </span>
+              </div>
+              
+              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                Land Your Dream Role in{' '}
+                <span className="text-primary-600 relative">
+                  30 Days
+                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
+                    <path d="M2 10C60 3 140 3 198 10" stroke="#2563eb" strokeWidth="3" strokeLinecap="round"/>
                   </svg>
-                  <span className="text-gray-700">{benefit}</span>
+                </span>
+              </h1>
+              
+              <p className="text-xl text-gray-600 leading-relaxed">
+                Transform your career with AI-powered resume optimization, targeted job matching, 
+                and proven interview strategies. Join thousands who've accelerated their career growth.
+              </p>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-6 py-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">10K+</div>
+                  <div className="text-sm text-gray-600">Success Stories</div>
                 </div>
-              ))}
-            </div>
-
-            <div className="flex items-center space-x-6 text-sm text-gray-600">
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-primary-600 mr-2">500+</span>
-                <span>Clients Placed</span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-primary-600 mr-2">$120K</span>
-                <span>Avg. Salary</span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-primary-600 mr-2">4.9★</span>
-                <span>Rating</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Sign Up Form */}
-          <div className="card">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Start Your Free Assessment
-              </h3>
-              <p className="text-gray-600">
-                Discover what's blocking your career progress in 5 minutes
-              </p>
-            </div>
-
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  id="fullName"
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="input"
-                  placeholder="Marcus Holmes"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input"
-                  placeholder="you@example.com"
-                />
-              </div>
-
-              {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-                  {error}
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">92%</div>
+                  <div className="text-sm text-gray-600">Interview Rate</div>
                 </div>
-              )}
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">30 Day</div>
+                  <div className="text-sm text-gray-600">Avg. Placement</div>
+                </div>
+              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full text-lg"
-              >
-                {loading ? 'Creating Your Account...' : 'Start Free Assessment →'}
-              </button>
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={() => router.push('/sign-up')}
+                  className="btn btn-primary text-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
+                >
+                  Start Free Assessment →
+                </button>
+                <button
+                  onClick={() => {
+                    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                  className="btn btn-outline text-lg px-8 py-4"
+                >
+                  See How It Works
+                </button>
+              </div>
 
-              <p className="text-xs text-gray-500 text-center">
-                No credit card required • Takes 5 minutes • Get instant results
-              </p>
-            </form>
-<div className="mt-4 text-center">
-              <p className="text-sm text-gray-600">
-                Already have an account?{' '}
-                <a href="/signin" className="text-primary-600 hover:text-primary-700 font-semibold">
-                  Sign In
-                </a>
-              </p>
+              {/* Social Proof */}
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <div className="flex -space-x-2">
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 border-2 border-white"></div>
+                  ))}
+                </div>
+                <span>Join 10,000+ professionals who've transformed their careers</span>
+              </div>
             </div>
-            {/* Social Proof */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600 text-center mb-3">
-                Trusted by professionals at:
-              </p>
-              <div className="flex justify-center items-center space-x-6 text-gray-400 text-sm font-semibold">
-                <span>Google</span>
-                <span>•</span>
-                <span>Microsoft</span>
-                <span>•</span>
-                <span>Amazon</span>
-                <span>•</span>
-                <span>Meta</span>
+
+            {/* Right: Visual/Image Placeholder */}
+            <div className="relative hidden lg:block animate-float">
+              <div className="aspect-square bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-3xl shadow-2xl transform rotate-3 hover:rotate-6 transition-transform duration-300">
+                <div className="absolute inset-0 flex items-center justify-center text-white">
+                  <div className="text-center p-8">
+                    <div className="text-8xl mb-4">📊</div>
+                    <div className="text-2xl font-bold mb-2">Your Career Dashboard</div>
+                    <div className="text-primary-100">Powered by AI & 27 Years of HR Expertise</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Floating Cards */}
+              <div className="absolute -top-6 -left-6 bg-white rounded-xl shadow-lg p-4 animate-bounce-slow">
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl">✅</span>
+                  <div>
+                    <div className="font-semibold text-sm">Resume Optimized</div>
+                    <div className="text-xs text-gray-500">ATS Score: 95%</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="absolute -bottom-6 -right-6 bg-white rounded-xl shadow-lg p-4 animate-bounce-slow" style={{animationDelay: '1s'}}>
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl">🎯</span>
+                  <div>
+                    <div className="font-semibold text-sm">15 Job Matches</div>
+                    <div className="text-xs text-gray-500">90%+ Match Rate</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* How It Works Section */}
-        <div className="mt-24">
-          <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Your Career Transformation Journey
-          </h3>
-          
-          <div className="grid md:grid-cols-5 gap-6">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 -z-10 opacity-30">
+          <div className="absolute top-0 left-1/4 w-72 h-72 bg-primary-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+          <div className="absolute top-0 right-1/4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Your Career Transformation in 3 Steps
+            </h2>
+            <p className="text-xl text-gray-600">
+              A proven system built on 27 years of HR expertise
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
             {[
-              { step: 1, title: 'Free Assessment', description: 'Discover your career breakthrough type', icon: '📊' },
-              { step: 2, title: 'Strengths Discovery', description: 'Unlock your unique value proposition', price: '$29', icon: '💪' },
-              { step: 3, title: 'Resume Mastery', description: 'ATS-optimized resume + rewrite', price: '$150', icon: '📄' },
-              { step: 4, title: 'Network Building', description: 'Strategic connection frameworks', price: 'FREE', icon: '🤝' },
-              { step: 5, title: 'Interview Prep', description: 'AI-powered Inner Vue practice', price: '$100', icon: '🎯' },
-            ].map((item) => (
-              <div key={item.step} className="text-center">
-                <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                  {item.icon}
+              {
+                step: '1',
+                icon: '📊',
+                title: 'Free Assessment',
+                description: 'Discover your career breakthrough type and get your personalized roadmap in minutes.'
+              },
+              {
+                step: '2',
+                icon: '📄',
+                title: 'Resume + Job Match',
+                description: 'AI rewrites your resume in proven format + delivers 12-15 targeted job matches with 90%+ fit.'
+              },
+              {
+                step: '3',
+                icon: '🎯',
+                title: 'Interview Mastery',
+                description: 'Master the S.O.A.R. framework with unlimited AI practice and land offers faster.'
+              }
+            ].map((item, idx) => (
+              <div key={idx} className="relative group">
+                <div className="bg-gray-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                    {item.step}
+                  </div>
+                  <div className="text-5xl mb-4">{item.icon}</div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{item.description}</p>
                 </div>
-                <div className="text-primary-600 font-semibold mb-2">Step {item.step}</div>
-                <h4 className="font-bold text-gray-900 mb-2">{item.title}</h4>
-                <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                {item.price && (
-                  <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                    {item.price}
-                  </span>
-                )}
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-8">
-            <p className="text-lg text-gray-600 mb-2">
-              <span className="font-bold text-primary-600">Complete Bundle: $497</span> first year
-            </p>
-            <p className="text-sm text-gray-500">Annual renewal: $218/year</p>
+          <div className="text-center mt-12">
+            <button
+              onClick={() => router.push('/sign-up')}
+              className="btn btn-primary text-lg px-8 py-4"
+            >
+              Start Your Free Assessment →
+            </button>
           </div>
         </div>
-      </main>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="bg-gradient-to-br from-gray-50 to-primary-50 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Launch Special: Save $311
+            </h2>
+            <p className="text-xl text-gray-600">
+              Everything you need to land your dream role
+            </p>
+          </div>
+
+          <div className="max-w-lg mx-auto">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-primary-500 relative">
+              <div className="absolute top-0 right-0 bg-yellow-400 text-gray-900 px-6 py-2 rounded-bl-2xl font-bold">
+                🎉 SAVE $311
+              </div>
+              
+              <div className="p-8 bg-gradient-to-br from-primary-600 to-primary-700 text-white">
+                <h3 className="text-3xl font-bold mb-2">Career Accelerator</h3>
+                <p className="text-primary-100">Complete Bundle - Launch Offer</p>
+                <div className="mt-6 flex items-baseline">
+                  <span className="text-6xl font-bold">$197</span>
+                  <span className="ml-2 text-2xl line-through text-primary-200">$508</span>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-4">
+                {[
+                  'Free Career Breakthrough Assessment',
+                  'AI-Powered Resume Rewrite + 5 Variants',
+                  '12-15 Targeted Job Matches (90%+ Fit)',
+                  'Inner Vue Interview Tool (1 Year Access)',
+                  'Networking Accelerator Templates',
+                  'Strengths Discovery Module',
+                  'Email Support from Marcus (24hr response)'
+                ].map((feature, idx) => (
+                  <div key={idx} className="flex items-start space-x-3">
+                    <span className="text-green-500 font-bold flex-shrink-0">✓</span>
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-8 bg-gray-50">
+                <button
+                  onClick={() => router.push('/sign-up')}
+                  className="w-full btn btn-primary text-lg py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
+                >
+                  Claim Launch Offer →
+                </button>
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  30-day money-back guarantee • No risk
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="bg-gray-50 mt-24 py-12 border-t border-gray-200">
-        <div className="container mx-auto px-4 text-center text-gray-600">
-          <p className="mb-2">© 2026 HR Passion LLC • Career Journey by Marcus Holmes</p>
-          <p className="text-sm">SHRM-CP, PHR • 27 Years HR Experience • Detroit, MI</p>
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mb-6">
+            <div className="text-2xl font-bold mb-2">Career Journey</div>
+            <p className="text-gray-400">Powered by The HR Passion Guy</p>
+          </div>
+          <div className="text-gray-400 text-sm">
+            <p>marcus@hrpassionguy.com</p>
+            <p className="mt-2">© 2026 HR Passion LLC. All rights reserved.</p>
+          </div>
         </div>
       </footer>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        @keyframes blob {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-fade-in {
+          animation: fade-in 1s ease-out;
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s ease-in-out infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   )
 }
