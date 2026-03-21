@@ -570,14 +570,10 @@ ${jobs.jobs.map((job: any) => `    <tr>
               >
                 Process Another Resume
               </button>
-            </div>
+           </div>
           </div>
         )}
 
-      </div>
-    </div>
-  )
-}
       </div>
     </div>
   )
