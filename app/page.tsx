@@ -113,7 +113,7 @@ export default function LandingPage() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  onClick={() => router.push('/sign-up')}
+                  onClick={() => router.push('/signup')}
                   className="btn btn-primary text-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
                 >
                   Start Free Assessment →
