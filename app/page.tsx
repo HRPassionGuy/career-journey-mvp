@@ -49,13 +49,13 @@ export default function LandingPage() {
               ) : (
                 <>
                   <button
-                    onClick={() => router.push('/sign-in')}
+                    onClick={() => router.push('/signin')}
                     className="text-gray-700 hover:text-gray-900 font-medium"
                   >
                     Sign In
                   </button>
                   <button
-                    onClick={() => router.push('/sign-up')}
+                    onClick={() => router.push('/signup')}
                     className="btn btn-primary"
                   >
                     Get Started
