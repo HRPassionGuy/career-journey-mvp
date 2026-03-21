@@ -109,7 +109,7 @@ const handleStrengthsSubmit = async () => {
       if (user) {
        const { error } = await supabase.from('module_progress').upsert({
   user_id: user.id,
-  module_name: 'strengths', // or 'resume'
+  module_name: 'strengths',
   is_unlocked: true,
   is_completed: true,
   progress_percent: 100,
@@ -156,6 +156,14 @@ if (error) {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         
+        {/* Back to Dashboard Button */}
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="mb-6 text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2 transition"
+        >
+          <span>←</span> Back to Dashboard
+        </button>
+
         {step === 'intro' && (
           <div className="card">
             <h1 className="text-4xl font-bold text-gray-900 mb-6">
