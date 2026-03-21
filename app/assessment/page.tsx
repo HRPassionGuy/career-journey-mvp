@@ -151,6 +151,14 @@ export default function AssessmentPage() {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         
+        {/* Back to Dashboard Button */}
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="mb-6 text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2 transition"
+        >
+          <span>←</span> Back to Dashboard
+        </button>
+
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
