@@ -17,17 +17,20 @@ export default function ResumeModulePage() {
   const [step, setStep] = useState<'upload' | 'analyzing' | 'analysis' | 'processing' | 'results'>('upload')
   const [loading, setLoading] = useState(false)
   const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [resumeText, setResumeText] = useState('')
   const [jobDescFiles, setJobDescFiles] = useState<File[]>([])
+  const [jobDescTexts, setJobDescTexts] = useState<string[]>([])
   const [targetTitle, setTargetTitle] = useState('')
   const [location, setLocation] = useState('')
   const [salary, setSalary] = useState('')
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [results, setResults] = useState<any>(null)
   const [jobs, setJobs] = useState<any>(null)
+  const [inputMode, setInputMode] = useState<'upload' | 'paste'>('upload')
 
   const handleAnalyze = async () => {
-    if (!resumeFile || !targetTitle || !location) {
-      alert('Please upload resume and fill in all required fields')
+    if ((!resumeFile && !resumeText) || !targetTitle || !location) {
+      alert('Please provide your resume and fill in all required fields')
       return
     }
 
@@ -35,16 +38,23 @@ export default function ResumeModulePage() {
     setStep('analyzing')
 
     try {
-      const reader = new FileReader()
-      const base64File = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const result = reader.result as string
-          const base64 = result.split(',')[1]
-          resolve(base64)
-        }
-        reader.onerror = reject
-        reader.readAsDataURL(resumeFile)
-      })
+      let base64File = ''
+      
+      if (resumeFile) {
+        const reader = new FileReader()
+        base64File = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => {
+            const result = reader.result as string
+            const base64 = result.split(',')[1]
+            resolve(base64)
+          }
+          reader.onerror = reject
+          reader.readAsDataURL(resumeFile)
+        })
+      } else {
+        // Convert pasted text to base64
+        base64File = btoa(resumeText)
+      }
       
       const analysisResponse = await fetch('/api/analyze-resume', {
         method: 'POST',
@@ -52,7 +62,7 @@ export default function ResumeModulePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fileName: resumeFile.name,
+          fileName: resumeFile?.name || 'pasted_resume.txt',
           fileData: base64File
         })
       })
@@ -82,8 +92,21 @@ export default function ResumeModulePage() {
 
     try {
       const formData = new FormData()
-      formData.append('resume', resumeFile!)
+      
+      if (resumeFile) {
+        formData.append('resume', resumeFile)
+      } else {
+        // Create a text file from pasted content
+        const blob = new Blob([resumeText], { type: 'text/plain' })
+        formData.append('resume', blob, 'pasted_resume.txt')
+      }
+      
       jobDescFiles.forEach(file => formData.append('jobDescriptions', file))
+      jobDescTexts.forEach((text, idx) => {
+        const blob = new Blob([text], { type: 'text/plain' })
+        formData.append('jobDescriptions', blob, `pasted_job_${idx + 1}.txt`)
+      })
+      
       formData.append('targetTitle', targetTitle)
       formData.append('location', location)
       formData.append('salary', salary)
@@ -293,32 +316,76 @@ ${jobs.jobs.map((job: any) => `    <tr>
             </div>
 
             <div className="space-y-6">
+              {/* Resume Input - Toggle between Upload and Paste */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Upload Your Resume <span className="text-red-500">*</span>
+                  Your Resume <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,.txt"
-                  onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                  className="input"
-                />
+                
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => setInputMode('upload')}
+                    className={`px-4 py-2 rounded ${inputMode === 'upload' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Upload File
+                  </button>
+                  <button
+                    onClick={() => setInputMode('paste')}
+                    className={`px-4 py-2 rounded ${inputMode === 'paste' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Paste Text
+                  </button>
+                </div>
+
+                {inputMode === 'upload' ? (
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                    className="input"
+                  />
+                ) : (
+                  <textarea
+                    value={resumeText}
+                    onChange={(e) => setResumeText(e.target.value)}
+                    placeholder="Paste your resume text here..."
+                    className="input min-h-[200px]"
+                  />
+                )}
               </div>
 
+              {/* Job Descriptions Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Upload Job Descriptions (Optional - up to 5)
+                  Job Descriptions (Optional - up to 5)
                 </label>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,.txt"
-                  multiple
-                  onChange={(e) => setJobDescFiles(Array.from(e.target.files || []).slice(0, 5))}
-                  className="input"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Upload up to 5 job postings to get tailored resume variants
-                </p>
+                
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    multiple
+                    onChange={(e) => setJobDescFiles(Array.from(e.target.files || []).slice(0, 5))}
+                    className="input"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Upload files OR paste job descriptions below (one per box)
+                  </p>
+                  
+                  {[0, 1, 2, 3, 4].map((idx) => (
+                    <textarea
+                      key={idx}
+                      placeholder={`Job Description ${idx + 1} (paste here)`}
+                      value={jobDescTexts[idx] || ''}
+                      onChange={(e) => {
+                        const newTexts = [...jobDescTexts]
+                        newTexts[idx] = e.target.value
+                        setJobDescTexts(newTexts)
+                      }}
+                      className="input min-h-[100px]"
+                    />
+                  ))}
+                </div>
               </div>
 
               <div>
@@ -363,7 +430,7 @@ ${jobs.jobs.map((job: any) => `    <tr>
 
             <button
               onClick={handleAnalyze}
-              disabled={loading || !resumeFile || !targetTitle || !location}
+              disabled={loading || (!resumeFile && !resumeText) || !targetTitle || !location}
               className="btn btn-primary w-full mt-8"
             >
               Analyze My Resume →
@@ -561,7 +628,9 @@ ${jobs.jobs.map((job: any) => `    <tr>
                 onClick={() => {
                   setStep('upload')
                   setResumeFile(null)
+                  setResumeText('')
                   setJobDescFiles([])
+                  setJobDescTexts([])
                   setAnalysisResult(null)
                   setResults(null)
                   setJobs(null)
@@ -570,7 +639,7 @@ ${jobs.jobs.map((job: any) => `    <tr>
               >
                 Process Another Resume
               </button>
-           </div>
+            </div>
           </div>
         )}
 
