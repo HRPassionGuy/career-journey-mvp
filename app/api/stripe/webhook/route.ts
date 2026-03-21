@@ -1,100 +1,114 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { headers } from 'next/headers'
-import { verifyWebhookSignature } from '@/lib/stripe'
-import { createServiceSupabaseClient } from '@/lib/supabase'
-import { sendPurchaseConfirmationEmail } from '@/lib/email'
+import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-11-20.acacia',
+})
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(request: NextRequest) {
+  const body = await request.text()
+  const signature = request.headers.get('stripe-signature')!
+
+  let event: Stripe.Event
+
   try {
-    const body = await request.text()
-    const headersList = headers()
-    const signature = headersList.get('stripe-signature')
-    
-    if (!signature) {
-      return NextResponse.json({ error: 'No signature' }, { status: 400 })
-    }
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    )
+  } catch (err: any) {
+    console.error('Webhook signature verification failed:', err.message)
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
 
-    const event = verifyWebhookSignature(body, signature)
-    console.log('Webhook event type:', event.type)
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session
 
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as any
-      
-      console.log('Session metadata:', session.metadata)
-      console.log('Customer email:', session.customer_details?.email)
-      
-      let moduleName = session.metadata?.moduleName
-      let userId = session.metadata?.userId
-      
-      if (!moduleName || !userId) {
-        const supabase = await createServiceSupabaseClient()
-        const customerEmail = session.customer_details?.email
-        
-        console.log('Looking up user with email:', customerEmail)
-        
-        if (customerEmail) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id, email')
-            .ilike('email', customerEmail)
-            .single()
-          
-          console.log('Profile found:', profile)
-          
-          if (profile) {
-            userId = profile.id
-          }
-        }
-        
-        if (session.payment_link === 'plink_1TCsXMBx8VCQp7jplRInlBiI') {
-          moduleName = 'innervue'
-        }
-      }
-      
-      console.log('userId:', userId, 'moduleName:', moduleName)
-      
-      if (!userId || !moduleName) {
-        console.error('Missing data')
-        return NextResponse.json({ error: 'Missing required data' }, { status: 400 })
+    try {
+      // Get customer email
+      const customerEmail = session.customer_details?.email || session.metadata?.email
+
+      if (!customerEmail) {
+        console.error('No customer email found in session')
+        return NextResponse.json({ error: 'No email found' }, { status: 400 })
       }
 
-      const supabase = await createServiceSupabaseClient()
-
-      await supabase.from('purchases').insert({
-        user_id: userId,
-        module_name: moduleName,
-        amount_paid: session.amount_total,
-        stripe_payment_intent_id: session.payment_intent,
-        stripe_customer_id: session.customer,
-        status: 'completed',
-      })
-
-      await supabase.rpc('unlock_module', {
-        p_user_id: userId,
-        p_module_name: moduleName,
-      })
-
+      // Get user_id from profiles table
       const { data: profile } = await supabase
         .from('profiles')
-        .select('email, full_name')
-        .eq('id', userId)
+        .select('id')
+        .eq('email', customerEmail)
         .single()
 
-      if (profile) {
-        await sendPurchaseConfirmationEmail(
-          profile.email,
-          profile.full_name || 'there',
-          moduleName,
-          session.amount_total,
-          `${process.env.NEXT_PUBLIC_APP_URL}/modules/innervue`
-        )
+      if (!profile) {
+        console.error('No profile found for email:', customerEmail)
+        return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
       }
-    }
 
-    return NextResponse.json({ received: true })
-    
-  } catch (error: any) {
-    console.error('Webhook error:', error)
-    return NextResponse.json({ error: error.message }, { status: 400 })
+      // Determine module name from payment link
+      let moduleName = 'innervue'
+      if (session.payment_link === 'plink_1TCsXMBx8VCQp7jplRInlBiI') {
+        moduleName = 'innervue'
+      }
+
+      // Log purchase to Supabase
+      const { error: purchaseError } = await supabase
+        .from('purchases')
+        .insert({
+          user_id: profile.id,
+          module_name: moduleName,
+          amount_paid: session.amount_total,
+          stripe_payment_intent_id: session.payment_intent as string,
+          stripe_customer_id: session.customer as string,
+          status: 'completed',
+        })
+
+      if (purchaseError) {
+        console.error('Error logging purchase:', purchaseError)
+      }
+
+      // Send to Zapier webhook
+      const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL
+
+      if (zapierWebhookUrl) {
+        const zapierResponse = await fetch(zapierWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: customerEmail,
+            product_name: 'Inner Vue',
+            amount: (session.amount_total! / 100).toFixed(2),
+            purchase_date: new Date().toISOString(),
+            status: 'completed',
+            platform: 'Stripe',
+            payment_intent_id: session.payment_intent,
+          }),
+        })
+
+        console.log('Zapier webhook response:', await zapierResponse.text())
+      } else {
+        console.warn('ZAPIER_WEBHOOK_URL not configured')
+      }
+
+      console.log('Purchase logged successfully for:', customerEmail)
+      return NextResponse.json({ received: true })
+      
+    } catch (error) {
+      console.error('Error processing webhook:', error)
+      return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
+    }
   }
+
+  return NextResponse.json({ received: true })
 }
+
+export const runtime = 'nodejs'
