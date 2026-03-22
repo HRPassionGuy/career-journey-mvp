@@ -51,10 +51,10 @@ export default function ResumeModulePage() {
           reader.onerror = reject
           reader.readAsDataURL(resumeFile)
         })
-      } else {
-        // Convert pasted text to base64
-        base64File = btoa(resumeText)
-      }
+     } else {
+  // Convert pasted text to base64 - handle special characters
+  base64File = btoa(unescape(encodeURIComponent(resumeText)))
+}
       
       const analysisResponse = await fetch('/api/analyze-resume', {
         method: 'POST',
@@ -101,11 +101,13 @@ export default function ResumeModulePage() {
         formData.append('resume', blob, 'pasted_resume.txt')
       }
       
-      jobDescFiles.forEach(file => formData.append('jobDescriptions', file))
-      jobDescTexts.forEach((text, idx) => {
-        const blob = new Blob([text], { type: 'text/plain' })
-        formData.append('jobDescriptions', blob, `pasted_job_${idx + 1}.txt`)
-      })
+    jobDescFiles.forEach(file => formData.append('jobDescriptions', file))
+jobDescTexts.forEach((text, idx) => {
+  if (text.trim().length > 0) {
+    const blob = new Blob([text], { type: 'text/plain' })
+    formData.append('jobDescriptions', blob, `pasted_job_${idx + 1}.txt`)
+  }
+})
       
       formData.append('targetTitle', targetTitle)
       formData.append('location', location)
