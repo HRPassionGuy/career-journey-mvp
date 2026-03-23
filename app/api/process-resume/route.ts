@@ -2,12 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 // @ts-ignore
 import pdf from 'pdf-parse'
 
+export const runtime = 'nodejs'
+
 async function extractText(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer())
   
   if (file.name.toLowerCase().endsWith('.pdf')) {
-    const pdfData = await pdf(buffer)
-    return pdfData.text
+    try {
+      const pdfData = await pdf(buffer)
+      return pdfData.text
+    } catch (err) {
+      console.error('PDF parse error:', err)
+      return ''
+    }
   } else {
     return buffer.toString('utf-8')
   }
@@ -23,210 +30,208 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: Calibri, Arial, sans-serif; 
-      font-size: 10.5pt; 
+      font-size: 10pt; 
       line-height: 1.3; 
-      color: #000; 
+      color: #333;
+      background: #fff;
     }
     
-    /* Header */
-    .header {
+    /* Header Section */
+    .header-block {
       background: #2F5496;
-      padding: 15px 20px;
-      margin: -40px -40px 0 -40px;
+      margin: -0.5in -0.5in 20px -0.5in;
+      padding: 25px 0.5in 20px 0.5in;
+      text-align: left;
     }
-    .name-box {
+    .name-card {
       background: white;
       display: inline-block;
-      padding: 5px 25px;
-      margin-bottom: 5px;
+      padding: 8px 25px;
+      margin-bottom: 10px;
     }
-    .name-box h1 {
+    .name-card h1 {
+      color: #2F5496;
       font-size: 20pt;
       font-weight: bold;
-      color: #2F5496;
+      text-transform: uppercase;
       margin: 0;
       letter-spacing: 0.5px;
     }
-    .contact-info {
+    .contact-line {
+      font-size: 10pt;
       color: white;
-      font-size: 9.5pt;
-      text-align: left;
-      margin-top: 3px;
-    }
-    
-    /* Title */
-    .title {
-      color: #B24C00;
-      font-size: 14pt;
-      font-weight: bold;
-      text-transform: uppercase;
-      margin: 8px 0;
-      letter-spacing: 0.5px;
-    }
-    
-    .tagline {
-      font-style: italic;
-      font-size: 9.5pt;
-      margin-bottom: 10px;
-      color: #333;
+      letter-spacing: 0.3px;
     }
     
     /* Two Column Layout */
-    .container {
+    .content-wrapper {
       display: table;
       width: 100%;
-      margin-top: 10px;
+      table-layout: fixed;
     }
-    
     .sidebar {
       display: table-cell;
       width: 27%;
       vertical-align: top;
-      padding-right: 12px;
+      padding-right: 15px;
     }
-    
-    .main-content {
+    .main-column {
       display: table-cell;
       width: 73%;
       vertical-align: top;
-      padding-left: 12px;
       border-left: 1px solid #ccc;
+      padding-left: 18px;
     }
     
     /* Section Headers */
-    .section-header {
+    .section-label {
       background: #2F5496;
       color: white;
-      padding: 4px 8px;
-      font-size: 10pt;
+      font-size: 9pt;
+      font-weight: bold;
+      padding: 5px 10px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Title and Tagline */
+    .executive-title {
+      color: #B24C00;
+      font-size: 14pt;
       font-weight: bold;
       text-transform: uppercase;
-      margin: 8px 0 6px 0;
+      margin-bottom: 5px;
       letter-spacing: 0.3px;
     }
+    .tagline {
+      font-style: italic;
+      color: #666;
+      margin-bottom: 12px;
+      font-size: 9.5pt;
+    }
     
-    /* Expertise List */
-    .expertise-list {
-      font-size: 9pt;
+    /* Summary */
+    .summary-text {
+      text-align: justify;
+      margin-bottom: 12px;
+      font-size: 9.5pt;
       line-height: 1.4;
     }
-    .expertise-list div {
-      margin-bottom: 3px;
+    
+    /* Expertise Sidebar */
+    .skill-item {
+      font-size: 8.5pt;
+      margin-bottom: 4px;
+      line-height: 1.3;
     }
     
-    /* Executive Summary */
-    .summary {
-      font-size: 9.5pt;
-      line-height: 1.35;
-      text-align: justify;
-      margin-bottom: 8px;
+    /* Skill Category Boxes */
+    .skill-boxes {
+      display: table;
+      width: 100%;
+      margin: 12px 0;
     }
-    
-    /* Skills Boxes */
-    .skills-boxes {
-      display: flex;
-      gap: 8px;
-      margin: 8px 0;
+    .skill-boxes-row {
+      display: table-row;
     }
     .skill-box {
-      flex: 1;
+      display: table-cell;
       background: #FFF4E6;
       border-left: 3px solid #B24C00;
-      padding: 6px 8px;
-      font-size: 8.5pt;
+      padding: 8px 6px;
+      font-size: 8pt;
       font-weight: bold;
-      text-align: center;
       color: #B24C00;
+      text-align: center;
+      width: 25%;
+    }
+    .skill-box + .skill-box {
+      border-left: 3px solid #B24C00;
+      padding-left: 6px;
     }
     
-    /* Job Entries */
-    .job {
-      margin-bottom: 12px;
+    /* Experience */
+    .job-entry { margin-bottom: 15px; }
+    .job-header { 
+      font-weight: bold; 
+      font-size: 10pt; 
+      margin-bottom: 3px;
     }
-    
-    .company-header {
-      font-weight: bold;
-      font-size: 10pt;
-      margin-bottom: 2px;
+    .job-header-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
     }
-    
-    .job-title {
-      font-style: italic;
+    .job-title { 
+      font-style: italic; 
+      color: #555; 
+      margin-bottom: 5px;
       font-size: 9.5pt;
-      margin-bottom: 4px;
     }
-    
-    .job-description {
+    .job-desc {
       font-size: 9pt;
-      line-height: 1.3;
       text-align: justify;
       margin-bottom: 6px;
+      line-height: 1.35;
     }
     
-    /* Bullets */
-    ul {
-      margin: 0 0 6px 18px;
-      padding: 0;
-      font-size: 9pt;
+    ul { margin: 6px 0 6px 20px; padding: 0; }
+    li { 
+      margin-bottom: 5px; 
+      font-size: 9pt; 
+      line-height: 1.35;
+      text-align: justify;
     }
-    
-    li {
-      margin-bottom: 4px;
-      line-height: 1.3;
-    }
-    
-    .sub-bullet {
-      margin-left: 15px;
-      font-size: 8.5pt;
-      font-style: italic;
-      color: #333;
-    }
-    
-    strong { font-weight: bold; }
+    strong { font-weight: bold; color: #000; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="name-box">
-      <h1>${data.name}</h1>
-    </div>
-    <div class="contact-info">
-      ${data.location} • ${data.email} • ${data.phone}
-    </div>
+  <div class="header-block">
+    <div class="name-card"><h1>${data.name || 'NAME'}</h1></div>
+    <div class="contact-line">${data.location || 'City, State'} • ${data.email || 'email@example.com'} • ${data.phone || '(000) 000-0000'}</div>
   </div>
   
-  <div class="container">
+  <div class="content-wrapper">
     <div class="sidebar">
-      <div class="section-header">AREAS OF EXPERTISE</div>
-      <div class="expertise-list">
-        ${data.expertise.map((skill: string) => `<div>• ${skill}</div>`).join('')}
-      </div>
+      <div class="section-label">AREAS OF EXPERTISE</div>
+      ${(data.expertise || []).map((s: string) => `<div class="skill-item">${s}</div>`).join('')}
     </div>
     
-    <div class="main-content">
-      <div class="title">${data.current_title}</div>
-      <div class="tagline">${data.tagline || ''}</div>
+    <div class="main-column">
+      <div class="executive-title">${data.current_title || 'PROFESSIONAL TITLE'}</div>
+      ${data.tagline ? `<div class="tagline">${data.tagline}</div>` : ''}
+      <div class="summary-text">${data.summary || ''}</div>
       
-      ${data.summary}
+      ${data.skill_categories && data.skill_categories.length > 0 ? `
+        <div class="skill-boxes">
+          <div class="skill-boxes-row">
+            ${data.skill_categories.map((cat: string) => `<div class="skill-box">${cat}</div>`).join('')}
+          </div>
+        </div>
+      ` : ''}
       
-      ${data.skill_categories ? `<div class="skills-boxes">
-        ${data.skill_categories.map((cat: string) => `<div class="skill-box">${cat}</div>`).join('')}
-      </div>` : ''}
+      <div class="section-label">PROFESSIONAL EXPERIENCE</div>
       
-      <div class="section-header">PROFESSIONAL EXPERIENCE</div>
-      
-      <div class="job">
-        <div class="company-header">${data.current_job.company} • ${data.current_job.location} • ${data.current_job.dates}</div>
-        <div class="job-title">${data.current_job.title}</div>
-        <div class="job-description">${data.current_job.description || ''}</div>
-        <ul>
-          ${data.current_job.achievements.map((achievement: string) => `<li>${achievement}</li>`).join('')}
-        </ul>
-      </div>
+      ${data.current_job ? `
+        <div class="job-entry">
+          <div class="job-header">
+            <div class="job-header-line">
+              <span>${data.current_job.company || 'Company'} • ${data.current_job.location || 'City, ST'}</span>
+              <span>${data.current_job.dates || 'Year - Present'}</span>
+            </div>
+          </div>
+          <div class="job-title">${data.current_job.title || 'Job Title'}</div>
+          ${data.current_job.description ? `<div class="job-desc">${data.current_job.description}</div>` : ''}
+          <ul>
+            ${(data.current_job.achievements || []).map((a: string) => `<li>${a}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
     </div>
   </div>
 </body>
-</html>`;
+</html>`
 
   const page2 = `<!DOCTYPE html>
 <html>
@@ -235,228 +240,156 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
   <style>
     @page { size: letter; margin: 0.5in; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: Calibri, Arial, sans-serif; 
-      font-size: 10.5pt; 
-      line-height: 1.3; 
-      color: #000; 
-    }
+    body { font-family: Calibri, Arial, sans-serif; font-size: 10pt; color: #333; }
     
     .page-header {
       background: #2F5496;
       color: white;
-      padding: 8px 15px;
-      font-size: 12pt;
-      font-weight: bold;
-      margin: -40px -40px 15px -40px;
+      padding: 15px 0.5in;
+      margin: -0.5in -0.5in 20px -0.5in;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 11pt;
     }
     
-    .section-header {
+    .section-label {
       background: #2F5496;
       color: white;
-      padding: 4px 8px;
-      font-size: 10pt;
+      font-size: 9pt;
       font-weight: bold;
+      padding: 5px 10px;
       text-transform: uppercase;
-      margin: 12px 0 6px 0;
+      margin: 15px 0 10px 0;
     }
     
-    .job {
-      margin-bottom: 12px;
+    .job-entry { margin-bottom: 15px; }
+    .job-header { 
+      font-weight: bold; 
+      font-size: 10pt; 
+      margin-bottom: 3px;
     }
-    
-    .company-header {
-      font-weight: bold;
-      font-size: 10pt;
-      margin-bottom: 2px;
+    .job-header-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
     }
-    
-    .job-title {
-      font-style: italic;
+    .job-title { 
+      font-style: italic; 
+      color: #555; 
+      margin-bottom: 5px;
       font-size: 9.5pt;
-      margin-bottom: 4px;
     }
+    ul { margin: 6px 0 6px 20px; }
+    li { margin-bottom: 5px; font-size: 9pt; line-height: 1.35; text-align: justify; }
+    strong { font-weight: bold; color: #000; }
     
-    .job-description {
-      font-size: 9pt;
-      line-height: 1.3;
-      text-align: justify;
-      margin-bottom: 6px;
-    }
-    
-    ul {
-      margin: 0 0 6px 18px;
-      padding: 0;
-      font-size: 9pt;
-    }
-    
-    li {
-      margin-bottom: 4px;
-      line-height: 1.3;
-    }
-    
-    .sub-bullet {
-      margin-left: 15px;
-      font-size: 8.5pt;
-      font-style: italic;
-    }
-    
-    .testimonial {
-      background: #FFF4E6;
-      border: 2px solid #B24C00;
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 8.5pt;
-      font-style: italic;
-      line-height: 1.4;
-    }
-    
-    .testimonial-author {
-      font-weight: bold;
-      font-style: normal;
-      margin-top: 6px;
-      text-align: right;
-    }
-    
-    .early-career {
-      font-size: 9pt;
-      line-height: 1.4;
-    }
-    
-    .education {
-      font-size: 9pt;
-      line-height: 1.4;
-    }
-    
-    strong { font-weight: bold; }
+    .early-career, .education { font-size: 9pt; line-height: 1.5; }
+    .early-career div, .education div { margin-bottom: 4px; }
   </style>
 </head>
 <body>
   <div class="page-header">
-    <span>${data.name}</span>
+    <span>${data.name || 'NAME'}</span>
     <span>PAGE 2</span>
   </div>
   
-  ${data.previous_jobs.map((job: any) => `
-    <div class="job">
-      <div class="company-header">${job.company} • ${job.location} • ${job.dates}</div>
+  ${(data.previous_jobs || []).map((job: any) => `
+    <div class="job-entry">
+      <div class="job-header">
+        <div class="job-header-line">
+          <span>${job.company} • ${job.location}</span>
+          <span>${job.dates}</span>
+        </div>
+      </div>
       <div class="job-title">${job.title}</div>
-      ${job.description ? `<div class="job-description">${job.description}</div>` : ''}
+      ${job.description ? `<div style="font-size:9pt;margin-bottom:6px;text-align:justify;">${job.description}</div>` : ''}
       <ul>
-        ${job.achievements.map((achievement: string) => `<li>${achievement}</li>`).join('')}
+        ${(job.achievements || []).map((a: string) => `<li>${a}</li>`).join('')}
       </ul>
     </div>
   `).join('')}
   
-  ${data.testimonial ? `
-    <div class="testimonial">
-      "${data.testimonial.quote}"
-      <div class="testimonial-author">— ${data.testimonial.author}, ${data.testimonial.title}</div>
-    </div>
-  ` : ''}
-  
-  <div class="section-header">EARLY CAREER</div>
+  <div class="section-label">EARLY CAREER</div>
   <div class="early-career">
-    ${data.early_career.map((item: string) => `<div>${item}</div>`).join('')}
+    ${(data.early_career || []).map((item: string) => `<div>${item}</div>`).join('')}
   </div>
   
-  <div class="section-header">EDUCATION & PROFESSIONAL DEVELOPMENT</div>
+  <div class="section-label">EDUCATION & PROFESSIONAL DEVELOPMENT</div>
   <div class="education">
-    ${data.education.map((item: string) => `<div>${item}</div>`).join('')}
+    ${(data.education || []).map((item: string) => `<div>${item}</div>`).join('')}
   </div>
 </body>
-</html>`;
+</html>`
 
-  return { page1, page2 };
+  return { page1, page2 }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    
     const resume = formData.get('resume') as File
     const targetTitle = formData.get('targetTitle') as string
-    
+
     if (!resume) {
-      return NextResponse.json({ error: 'Resume file is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Resume required' }, { status: 400 })
     }
 
     const resumeText = await extractText(resume)
-    
-    if (!resumeText || resumeText.trim().length < 100) {
-      return NextResponse.json({ error: 'Could not extract text from resume.' }, { status: 400 })
+    if (!resumeText || resumeText.length < 100) {
+      return NextResponse.json({ error: 'Could not extract resume text' }, { status: 400 })
     }
 
-    const jobDescTexts: string[] = []
-    const jobDescFiles = formData.getAll('jobDescriptions') as File[]
-    
-    for (const file of jobDescFiles.slice(0, 5)) {
-      if (file && file.size > 0) {
-        const text = await extractText(file)
-        if (text) jobDescTexts.push(text)
-      }
-    }
+    const prompt = `Transform this resume into IMPACT statements with BOLDED metrics.
 
-    const masterPrompt = `Transform this resume into powerful IMPACT statements. Extract factual data and rewrite weak content.
-
-RESUME:
+RESUME TEXT:
 ${resumeText}
 
-TARGET: ${targetTitle}
+TARGET ROLE: ${targetTitle}
 
-RULES:
-1. Extract ACTUAL name, contact, companies, titles, dates
-2. Transform "managed" → "Spearheaded <strong>$X</strong> initiative achieving <strong>Y%</strong> growth"
-3. Bold ALL metrics with <strong> tags
-4. Keep facts accurate
+YOU MUST:
+1. Extract actual name, contact, companies, titles, dates
+2. Wrap EVERY number in <strong> tags: <strong>20+</strong> years, <strong>$14M</strong> budget, <strong>70%</strong> completion
+3. Transform weak statements to IMPACT
 
-Return JSON:
+EXAMPLE TRANSFORMATION:
+Input: "Managed HR operations for city employees"
+Output: "Spearheaded HR operations for <strong>10,000+</strong> employees across <strong>31</strong> bargaining units with <strong>$14M</strong> budget"
+
+Return ONLY this JSON structure:
 {
   "name": "Full Name",
   "location": "City, State",
-  "email": "email",
-  "phone": "phone",
-  "current_title": "Professional Title",
-  "tagline": "One-sentence value proposition",
-  "summary": "<p>Paragraph with <strong>metrics</strong> showing impact</p>",
-  "expertise": ["Skill 1", "Skill 2", ... 12-15 skills],
-  "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
+  "email": "email@example.com",
+  "phone": "(000) 000-0000",
+  "current_title": "OPERATIONS GENERAL MANAGER – HUMAN RESOURCES",
+  "tagline": "One sentence value proposition",
+  "summary": "Paragraph with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong>",
+  "expertise": ["• Skill 1", "• Skill 2", "• Skill 3", "• Skill 4", "• Skill 5", "• Skill 6", "• Skill 7", "• Skill 8", "• Skill 9", "• Skill 10", "• Skill 11", "• Skill 12"],
+  "skill_categories": ["Strategic Leadership", "Talent Management", "Operations Excellence", "Stakeholder Relations"],
   "current_job": {
-    "company": "Company",
+    "company": "Company Name",
     "location": "City, ST",
-    "dates": "Year - Present",
+    "dates": "2018 - Present",
     "title": "Job Title",
     "description": "Brief scope paragraph",
     "achievements": [
-      "Achievement with <strong>metrics</strong>",
-      "Achievement with <strong>metrics</strong>"
+      "Achievement with <strong>numbers</strong> and <strong>metrics</strong> bolded",
+      "Another achievement with <strong>all</strong> <strong>metrics</strong> bolded"
     ]
   },
   "previous_jobs": [{
     "company": "Company",
     "location": "City, ST",
-    "dates": "Year - Year",
+    "dates": "2013 - 2018",
     "title": "Title",
-    "description": "Optional scope",
     "achievements": ["Achievement with <strong>metrics</strong>"]
   }],
-  "early_career": ["Title – Company (Years)"],
-  "education": ["Degree – Institution"],
-  "testimonial": {
-    "quote": "Optional testimonial text",
-    "author": "Name",
-    "title": "Title, Company"
-  },
-  "analysis": {
-    "key_strengths": ["strength"],
-    "areas_for_improvement": ["area"],
-    "recommended_keywords": ["keyword"],
-    "target_roles": ["role"],
-    "summary": "Assessment"
-  }
-}`;
+  "early_career": ["<strong>Title</strong> – Company (Years)"],
+  "education": ["<strong>Degree</strong> – Institution"],
+  "analysis": {"key_strengths": [], "target_roles": [], "summary": ""}
+}`
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -468,7 +401,7 @@ Return JSON:
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 16000,
-        messages: [{ role: 'user', content: masterPrompt }]
+        messages: [{ role: 'user', content: prompt }]
       })
     })
 
@@ -478,9 +411,13 @@ Return JSON:
 
     const data = await response.json()
     const text = data.content[0].text
-    const clean = text.replace(/```json\n?|\n?```/g, '').trim()
-    const resumeData = JSON.parse(clean)
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
     
+    if (!jsonMatch) {
+      throw new Error('No JSON in response')
+    }
+    
+    const resumeData = JSON.parse(jsonMatch[0])
     const html = generateResumeHTML(resumeData)
 
     return NextResponse.json({
@@ -489,11 +426,11 @@ Return JSON:
       analysis: resumeData.analysis
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error:', error)
-    return NextResponse.json({
-      error: 'Processing failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ 
+      error: 'Processing failed', 
+      message: error.message 
     }, { status: 500 })
   }
 }
