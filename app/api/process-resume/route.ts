@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 // @ts-ignore
 import pdf from 'pdf-parse'
+import CloudConvert from 'cloudconvert'
 
 export const runtime = 'nodejs'
 
@@ -20,36 +21,13 @@ async function extractText(file: File): Promise<string> {
   }
 }
 
-function generateResumeHTML(data: any): { page1: string; page2: string } {
-  const page1 = `<!DOCTYPE html>
+function generateResumeHTML(data: any): string {
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
-    @page {
-      size: letter;
-      margin: 0;
-    }
-    
-    @media print {
-      body {
-        margin: 0;
-        padding: 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      .page {
-        page-break-after: always;
-        margin: 0;
-        padding: 0;
-      }
-    }
-    
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body { 
       font-family: Calibri, Arial, sans-serif; 
@@ -59,18 +37,18 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
       background: #fff;
     }
     
-    .page {
+    /* Page 1 */
+    .page-1 {
       width: 8.5in;
-      min-height: 11in;
-      padding: 0.5in;
-      background: white;
+      height: 11in;
+      page-break-after: always;
+      position: relative;
     }
     
     /* Header */
     .header-block {
       background: #2F5496;
-      margin: -0.5in -0.5in 0.25in -0.5in;
-      padding: 0.35in 0.5in 0.3in 0.5in;
+      padding: 30px 0.5in;
       color: white;
     }
     
@@ -78,7 +56,7 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
       background: white;
       display: inline-block;
       padding: 8px 25px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     
     .name-card h1 {
@@ -92,24 +70,24 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
     
     .contact-line {
       font-size: 10pt;
-      letter-spacing: 0.3px;
       color: white;
     }
     
-    /* Two Column Layout */
-    .content-wrapper {
+    /* Content Area */
+    .content-area {
+      padding: 0.5in;
       display: flex;
       gap: 0.25in;
-      margin-top: 0.15in;
     }
     
+    /* Sidebar */
     .sidebar {
-      flex: 0 0 27%;
       width: 27%;
+      flex-shrink: 0;
     }
     
+    /* Main Column */
     .main-column {
-      flex: 1;
       width: 73%;
       border-left: 1px solid #ccc;
       padding-left: 0.2in;
@@ -124,7 +102,6 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
       padding: 5px 10px;
       text-transform: uppercase;
       margin-bottom: 8px;
-      letter-spacing: 0.5px;
     }
     
     /* Title */
@@ -134,7 +111,6 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
       font-weight: bold;
       text-transform: uppercase;
       margin-bottom: 4px;
-      letter-spacing: 0.3px;
     }
     
     .tagline {
@@ -156,17 +132,16 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
     .skill-tag {
       font-size: 8.5pt;
       margin-bottom: 3px;
-      line-height: 1.3;
     }
     
     /* Skill Boxes */
-    .impact-box-container {
+    .skill-boxes {
       display: flex;
       gap: 8px;
       margin: 10px 0 12px 0;
     }
     
-    .impact-box {
+    .skill-box {
       flex: 1;
       background: #FDF2E9;
       border-left: 3px solid #B24C00;
@@ -175,27 +150,20 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
       font-weight: bold;
       color: #B24C00;
       text-align: center;
-      line-height: 1.2;
     }
     
     /* Jobs */
-    .job-entry { 
-      margin-bottom: 12px; 
-    }
+    .job-entry { margin-bottom: 12px; }
     
     .job-header { 
       font-weight: bold; 
       font-size: 10pt;
+      display: flex;
+      justify-content: space-between;
       margin-bottom: 2px;
     }
     
-    .job-header-line {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-    
-    .job-sub-header { 
+    .job-title { 
       font-style: italic; 
       color: #555; 
       margin-bottom: 4px;
@@ -206,160 +174,32 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
       font-size: 9pt;
       text-align: justify;
       margin-bottom: 5px;
-      line-height: 1.35;
     }
     
-    ul { 
-      margin: 4px 0 4px 18px; 
-      padding: 0;
-    }
+    ul { margin: 4px 0 4px 18px; }
+    li { margin-bottom: 4px; font-size: 9pt; line-height: 1.35; text-align: justify; }
+    strong { font-weight: bold; color: #000; }
     
-    li { 
-      margin-bottom: 4px; 
-      font-size: 9pt; 
-      line-height: 1.35;
-      text-align: justify;
-    }
-    
-    strong { 
-      font-weight: bold; 
-      color: #000; 
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <div class="header-block">
-      <div class="name-card"><h1>${data.name}</h1></div>
-      <div class="contact-line">${data.location} • ${data.email} • ${data.phone}</div>
-    </div>
-    
-    <div class="content-wrapper">
-      <div class="sidebar">
-        <div class="section-label">AREAS OF EXPERTISE</div>
-        ${(data.expertise || []).map((s: string) => `<div class="skill-tag">${s}</div>`).join('')}
-      </div>
-      
-      <div class="main-column">
-        <div class="executive-title">${data.current_title}</div>
-        ${data.tagline ? `<div class="tagline">${data.tagline}</div>` : ''}
-        <div class="summary-text">${data.summary}</div>
-        
-        ${data.skill_categories && data.skill_categories.length > 0 ? `
-          <div class="impact-box-container">
-            ${data.skill_categories.map((cat: string) => `<div class="impact-box">${cat}</div>`).join('')}
-          </div>
-        ` : ''}
-        
-        <div class="section-label">PROFESSIONAL EXPERIENCE</div>
-        
-        <div class="job-entry">
-          <div class="job-header">
-            <div class="job-header-line">
-              <span>${data.current_job.company} • ${data.current_job.location}</span>
-              <span>${data.current_job.dates}</span>
-            </div>
-          </div>
-          <div class="job-sub-header">${data.current_job.title}</div>
-          ${data.current_job.description ? `<div class="job-desc">${data.current_job.description}</div>` : ''}
-          <ul>
-            ${(data.current_job.achievements || []).map((a: string) => `<li>${a}</li>`).join('')}
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
-</html>`
-
-  const page2 = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    @page {
-      size: letter;
-      margin: 0;
-    }
-    
-    @media print {
-      body {
-        margin: 0;
-        padding: 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-    }
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body { 
-      font-family: Calibri, Arial, sans-serif; 
-      font-size: 10pt; 
-      color: #333;
-    }
-    
-    .page {
+    /* Page 2 */
+    .page-2 {
       width: 8.5in;
-      min-height: 11in;
-      padding: 0.5in;
-      background: white;
+      height: 11in;
+      page-break-before: always;
     }
     
     .page-header {
       background: #2F5496;
       color: white;
       padding: 15px 0.5in;
-      margin: -0.5in -0.5in 0.25in -0.5in;
       display: flex;
       justify-content: space-between;
-      align-items: center;
       font-weight: bold;
       font-size: 10pt;
     }
     
-    .section-label {
-      background: #2F5496;
-      color: white;
-      font-size: 9pt;
-      font-weight: bold;
-      padding: 5px 10px;
-      text-transform: uppercase;
-      margin: 12px 0 8px 0;
-      letter-spacing: 0.5px;
+    .page-2-content {
+      padding: 0.5in;
     }
-    
-    .job-entry { margin-bottom: 12px; }
-    
-    .job-header { 
-      font-weight: bold; 
-      font-size: 10pt;
-      margin-bottom: 2px;
-    }
-    
-    .job-header-line {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-    
-    .job-sub-header { 
-      font-style: italic; 
-      color: #555; 
-      margin-bottom: 4px;
-      font-size: 9.5pt;
-    }
-    
-    .job-desc {
-      font-size: 9pt;
-      text-align: justify;
-      margin-bottom: 5px;
-      line-height: 1.35;
-    }
-    
-    ul { margin: 4px 0 4px 18px; }
-    li { margin-bottom: 4px; font-size: 9pt; line-height: 1.35; text-align: justify; }
-    strong { font-weight: bold; color: #000; }
     
     .early-career, .education { 
       font-size: 9pt; 
@@ -371,42 +211,82 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
   </style>
 </head>
 <body>
-  <div class="page">
+  <!-- PAGE 1 -->
+  <div class="page-1">
+    <div class="header-block">
+      <div class="name-card"><h1>${data.name}</h1></div>
+      <div class="contact-line">${data.location} • ${data.email} • ${data.phone}</div>
+    </div>
+    
+    <div class="content-area">
+      <div class="sidebar">
+        <div class="section-label">AREAS OF EXPERTISE</div>
+        ${(data.expertise || []).map((s: string) => `<div class="skill-tag">${s}</div>`).join('')}
+      </div>
+      
+      <div class="main-column">
+        <div class="executive-title">${data.current_title}</div>
+        ${data.tagline ? `<div class="tagline">${data.tagline}</div>` : ''}
+        <div class="summary-text">${data.summary}</div>
+        
+        ${data.skill_categories && data.skill_categories.length > 0 ? `
+          <div class="skill-boxes">
+            ${data.skill_categories.map((cat: string) => `<div class="skill-box">${cat}</div>`).join('')}
+          </div>
+        ` : ''}
+        
+        <div class="section-label">PROFESSIONAL EXPERIENCE</div>
+        
+        <div class="job-entry">
+          <div class="job-header">
+            <span>${data.current_job.company} • ${data.current_job.location}</span>
+            <span>${data.current_job.dates}</span>
+          </div>
+          <div class="job-title">${data.current_job.title}</div>
+          ${data.current_job.description ? `<div class="job-desc">${data.current_job.description}</div>` : ''}
+          <ul>
+            ${(data.current_job.achievements || []).map((a: string) => `<li>${a}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PAGE 2 -->
+  <div class="page-2">
     <div class="page-header">
       <span>${data.name}</span>
       <span>PAGE 2</span>
     </div>
     
-    ${(data.previous_jobs || []).map((job: any) => `
-      <div class="job-entry">
-        <div class="job-header">
-          <div class="job-header-line">
+    <div class="page-2-content">
+      ${(data.previous_jobs || []).map((job: any) => `
+        <div class="job-entry">
+          <div class="job-header">
             <span>${job.company} • ${job.location}</span>
             <span>${job.dates}</span>
           </div>
+          <div class="job-title">${job.title}</div>
+          ${job.description ? `<div class="job-desc">${job.description}</div>` : ''}
+          <ul>
+            ${(job.achievements || []).map((a: string) => `<li>${a}</li>`).join('')}
+          </ul>
         </div>
-        <div class="job-sub-header">${job.title}</div>
-        ${job.description ? `<div class="job-desc">${job.description}</div>` : ''}
-        <ul>
-          ${(job.achievements || []).map((a: string) => `<li>${a}</li>`).join('')}
-        </ul>
+      `).join('')}
+      
+      <div class="section-label">EARLY CAREER</div>
+      <div class="early-career">
+        ${(data.early_career || []).map((item: string) => `<div>${item}</div>`).join('')}
       </div>
-    `).join('')}
-    
-    <div class="section-label">EARLY CAREER</div>
-    <div class="early-career">
-      ${(data.early_career || []).map((item: string) => `<div>${item}</div>`).join('')}
-    </div>
-    
-    <div class="section-label">EDUCATION & PROFESSIONAL DEVELOPMENT</div>
-    <div class="education">
-      ${(data.education || []).map((item: string) => `<div>${item}</div>`).join('')}
+      
+      <div class="section-label">EDUCATION & PROFESSIONAL DEVELOPMENT</div>
+      <div class="education">
+        ${(data.education || []).map((item: string) => `<div>${item}</div>`).join('')}
+      </div>
     </div>
   </div>
 </body>
 </html>`
-
-  return { page1, page2 }
 }
 
 export async function POST(request: NextRequest) {
@@ -420,82 +300,49 @@ export async function POST(request: NextRequest) {
     const resumeText = await extractText(resume)
     if (!resumeText) throw new Error('Could not read resume')
 
-    const masterPrompt = `You are a professional resume writer. Transform this resume into powerful IMPACT statements.
+    // AI PROMPT - Extract THEIR skills, not hardcoded
+    const masterPrompt = `Transform this resume into IMPACT statements with bolded metrics.
 
 RESUME:
 ${resumeText}
 
 TARGET ROLE: ${targetTitle}
 
-TRANSFORMATION RULES:
-1. Extract ACTUAL name, contact info, companies, job titles, dates from the resume
-2. Transform weak statements into IMPACT with metrics
-   EXAMPLE: "Managed HR operations" → "Spearheaded HR operations for <strong>10,000+</strong> employees managing <strong>$14M</strong> annual budget"
-3. WRAP ALL NUMBERS IN <strong> TAGS: years, dollars, percentages, counts, timeframes
-4. Use action verbs: Spearheaded, Orchestrated, Architected, Drove, Led, Directed
-5. DO NOT INVENT any information
+CRITICAL RULES:
+1. Extract ACTUAL skills FROM THE RESUME (not generic HR skills)
+2. WRAP ALL NUMBERS in <strong> tags: <strong>20+</strong>, <strong>$14M</strong>, <strong>70%</strong>
+3. Transform weak statements to IMPACT
+   Example: "Managed operations" → "Spearheaded operations for <strong>10,000+</strong> employees with <strong>$14M</strong> budget"
 
-Return ONLY this JSON structure (no extra text, no markdown):
+Return ONLY JSON:
 {
-  "name": "Full Name from resume",
+  "name": "Actual name from resume",
   "location": "City, State",
-  "email": "email@example.com",
-  "phone": "(000) 000-0000",
-  "current_title": "PROFESSIONAL TITLE IN CAPS",
-  "tagline": "One powerful sentence describing value",
-  "summary": "2-3 sentences with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong> showing impact",
-  "expertise": [
-    "• Strategic HR Leadership",
-    "• Budget Management ($14M+)",
-    "• Talent Acquisition & Retention",
-    "• Labor Relations (31 Bargaining Units)",
-    "• Organizational Development",
-    "• Public Sector HR",
-    "• Performance Management",
-    "• Employee Engagement",
-    "• Workforce Analytics",
-    "• Change Management",
-    "• Compliance Management",
-    "• Partnership Development"
-  ],
-  "skill_categories": ["Strategic Leadership", "Talent Management", "Operations Excellence", "Stakeholder Relations"],
+  "email": "email",
+  "phone": "phone",
+  "current_title": "PROFESSIONAL TITLE",
+  "tagline": "One powerful sentence",
+  "summary": "2-3 sentences with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong>",
+  "expertise": ["• Actual skill 1 from resume", "• Actual skill 2", "• Actual skill 3", ...],
+  "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
-    "company": "Company Name",
+    "company": "Actual company",
     "location": "City, ST",
-    "dates": "2018 - Present",
-    "title": "Job Title",
-    "description": "Brief scope describing role",
-    "achievements": [
-      "Spearheaded <strong>$14M</strong> budget with <strong>metrics</strong>",
-      "Led initiative achieving <strong>70%</strong> completion in <strong>45</strong> days",
-      "Managed <strong>10,000+</strong> employees across <strong>31</strong> units"
-    ]
+    "dates": "Year - Present",
+    "title": "Actual title",
+    "description": "Brief scope",
+    "achievements": ["Achievement with <strong>metrics</strong>"]
   },
-  "previous_jobs": [
-    {
-      "company": "Company",
-      "location": "City, ST",
-      "dates": "2013 - 2018",
-      "title": "Previous Title",
-      "achievements": [
-        "Achievement with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong>"
-      ]
-    }
-  ],
-  "early_career": [
-    "<strong>Title</strong> – Company Name (Years)"
-  ],
-  "education": [
-    "<strong>Degree Name</strong> – University Name",
-    "<strong>Certification</strong> – Institution"
-  ],
-  "analysis": {
-    "key_strengths": ["strength 1", "strength 2", "strength 3"],
-    "areas_for_improvement": ["area 1", "area 2"],
-    "recommended_keywords": ["keyword1", "keyword2", "keyword3"],
-    "target_roles": ["role 1", "role 2"],
-    "summary": "Brief assessment"
-  }
+  "previous_jobs": [{
+    "company": "Company",
+    "location": "City, ST",
+    "dates": "Years",
+    "title": "Title",
+    "achievements": ["Achievement with <strong>metrics</strong>"]
+  }],
+  "early_career": ["<strong>Title</strong> – Company (Years)"],
+  "education": ["<strong>Degree</strong> – Institution"],
+  "analysis": {"key_strengths": [], "target_roles": [], "summary": ""}
 }`
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -512,18 +359,58 @@ Return ONLY this JSON structure (no extra text, no markdown):
       })
     })
 
-    if (!response.ok) throw new Error('API failed')
+    if (!response.ok) throw new Error('AI API failed')
 
     const aiResult = await response.json()
     const rawText = aiResult.content[0].text
     const jsonMatch = rawText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON in response')
+    if (!jsonMatch) throw new Error('No JSON in AI response')
     
     const resumeData = JSON.parse(jsonMatch[0])
     const html = generateResumeHTML(resumeData)
 
+    // CONVERT HTML TO PDF USING CLOUDCONVERT
+    const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY)
+
+    const job = await cloudConvert.jobs.create({
+      tasks: {
+        'import-html': {
+          operation: 'import/raw',
+          file: Buffer.from(html).toString('base64'),
+          filename: 'resume.html'
+        },
+        'convert-to-pdf': {
+          operation: 'convert',
+          input: 'import-html',
+          output_format: 'pdf',
+          engine: 'chrome',
+          page_width: 8.5,
+          page_height: 11,
+          margin_top: 0,
+          margin_bottom: 0,
+          margin_left: 0,
+          margin_right: 0,
+          print_background: true
+        },
+        'export-pdf': {
+          operation: 'export/url',
+          input: 'convert-to-pdf'
+        }
+      }
+    })
+
+    // Wait for job to complete
+    const completedJob = await cloudConvert.jobs.wait(job.id)
+    const exportTask = completedJob.tasks.filter(task => task.name === 'export-pdf')[0]
+    
+    if (!exportTask || !exportTask.result || !exportTask.result.files || !exportTask.result.files[0]) {
+      throw new Error('PDF conversion failed')
+    }
+
+    const pdfUrl = exportTask.result.files[0].url
+
     return NextResponse.json({
-      master_resume: html,
+      pdf_url: pdfUrl,
       analysis: resumeData.analysis
     })
 
