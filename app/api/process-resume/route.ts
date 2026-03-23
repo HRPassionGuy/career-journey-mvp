@@ -14,53 +14,175 @@ async function extractText(file: File): Promise<string> {
 }
 
 function generateResumeHTML(data: any): { page1: string; page2: string } {
-  const page1 = `
-<!DOCTYPE html>
+  const page1 = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
     @page { size: letter; margin: 0.5in; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.4; color: #000; }
+    body { 
+      font-family: Calibri, Arial, sans-serif; 
+      font-size: 10.5pt; 
+      line-height: 1.3; 
+      color: #000; 
+    }
     
-    .header { background: #2F5496; padding: 20px; text-align: center; margin-bottom: 10px; }
-    .header .name-box { background: white; display: inline-block; padding: 8px 30px; margin-bottom: 8px; }
-    .header h1 { font-size: 24pt; font-weight: bold; color: #2F5496; margin: 0; }
-    .header .contact { color: white; font-size: 10pt; margin-top: 8px; }
+    /* Header */
+    .header {
+      background: #2F5496;
+      padding: 15px 20px;
+      margin: -40px -40px 0 -40px;
+    }
+    .name-box {
+      background: white;
+      display: inline-block;
+      padding: 5px 25px;
+      margin-bottom: 5px;
+    }
+    .name-box h1 {
+      font-size: 20pt;
+      font-weight: bold;
+      color: #2F5496;
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+    .contact-info {
+      color: white;
+      font-size: 9.5pt;
+      text-align: left;
+      margin-top: 3px;
+    }
     
-    .title { text-align: center; color: #B24C00; font-size: 16pt; font-weight: bold; margin: 15px 0; font-style: italic; }
+    /* Title */
+    .title {
+      color: #B24C00;
+      font-size: 14pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin: 8px 0;
+      letter-spacing: 0.5px;
+    }
     
-    .section-header { background: #2F5496; color: white; padding: 6px 12px; font-size: 12pt; font-weight: bold; margin: 15px 0 10px 0; }
+    .tagline {
+      font-style: italic;
+      font-size: 9.5pt;
+      margin-bottom: 10px;
+      color: #333;
+    }
     
-    .two-column { display: table; width: 100%; margin-bottom: 15px; }
-    .sidebar { display: table-cell; width: 27%; vertical-align: top; padding-right: 15px; border-right: 2px solid #2F5496; }
-    .main-content { display: table-cell; width: 73%; vertical-align: top; padding-left: 15px; }
+    /* Two Column Layout */
+    .container {
+      display: table;
+      width: 100%;
+      margin-top: 10px;
+    }
     
-    .expertise-table { width: 100%; }
-    .expertise-table td { padding: 3px 8px; font-size: 10pt; }
+    .sidebar {
+      display: table-cell;
+      width: 27%;
+      vertical-align: top;
+      padding-right: 12px;
+    }
     
-    .summary { margin-bottom: 15px; text-align: justify; }
+    .main-content {
+      display: table-cell;
+      width: 73%;
+      vertical-align: top;
+      padding-left: 12px;
+      border-left: 1px solid #ccc;
+    }
     
-    .job { margin-bottom: 20px; }
-    .job-header { margin-bottom: 8px; }
-    .company { font-weight: bold; font-size: 12pt; color: #000; }
-    .job-title { font-weight: bold; color: #2F5496; }
-    .dates { font-style: italic; color: #666; }
+    /* Section Headers */
+    .section-header {
+      background: #2F5496;
+      color: white;
+      padding: 4px 8px;
+      font-size: 10pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin: 8px 0 6px 0;
+      letter-spacing: 0.3px;
+    }
     
-    .responsibilities { margin: 8px 0; }
-    .responsibilities-header { font-weight: bold; margin-bottom: 5px; }
+    /* Expertise List */
+    .expertise-list {
+      font-size: 9pt;
+      line-height: 1.4;
+    }
+    .expertise-list div {
+      margin-bottom: 3px;
+    }
     
-    .achievements { margin: 8px 0; }
-    .achievements-header { font-weight: bold; margin-bottom: 5px; }
+    /* Executive Summary */
+    .summary {
+      font-size: 9.5pt;
+      line-height: 1.35;
+      text-align: justify;
+      margin-bottom: 8px;
+    }
     
-    ul { margin-left: 20px; }
-    li { margin-bottom: 5px; }
+    /* Skills Boxes */
+    .skills-boxes {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .skill-box {
+      flex: 1;
+      background: #FFF4E6;
+      border-left: 3px solid #B24C00;
+      padding: 6px 8px;
+      font-size: 8.5pt;
+      font-weight: bold;
+      text-align: center;
+      color: #B24C00;
+    }
+    
+    /* Job Entries */
+    .job {
+      margin-bottom: 12px;
+    }
+    
+    .company-header {
+      font-weight: bold;
+      font-size: 10pt;
+      margin-bottom: 2px;
+    }
+    
+    .job-title {
+      font-style: italic;
+      font-size: 9.5pt;
+      margin-bottom: 4px;
+    }
+    
+    .job-description {
+      font-size: 9pt;
+      line-height: 1.3;
+      text-align: justify;
+      margin-bottom: 6px;
+    }
+    
+    /* Bullets */
+    ul {
+      margin: 0 0 6px 18px;
+      padding: 0;
+      font-size: 9pt;
+    }
+    
+    li {
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    
+    .sub-bullet {
+      margin-left: 15px;
+      font-size: 8.5pt;
+      font-style: italic;
+      color: #333;
+    }
     
     strong { font-weight: bold; }
-    
-    .early-career li { font-size: 10pt; margin-bottom: 3px; }
-    .education li { font-size: 10pt; margin-bottom: 3px; }
   </style>
 </head>
 <body>
@@ -68,111 +190,182 @@ function generateResumeHTML(data: any): { page1: string; page2: string } {
     <div class="name-box">
       <h1>${data.name}</h1>
     </div>
-    <div class="contact">
-      <strong>${data.location}</strong> | <strong>${data.email}</strong> | <strong>${data.phone}</strong>
+    <div class="contact-info">
+      ${data.location} • ${data.email} • ${data.phone}
     </div>
   </div>
   
-  <div class="title">${data.current_title}</div>
-  
-  <div class="two-column">
+  <div class="container">
     <div class="sidebar">
       <div class="section-header">AREAS OF EXPERTISE</div>
-      <table class="expertise-table">
-        ${data.expertise.map((skill: string, idx: number) => {
-          if (idx % 3 === 0) {
-            return `<tr>
-              <td>• ${data.expertise[idx] || ''}</td>
-            </tr>
-            ${data.expertise[idx + 1] ? `<tr><td>• ${data.expertise[idx + 1]}</td></tr>` : ''}
-            ${data.expertise[idx + 2] ? `<tr><td>• ${data.expertise[idx + 2]}</td></tr>` : ''}`;
-          }
-          return '';
-        }).join('')}
-      </table>
+      <div class="expertise-list">
+        ${data.expertise.map((skill: string) => `<div>• ${skill}</div>`).join('')}
+      </div>
     </div>
     
     <div class="main-content">
-      <div class="section-header">EXECUTIVE SUMMARY</div>
-      <div class="summary">${data.summary}</div>
+      <div class="title">${data.current_title}</div>
+      <div class="tagline">${data.tagline || ''}</div>
+      
+      ${data.summary}
+      
+      ${data.skill_categories ? `<div class="skills-boxes">
+        ${data.skill_categories.map((cat: string) => `<div class="skill-box">${cat}</div>`).join('')}
+      </div>` : ''}
       
       <div class="section-header">PROFESSIONAL EXPERIENCE</div>
       
       <div class="job">
-        <div class="job-header">
-          <div class="company">${data.current_job.company} | ${data.current_job.location}</div>
-          <div class="job-title">${data.current_job.title}</div>
-          <div class="dates">${data.current_job.dates}</div>
-        </div>
-        
-        <div class="responsibilities">
-          <div class="responsibilities-header">Key Responsibilities:</div>
-          <ul>
-            ${data.current_job.responsibilities.map((r: string) => `<li>${r}</li>`).join('')}
-          </ul>
-        </div>
-        
-        <div class="achievements">
-          <div class="achievements-header">Selected Achievements:</div>
-          <ul>
-            ${data.current_job.achievements.map((a: string) => `<li>${a}</li>`).join('')}
-          </ul>
-        </div>
+        <div class="company-header">${data.current_job.company} • ${data.current_job.location} • ${data.current_job.dates}</div>
+        <div class="job-title">${data.current_job.title}</div>
+        <div class="job-description">${data.current_job.description || ''}</div>
+        <ul>
+          ${data.current_job.achievements.map((achievement: string) => `<li>${achievement}</li>`).join('')}
+        </ul>
       </div>
     </div>
   </div>
 </body>
 </html>`;
 
-  const page2 = `
-<!DOCTYPE html>
+  const page2 = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
     @page { size: letter; margin: 0.5in; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.4; color: #000; }
+    body { 
+      font-family: Calibri, Arial, sans-serif; 
+      font-size: 10.5pt; 
+      line-height: 1.3; 
+      color: #000; 
+    }
     
-    .section-header { background: #2F5496; color: white; padding: 6px 12px; font-size: 12pt; font-weight: bold; margin: 15px 0 10px 0; }
+    .page-header {
+      background: #2F5496;
+      color: white;
+      padding: 8px 15px;
+      font-size: 12pt;
+      font-weight: bold;
+      margin: -40px -40px 15px -40px;
+      display: flex;
+      justify-content: space-between;
+    }
     
-    .job { margin-bottom: 20px; }
-    .job-header { margin-bottom: 8px; }
-    .company { font-weight: bold; font-size: 12pt; color: #000; }
-    .job-title { font-weight: bold; color: #2F5496; }
-    .dates { font-style: italic; color: #666; }
+    .section-header {
+      background: #2F5496;
+      color: white;
+      padding: 4px 8px;
+      font-size: 10pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin: 12px 0 6px 0;
+    }
     
-    ul { margin-left: 20px; }
-    li { margin-bottom: 5px; }
+    .job {
+      margin-bottom: 12px;
+    }
+    
+    .company-header {
+      font-weight: bold;
+      font-size: 10pt;
+      margin-bottom: 2px;
+    }
+    
+    .job-title {
+      font-style: italic;
+      font-size: 9.5pt;
+      margin-bottom: 4px;
+    }
+    
+    .job-description {
+      font-size: 9pt;
+      line-height: 1.3;
+      text-align: justify;
+      margin-bottom: 6px;
+    }
+    
+    ul {
+      margin: 0 0 6px 18px;
+      padding: 0;
+      font-size: 9pt;
+    }
+    
+    li {
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    
+    .sub-bullet {
+      margin-left: 15px;
+      font-size: 8.5pt;
+      font-style: italic;
+    }
+    
+    .testimonial {
+      background: #FFF4E6;
+      border: 2px solid #B24C00;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 8.5pt;
+      font-style: italic;
+      line-height: 1.4;
+    }
+    
+    .testimonial-author {
+      font-weight: bold;
+      font-style: normal;
+      margin-top: 6px;
+      text-align: right;
+    }
+    
+    .early-career {
+      font-size: 9pt;
+      line-height: 1.4;
+    }
+    
+    .education {
+      font-size: 9pt;
+      line-height: 1.4;
+    }
+    
     strong { font-weight: bold; }
-    
-    .early-career li { font-size: 10pt; margin-bottom: 3px; }
-    .education li { font-size: 10pt; margin-bottom: 3px; }
   </style>
 </head>
 <body>
+  <div class="page-header">
+    <span>${data.name}</span>
+    <span>PAGE 2</span>
+  </div>
+  
   ${data.previous_jobs.map((job: any) => `
     <div class="job">
-      <div class="job-header">
-        <div class="company">${job.company} | ${job.location}</div>
-        <div class="job-title">${job.title}</div>
-        <div class="dates">${job.dates}</div>
-      </div>
+      <div class="company-header">${job.company} • ${job.location} • ${job.dates}</div>
+      <div class="job-title">${job.title}</div>
+      ${job.description ? `<div class="job-description">${job.description}</div>` : ''}
       <ul>
-        ${job.achievements.map((a: string) => `<li>${a}</li>`).join('')}
+        ${job.achievements.map((achievement: string) => `<li>${achievement}</li>`).join('')}
       </ul>
     </div>
   `).join('')}
   
-  <div class="section-header">EARLY CAREER</div>
-  <ul class="early-career">
-    ${data.early_career.map((job: string) => `<li>${job}</li>`).join('')}
-  </ul>
+  ${data.testimonial ? `
+    <div class="testimonial">
+      "${data.testimonial.quote}"
+      <div class="testimonial-author">— ${data.testimonial.author}, ${data.testimonial.title}</div>
+    </div>
+  ` : ''}
   
-  <div class="section-header">EDUCATION & CERTIFICATIONS</div>
-  <ul class="education">
-    ${data.education.map((item: string) => `<li>${item}</li>`).join('')}
-  </ul>
+  <div class="section-header">EARLY CAREER</div>
+  <div class="early-career">
+    ${data.early_career.map((item: string) => `<div>${item}</div>`).join('')}
+  </div>
+  
+  <div class="section-header">EDUCATION & PROFESSIONAL DEVELOPMENT</div>
+  <div class="education">
+    ${data.education.map((item: string) => `<div>${item}</div>`).join('')}
+  </div>
 </body>
 </html>`;
 
@@ -206,91 +399,66 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // MASTER RESUME - Transform content
-    const masterPrompt = `You are an expert resume writer. Transform this resume into powerful IMPACT statements while keeping all factual information accurate.
+    const masterPrompt = `Transform this resume into powerful IMPACT statements. Extract factual data and rewrite weak content.
 
-CANDIDATE'S CURRENT RESUME:
+RESUME:
 ${resumeText}
 
-TARGET ROLE: ${targetTitle}
+TARGET: ${targetTitle}
 
-YOUR JOB:
-1. Extract their ACTUAL name, contact info, companies, job titles, dates, degrees, certifications
-2. TRANSFORM weak task-based statements into IMPACT statements with metrics
-3. Use <strong> tags to bold ALL numbers, percentages, dollar amounts, timeframes
-4. Use powerful action verbs: Spearheaded, Orchestrated, Architected, Drove, Led, Directed
+RULES:
+1. Extract ACTUAL name, contact, companies, titles, dates
+2. Transform "managed" → "Spearheaded <strong>$X</strong> initiative achieving <strong>Y%</strong> growth"
+3. Bold ALL metrics with <strong> tags
+4. Keep facts accurate
 
-TRANSFORMATION EXAMPLES:
-❌ "Responsible for managing HR operations"
-✅ "Directed <strong>$14M</strong> budget supporting <strong>10,000+</strong> employees across <strong>31+</strong> bargaining units"
-
-❌ "Handled employee relations"
-✅ "Resolved <strong>200+</strong> employee relations cases annually with <strong>95%</strong> satisfaction rate"
-
-❌ "Worked on recruiting"
-✅ "Accelerated time-to-fill by <strong>35%</strong>, hiring <strong>377</strong> candidates across <strong>23</strong> bargaining units in <strong>45 days</strong>"
-
-CRITICAL RULES:
-- DO NOT INVENT facts, companies, or dates
-- Transform vague statements into quantified achievements
-- Every achievement needs a metric (number, %, $, timeframe)
-- Use <strong> tags for ALL metrics
-- Keep it truthful but powerful
-
-Return ONLY valid JSON:
+Return JSON:
 {
-  "name": "Exact name from resume",
+  "name": "Full Name",
   "location": "City, State",
-  "email": "email from resume",
-  "phone": "phone from resume",
-  "current_title": "Their target professional title",
-  "summary": "2-3 powerful sentences with <strong>metrics</strong> showing their value proposition",
-  "expertise": ["9 key skills optimized for ${targetTitle} role"],
+  "email": "email",
+  "phone": "phone",
+  "current_title": "Professional Title",
+  "tagline": "One-sentence value proposition",
+  "summary": "<p>Paragraph with <strong>metrics</strong> showing impact</p>",
+  "expertise": ["Skill 1", "Skill 2", ... 12-15 skills],
+  "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
-    "company": "Actual company name",
-    "location": "City, State",
-    "title": "Actual title",
-    "dates": "Actual dates",
-    "responsibilities": [
-      "Transformed responsibility with <strong>scope/metrics</strong>",
-      "Transformed responsibility with <strong>scope/metrics</strong>",
-      "Transformed responsibility with <strong>scope/metrics</strong>"
-    ],
+    "company": "Company",
+    "location": "City, ST",
+    "dates": "Year - Present",
+    "title": "Job Title",
+    "description": "Brief scope paragraph",
     "achievements": [
-      "<strong>Growth:</strong> Achievement with <strong>specific metrics</strong>",
-      "<strong>Efficiency:</strong> Achievement with <strong>specific metrics</strong>",
-      "<strong>Leadership:</strong> Achievement with <strong>specific metrics</strong>"
+      "Achievement with <strong>metrics</strong>",
+      "Achievement with <strong>metrics</strong>"
     ]
   },
-  "previous_jobs": [
-    {
-      "company": "Actual company",
-      "location": "City, State",
-      "title": "Actual title",
-      "dates": "Actual dates",
-      "achievements": [
-        "Transformed achievement with <strong>metrics</strong>",
-        "Transformed achievement with <strong>metrics</strong>"
-      ]
-    }
-  ],
-  "early_career": [
-    "<strong>Actual Title</strong> – Actual Organization (Actual Years)"
-  ],
-  "education": [
-    "<strong>Actual Degree</strong> – Actual University",
-    "<strong>Actual Certification</strong> – Actual Institution"
-  ],
+  "previous_jobs": [{
+    "company": "Company",
+    "location": "City, ST",
+    "dates": "Year - Year",
+    "title": "Title",
+    "description": "Optional scope",
+    "achievements": ["Achievement with <strong>metrics</strong>"]
+  }],
+  "early_career": ["Title – Company (Years)"],
+  "education": ["Degree – Institution"],
+  "testimonial": {
+    "quote": "Optional testimonial text",
+    "author": "Name",
+    "title": "Title, Company"
+  },
   "analysis": {
-    "key_strengths": ["strength 1", "strength 2", "strength 3"],
-    "areas_for_improvement": ["area 1", "area 2"],
-    "recommended_keywords": ["keyword1", "keyword2", "keyword3"],
-    "target_roles": ["role 1", "role 2"],
-    "summary": "Brief 2-sentence assessment"
+    "key_strengths": ["strength"],
+    "areas_for_improvement": ["area"],
+    "recommended_keywords": ["keyword"],
+    "target_roles": ["role"],
+    "summary": "Assessment"
   }
 }`;
 
-    const masterResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -304,80 +472,21 @@ Return ONLY valid JSON:
       })
     })
 
-    if (!masterResponse.ok) {
-      const errorData = await masterResponse.json()
-      console.error('Master Resume API Error:', errorData)
-      return NextResponse.json({ error: 'Processing failed', details: errorData }, { status: masterResponse.status })
+    if (!response.ok) {
+      throw new Error('API request failed')
     }
 
-    const masterData = await masterResponse.json()
-    const masterText = masterData.content[0].text
-    let cleanMasterText = masterText.replace(/```json\n?|\n?```/g, '').trim()
-    const masterResumeData = JSON.parse(cleanMasterText)
+    const data = await response.json()
+    const text = data.content[0].text
+    const clean = text.replace(/```json\n?|\n?```/g, '').trim()
+    const resumeData = JSON.parse(clean)
     
-    const masterHTML = generateResumeHTML(masterResumeData)
-
-    // VARIANTS - Tailor to specific job descriptions
-    const variants = []
-    
-    for (let i = 0; i < jobDescTexts.length; i++) {
-      const variantPrompt = `Tailor the resume for this specific job posting. Keep all facts accurate but emphasize relevant achievements.
-
-JOB POSTING:
-${jobDescTexts[i]}
-
-CANDIDATE'S MASTER RESUME DATA:
-${JSON.stringify(masterResumeData, null, 2)}
-
-YOUR JOB:
-1. Extract the job title and company from the posting
-2. Identify the top 3-5 requirements from the job posting
-3. Reorder and emphasize achievements that match those requirements
-4. Add keywords from the job posting to the summary and expertise
-5. Keep all facts accurate - just reposition and emphasize
-
-Return the SAME JSON structure but tailored for this specific role.`;
-
-      const variantResponse = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY || '',
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 16000,
-          messages: [{ role: 'user', content: variantPrompt }]
-        })
-      })
-
-      if (variantResponse.ok) {
-        const variantData = await variantResponse.json()
-        const variantText = variantData.content[0].text
-        let cleanVariantText = variantText.replace(/```json\n?|\n?```/g, '').trim()
-        const variantResumeData = JSON.parse(cleanVariantText)
-        
-        const variantHTML = generateResumeHTML(variantResumeData)
-        
-        variants.push({
-          job_number: i + 1,
-          job_title: variantResumeData.current_title || `Position ${i + 1}`,
-          company: variantResumeData.current_job.company || 'Target Company',
-          tailoring_focus: `Optimized for ${variantResumeData.current_title} role`,
-          page1: variantHTML.page1,
-          page2: variantHTML.page2
-        })
-      }
-    }
+    const html = generateResumeHTML(resumeData)
 
     return NextResponse.json({
-      master_resume: {
-        page1: masterHTML.page1,
-        page2: masterHTML.page2
-      },
-      variants: variants,
-      analysis: masterResumeData.analysis
+      master_resume: html,
+      variants: [],
+      analysis: resumeData.analysis
     })
 
   } catch (error) {
