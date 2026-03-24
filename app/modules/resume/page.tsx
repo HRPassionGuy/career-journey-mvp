@@ -207,31 +207,6 @@ const downloadResumePDF = async (resumeData: any) => {
 }
 ```
 
----
-
-## **FILE STRUCTURE:**
-```
-your-repo/
-├── package.json (add @react-pdf/renderer)
-├── components/
-│   └── ResumePDF.tsx
-├── app/
-│   ├── api/
-│   │   └── generate-pdf/
-│   │       └── route.ts
-│   └── modules/
-│       └── resume/
-│           └── page.tsx (update download function)
-  
-  const printWindow = window.open('', '_blank')
-  if (printWindow) {
-    printWindow.document.write(htmlContent)
-    printWindow.document.close()
-    setTimeout(() => {
-      printWindow.print()
-    }, 250)
-  }
-}
 
   const downloadJobsExcel = () => {
     if (!jobs || !jobs.jobs) return
