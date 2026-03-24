@@ -369,52 +369,54 @@ Return ONLY JSON:
     const resumeData = JSON.parse(jsonMatch[0])
     const html = generateResumeHTML(resumeData)
 
-    // CONVERT HTML TO PDF USING CLOUDCONVERT
-    const apiKey = process.env.CLOUDCONVERT_API_KEY
+   // CONVERT HTML TO PDF USING CLOUDCONVERT
+const apiKey = process.env.CLOUDCONVERT_API_KEY
 if (!apiKey) {
   throw new Error('CloudConvert API key not configured')
 }
 const cloudConvert = new CloudConvert(apiKey)
 
-   const job = await cloudConvert.jobs.create({
+// Create job with upload task
+let job = await cloudConvert.jobs.create({
   tasks: {
-    'import-html': {
+    'upload-html': {
       operation: 'import/upload'
     },
-    'upload-html': {
-      operation: 'upload',
-      file: html,
-      filename: 'resume.html'
+    'convert-to-pdf': {
+      operation: 'convert',
+      input: 'upload-html',
+      output_format: 'pdf',
+      engine: 'chrome',
+      page_width: 8.5,
+      page_height: 11,
+      margin_top: 0,
+      margin_bottom: 0,
+      margin_left: 0,
+      margin_right: 0,
+      print_background: true
     },
-        'convert-to-pdf': {
-          operation: 'convert',
-          input: 'import-html',
-          output_format: 'pdf',
-          engine: 'chrome',
-          page_width: 8.5,
-          page_height: 11,
-          margin_top: 0,
-          margin_bottom: 0,
-          margin_left: 0,
-          margin_right: 0,
-          print_background: true
-        },
-        'export-pdf': {
-          operation: 'export/url',
-          input: 'convert-to-pdf'
-        }
-      }
-    })
-
-    // Wait for job to complete
-    const completedJob = await cloudConvert.jobs.wait(job.id)
-    const exportTask = completedJob.tasks.filter(task => task.name === 'export-pdf')[0]
-    
-    if (!exportTask || !exportTask.result || !exportTask.result.files || !exportTask.result.files[0]) {
-      throw new Error('PDF conversion failed')
+    'export-pdf': {
+      operation: 'export/url',
+      input: 'convert-to-pdf'
     }
+  }
+})
 
-    const pdfUrl = exportTask.result.files[0].url
+// Upload the HTML file
+const uploadTask = job.tasks.filter(task => task.name === 'upload-html')[0]
+await cloudConvert.tasks.upload(uploadTask, html, 'resume.html')
+
+// Wait for job completion
+job = await cloudConvert.jobs.wait(job.id)
+
+// Get PDF download URL
+const exportTask = job.tasks.filter(task => task.name === 'export-pdf')[0]
+
+if (!exportTask || !exportTask.result || !exportTask.result.files || !exportTask.result.files[0]) {
+  throw new Error('PDF conversion failed')
+}
+
+const pdfUrl = exportTask.result.files[0].url
 
     return NextResponse.json({
       pdf_url: pdfUrl,
