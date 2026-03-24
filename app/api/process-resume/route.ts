@@ -20,274 +20,6 @@ async function extractText(file: File): Promise<string> {
   }
 }
 
-function generateResumeHTML(data: any): string {
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body { 
-      font-family: Calibri, Arial, sans-serif; 
-      font-size: 10pt; 
-      line-height: 1.3; 
-      color: #333;
-      background: #fff;
-    }
-    
-    /* Page 1 */
-    .page-1 {
-      width: 8.5in;
-      height: 11in;
-      page-break-after: always;
-      position: relative;
-    }
-    
-    /* Header */
-    .header-block {
-      background: #2F5496;
-      padding: 30px 0.5in;
-      color: white;
-    }
-    
-    .name-card {
-      background: white;
-      display: inline-block;
-      padding: 8px 25px;
-      margin-bottom: 10px;
-    }
-    
-    .name-card h1 {
-      color: #2F5496;
-      font-size: 20pt;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 0;
-    }
-    
-    .contact-line {
-      font-size: 10pt;
-      color: white;
-    }
-    
-    /* Content Area */
-    .content-area {
-      padding: 0.5in;
-      display: flex;
-      gap: 0.25in;
-    }
-    
-    /* Sidebar */
-    .sidebar {
-      width: 27%;
-      flex-shrink: 0;
-    }
-    
-    /* Main Column */
-    .main-column {
-      width: 73%;
-      border-left: 1px solid #ccc;
-      padding-left: 0.2in;
-    }
-    
-    /* Section Headers */
-    .section-label {
-      background: #2F5496;
-      color: white;
-      font-size: 9pt;
-      font-weight: bold;
-      padding: 5px 10px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    
-    /* Title */
-    .executive-title {
-      color: #B24C00;
-      font-size: 14pt;
-      font-weight: bold;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    
-    .tagline {
-      font-style: italic;
-      color: #666;
-      margin-bottom: 10px;
-      font-size: 9.5pt;
-    }
-    
-    /* Summary */
-    .summary-text {
-      text-align: justify;
-      margin-bottom: 12px;
-      font-size: 9.5pt;
-      line-height: 1.35;
-    }
-    
-    /* Expertise */
-    .skill-tag {
-      font-size: 8.5pt;
-      margin-bottom: 3px;
-    }
-    
-    /* Skill Boxes */
-    .skill-boxes {
-      display: flex;
-      gap: 8px;
-      margin: 10px 0 12px 0;
-    }
-    
-    .skill-box {
-      flex: 1;
-      background: #FDF2E9;
-      border-left: 3px solid #B24C00;
-      padding: 7px 5px;
-      font-size: 7.5pt;
-      font-weight: bold;
-      color: #B24C00;
-      text-align: center;
-    }
-    
-    /* Jobs */
-    .job-entry { margin-bottom: 12px; }
-    
-    .job-header { 
-      font-weight: bold; 
-      font-size: 10pt;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 2px;
-    }
-    
-    .job-title { 
-      font-style: italic; 
-      color: #555; 
-      margin-bottom: 4px;
-      font-size: 9.5pt;
-    }
-    
-    .job-desc {
-      font-size: 9pt;
-      text-align: justify;
-      margin-bottom: 5px;
-    }
-    
-    ul { margin: 4px 0 4px 18px; }
-    li { margin-bottom: 4px; font-size: 9pt; line-height: 1.35; text-align: justify; }
-    strong { font-weight: bold; color: #000; }
-    
-    /* Page 2 */
-    .page-2 {
-      width: 8.5in;
-      height: 11in;
-      page-break-before: always;
-    }
-    
-    .page-header {
-      background: #2F5496;
-      color: white;
-      padding: 15px 0.5in;
-      display: flex;
-      justify-content: space-between;
-      font-weight: bold;
-      font-size: 10pt;
-    }
-    
-    .page-2-content {
-      padding: 0.5in;
-    }
-    
-    .early-career, .education { 
-      font-size: 9pt; 
-      line-height: 1.5; 
-    }
-    .early-career div, .education div { 
-      margin-bottom: 3px; 
-    }
-  </style>
-</head>
-<body>
-  <!-- PAGE 1 -->
-  <div class="page-1">
-    <div class="header-block">
-      <div class="name-card"><h1>${data.name}</h1></div>
-      <div class="contact-line">${data.location} • ${data.email} • ${data.phone}</div>
-    </div>
-    
-    <div class="content-area">
-      <div class="sidebar">
-        <div class="section-label">AREAS OF EXPERTISE</div>
-        ${(data.expertise || []).map((s: string) => `<div class="skill-tag">${s}</div>`).join('')}
-      </div>
-      
-      <div class="main-column">
-        <div class="executive-title">${data.current_title}</div>
-        ${data.tagline ? `<div class="tagline">${data.tagline}</div>` : ''}
-        <div class="summary-text">${data.summary}</div>
-        
-        ${data.skill_categories && data.skill_categories.length > 0 ? `
-          <div class="skill-boxes">
-            ${data.skill_categories.map((cat: string) => `<div class="skill-box">${cat}</div>`).join('')}
-          </div>
-        ` : ''}
-        
-        <div class="section-label">PROFESSIONAL EXPERIENCE</div>
-        
-        <div class="job-entry">
-          <div class="job-header">
-            <span>${data.current_job.company} • ${data.current_job.location}</span>
-            <span>${data.current_job.dates}</span>
-          </div>
-          <div class="job-title">${data.current_job.title}</div>
-          ${data.current_job.description ? `<div class="job-desc">${data.current_job.description}</div>` : ''}
-          <ul>
-            ${(data.current_job.achievements || []).map((a: string) => `<li>${a}</li>`).join('')}
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- PAGE 2 -->
-  <div class="page-2">
-    <div class="page-header">
-      <span>${data.name}</span>
-      <span>PAGE 2</span>
-    </div>
-    
-    <div class="page-2-content">
-      ${(data.previous_jobs || []).map((job: any) => `
-        <div class="job-entry">
-          <div class="job-header">
-            <span>${job.company} • ${job.location}</span>
-            <span>${job.dates}</span>
-          </div>
-          <div class="job-title">${job.title}</div>
-          ${job.description ? `<div class="job-desc">${job.description}</div>` : ''}
-          <ul>
-            ${(job.achievements || []).map((a: string) => `<li>${a}</li>`).join('')}
-          </ul>
-        </div>
-      `).join('')}
-      
-      <div class="section-label">EARLY CAREER</div>
-      <div class="early-career">
-        ${(data.early_career || []).map((item: string) => `<div>${item}</div>`).join('')}
-      </div>
-      
-      <div class="section-label">EDUCATION & PROFESSIONAL DEVELOPMENT</div>
-      <div class="education">
-        ${(data.education || []).map((item: string) => `<div>${item}</div>`).join('')}
-      </div>
-    </div>
-  </div>
-</body>
-</html>`
-}
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -299,7 +31,6 @@ export async function POST(request: NextRequest) {
     const resumeText = await extractText(resume)
     if (!resumeText) throw new Error('Could not read resume')
 
-    // AI PROMPT - Extract THEIR skills, not hardcoded
     const masterPrompt = `Transform this resume into IMPACT statements with bolded metrics.
 
 RESUME:
@@ -322,7 +53,7 @@ Return ONLY JSON:
   "current_title": "PROFESSIONAL TITLE",
   "tagline": "One powerful sentence",
   "summary": "2-3 sentences with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong>",
-  "expertise": ["• Actual skill 1 from resume", "• Actual skill 2", "• Actual skill 3", ...],
+  "expertise": ["• Actual skill 1 from resume", "• Actual skill 2", "• Actual skill 3", "• Actual skill 4", "• Actual skill 5", "• Actual skill 6", "• Actual skill 7", "• Actual skill 8", "• Actual skill 9", "• Actual skill 10"],
   "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
     "company": "Actual company",
@@ -366,24 +97,9 @@ Return ONLY JSON:
     if (!jsonMatch) throw new Error('No JSON in AI response')
     
     const resumeData = JSON.parse(jsonMatch[0])
-    const html = generateResumeHTML(resumeData)
-
- return NextResponse.json({
-  resume_data: resumeData,
-  analysis: resumeData.analysis
-})
-```
-
-
-
-if (!exportTask || !exportTask.result || !exportTask.result.files || !exportTask.result.files[0]) {
-  throw new Error('PDF conversion failed')
-}
-
-const pdfUrl = exportTask.result.files[0].url
 
     return NextResponse.json({
-      pdf_url: pdfUrl,
+      resume_data: resumeData,
       analysis: resumeData.analysis
     })
 
