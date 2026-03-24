@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 // @ts-ignore
 import pdf from 'pdf-parse'
-import CloudConvert from 'cloudconvert'
 
 export const runtime = 'nodejs'
 
@@ -369,50 +368,13 @@ Return ONLY JSON:
     const resumeData = JSON.parse(jsonMatch[0])
     const html = generateResumeHTML(resumeData)
 
-   // CONVERT HTML TO PDF USING CLOUDCONVERT
-const apiKey = process.env.CLOUDCONVERT_API_KEY
-if (!apiKey) {
-  throw new Error('CloudConvert API key not configured')
-}
-const cloudConvert = new CloudConvert(apiKey)
-
-// Create job with upload task
-let job = await cloudConvert.jobs.create({
-  tasks: {
-    'upload-html': {
-      operation: 'import/upload'
-    },
-    'convert-to-pdf': {
-      operation: 'convert',
-      input: 'upload-html',
-      output_format: 'pdf',
-      engine: 'chrome',
-      page_width: 8.5,
-      page_height: 11,
-      margin_top: 0,
-      margin_bottom: 0,
-      margin_left: 0,
-      margin_right: 0,
-      print_background: true
-    },
-    'export-pdf': {
-      operation: 'export/url',
-      input: 'convert-to-pdf'
-    }
-  }
+ return NextResponse.json({
+  resume_data: resumeData,
+  analysis: resumeData.analysis
 })
+```
 
-// Upload the HTML file
-const uploadTask = job.tasks.filter(task => task.name === 'upload-html')[0]
-const { Readable } = require('stream')
-const htmlStream = Readable.from([html])
-await cloudConvert.tasks.upload(uploadTask, htmlStream, 'resume.html')
 
-// Wait for job completion
-job = await cloudConvert.jobs.wait(job.id)
-
-// Get PDF download URL
-const exportTask = job.tasks.filter(task => task.name === 'export-pdf')[0]
 
 if (!exportTask || !exportTask.result || !exportTask.result.files || !exportTask.result.files[0]) {
   throw new Error('PDF conversion failed')
