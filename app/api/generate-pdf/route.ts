@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { renderToStream } from '@react-pdf/renderer'
+import ReactPDF from '@react-pdf/renderer'
 import ResumePDF from '@/components/ResumePDF'
+import React from 'react'
 
 export const runtime = 'nodejs'
 
@@ -8,17 +9,19 @@ export async function POST(request: NextRequest) {
   try {
     const resumeData = await request.json()
     
-    // Generate PDF stream
-    const stream = await renderToStream(<ResumePDF data={resumeData} />)
+    // Generate PDF
+    const pdfStream = await ReactPDF.renderToStream(
+      React.createElement(ResumePDF, { data: resumeData })
+    )
     
     // Convert stream to buffer
     const chunks: Buffer[] = []
-    for await (const chunk of stream) {
+    for await (const chunk of pdfStream) {
       chunks.push(Buffer.from(chunk))
     }
     const pdfBuffer = Buffer.concat(chunks)
     
-    // Return PDF as downloadable file
+    // Return PDF
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
