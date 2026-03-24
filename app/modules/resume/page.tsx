@@ -87,108 +87,120 @@ export default function ResumeModulePage() {
   }
 
   const handleRewrite = async () => {
-    setLoading(true)
-    setStep('processing')
+  setLoading(true)
+  setStep('processing')
 
-    try {
-      const formData = new FormData()
-      
-      if (resumeFile) {
-        formData.append('resume', resumeFile)
-      } else {
-        // Create a text file from pasted content
-        const blob = new Blob([resumeText], { type: 'text/plain' })
-        formData.append('resume', blob, 'pasted_resume.txt')
-      }
-      
-    jobDescFiles.forEach(file => formData.append('jobDescriptions', file))
-jobDescTexts.forEach((text, idx) => {
-  if (text.trim().length > 0) {
-    const blob = new Blob([text], { type: 'text/plain' })
-    formData.append('jobDescriptions', blob, `pasted_job_${idx + 1}.txt`)
-  }
-})
-      
-      formData.append('targetTitle', targetTitle)
-      formData.append('location', location)
-      formData.append('salary', salary)
+  try {
+    const formData = new FormData()
+    
+    if (resumeFile) {
+      formData.append('resume', resumeFile)
+    } else {
+      const blob = new Blob([resumeText], { type: 'text/plain' })
+      formData.append('resume', blob, 'pasted_resume.txt')
+    }
+    
+    formData.append('targetTitle', targetTitle)
+    formData.append('location', location)
+    formData.append('salary', salary)
 
-      const resumeResponse = await fetch('/api/process-resume', {
-        method: 'POST',
-        body: formData
+    // STEP 1: Transform the resume with AI
+    const resumeResponse = await fetch('/api/process-resume', {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!resumeResponse.ok) {
+      throw new Error('Resume processing failed')
+    }
+
+    const resumeData = await resumeResponse.json()
+    
+    // STEP 2: Generate the PDF from the transformed data
+    const pdfResponse = await fetch('/api/generate-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(resumeData.resume_data)
+    })
+
+    if (!pdfResponse.ok) {
+      throw new Error('PDF generation failed')
+    }
+
+    const pdfBlob = await pdfResponse.blob()
+    
+    // STEP 3: Search for jobs
+    const jobsResponse = await fetch('/api/search-jobs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resumeAnalysis: resumeData.analysis,
+        targetTitle,
+        location,
+        salary
       })
+    })
 
-      if (!resumeResponse.ok) {
-        throw new Error('Resume processing failed')
-      }
+    if (!jobsResponse.ok) {
+      throw new Error('Job search failed')
+    }
 
-      const resumeData = await resumeResponse.json()
-      
-      const jobsResponse = await fetch('/api/search-jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          resumeAnalysis: resumeData.analysis,
-          targetTitle,
-          location,
-          salary
-        })
-      })
+    const jobsData = await jobsResponse.json()
+    
+    // Store the PDF blob and resume data for download later
+    setResults({
+      resume_data: resumeData.resume_data,
+      pdf_blob: pdfBlob,
+      analysis: resumeData.analysis
+    })
+    setJobs(jobsData)
+    
+    // Update progress in Supabase
+    const supabase = createClientSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-      if (!jobsResponse.ok) {
-        throw new Error('Job search failed')
-      }
+    if (user) {
+      const { data: existing } = await supabase
+        .from('module_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('module_name', 'resume')
+        .single()
 
-      const jobsData = await jobsResponse.json()
-      
-      setResults(resumeData)
-      setJobs(jobsData)
-      
-      const supabase = createClientSupabaseClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (user) {
-        const { data: existing } = await supabase
+      if (existing) {
+        await supabase
           .from('module_progress')
-          .select('*')
+          .update({
+            is_completed: true,
+            progress_percent: 100,
+            completed_at: new Date().toISOString(),
+          })
           .eq('user_id', user.id)
           .eq('module_name', 'resume')
-          .single()
-
-        if (existing) {
-          await supabase
-            .from('module_progress')
-            .update({
-              is_completed: true,
-              progress_percent: 100,
-              completed_at: new Date().toISOString(),
-            })
-            .eq('user_id', user.id)
-            .eq('module_name', 'resume')
-        } else {
-          await supabase
-            .from('module_progress')
-            .insert({
-              user_id: user.id,
-              module_name: 'resume',
-              is_unlocked: true,
-              is_completed: true,
-              progress_percent: 100,
-              unlocked_at: new Date().toISOString(),
-              completed_at: new Date().toISOString(),
-            })
-        }
+      } else {
+        await supabase
+          .from('module_progress')
+          .insert({
+            user_id: user.id,
+            module_name: 'resume',
+            is_unlocked: true,
+            is_completed: true,
+            progress_percent: 100,
+            unlocked_at: new Date().toISOString(),
+            completed_at: new Date().toISOString(),
+          })
       }
-
-      setStep('results')
-    } catch (error) {
-      console.error('Error:', error)
-      alert('Error processing resume. Please try again.')
-      setStep('analysis')
-    } finally {
-      setLoading(false)
     }
+
+    setStep('results')
+  } catch (error) {
+    console.error('Error:', error)
+    alert('Error processing resume. Please try again.')
+    setStep('analysis')
+  } finally {
+    setLoading(false)
   }
+}
 
 const downloadResumePDF = async (resumeData: any) => {
   const response = await fetch('/api/generate-pdf', {
