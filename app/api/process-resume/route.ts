@@ -31,48 +31,136 @@ export async function POST(request: NextRequest) {
     const resumeText = await extractText(resume)
     if (!resumeText) throw new Error('Could not read resume')
 
-    const masterPrompt = `Transform this resume into IMPACT statements with bolded metrics.
+    const masterPrompt = `You are an expert résumé strategist and writer. Your task is to transform a candidate's résumé into a compelling, metrics-driven document that follows the structure and visual style of the provided template. Use the candidate's original content to create a polished résumé that will be converted to PDF.
 
-RESUME:
+CANDIDATE'S RESUME:
 ${resumeText}
 
 TARGET ROLE: ${targetTitle}
 
-CRITICAL RULES:
-1. Extract ACTUAL skills FROM THE RESUME (not generic HR skills)
-2. WRAP ALL NUMBERS in <strong> tags: <strong>20+</strong>, <strong>$14M</strong>, <strong>70%</strong>
-3. Transform weak statements to IMPACT
-   Example: "Managed operations" → "Spearheaded operations for <strong>10,000+</strong> employees with <strong>$14M</strong> budget"
+TRANSFORMATION GUIDELINES:
 
-Return ONLY JSON:
+1. HEADER AND CONTACT INFORMATION:
+   - Put the candidate's full name in title case at the top
+   - Include email, phone, and hyperlink to LinkedIn or portfolio
+   - City/state only if in-person work is required
+
+2. TARGET ROLE:
+   - Add the exact title of the position they're applying for below the contact info to match ATS keywords
+
+3. PROFESSIONAL SUMMARY:
+   - Write a concise 2-3 sentence third-person summary that states their role and years of experience
+   - Identifies relevant industries or markets
+   - Highlights one or two quantifiable achievements (e.g., "Drove <strong>$300M</strong> in annual cost savings")
+   - WRAP ALL METRICS IN <strong> TAGS
+
+4. AREAS OF EXPERTISE / SKILLS:
+   - List 8-10 skills that mirror keywords from the job description
+   - Include AI-related and remote-work competencies if relevant
+   - Use the exact terminology from the job posting to optimize ATS matching
+   - Tailor this list for each role
+   - Format as "• Skill Name"
+
+5. PROFESSIONAL EXPERIENCE:
+   - Describe the last 10-15 years of roles in reverse chronological order
+   - For each, include company, location, dates, and job title
+   - Use concise bullet points (no more than two lines each) focused on outcomes
+   - Quantify scope, revenue growth, cost savings, headcount managed, budgets, client impact, and KPIs exceeded
+   - Use active, ownership verbs ("Drove," "Achieved," "Launched," "Spearheaded," "Orchestrated")
+   - AVOID passive or generic phrases like "responsible for," "assisted" or "helped"
+   - Showcase entrepreneurial mindset, leadership, and self-motivation, particularly if targeting remote roles
+   - WRAP ALL NUMBERS IN <strong> TAGS
+
+6. EDUCATION AND CERTIFICATIONS:
+   - List degrees and highlight professional development and industry-specific certifications (e.g., AI, PMP, CISSP)
+
+7. LENGTH AND FORMAT:
+   - Keep the résumé to one or two pages
+   - Structure the data for clean PDF conversion
+
+TRANSFORMATION EXAMPLES:
+
+BAD: "Managed team and responsible for budget oversight"
+GOOD: "Led <strong>15-person</strong> cross-functional team delivering <strong>$2.5M</strong> project <strong>20%</strong> under budget"
+
+BAD: "Assisted with sales initiatives"
+GOOD: "Drove <strong>$4.2M</strong> in new revenue by launching strategic partnership program across <strong>3</strong> markets"
+
+BAD: "Worked on customer satisfaction"
+GOOD: "Achieved <strong>95%</strong> customer retention rate managing <strong>200+</strong> enterprise accounts worth <strong>$50M</strong> ARR"
+
+BAD: "Responsible for HR operations"
+GOOD: "Spearheaded HR operations for <strong>10,000+</strong> employees managing <strong>$14M</strong> annual budget"
+
+CRITICAL RULES:
+- Extract ACTUAL data from their resume (names, companies, dates, numbers)
+- DO NOT INVENT any information
+- WRAP EVERY NUMBER in <strong> tags: <strong>20+</strong>, <strong>$14M</strong>, <strong>70%</strong>, <strong>10,000+</strong>
+- Transform weak statements into IMPACT with metrics
+- Every bullet proves VALUE and OWNERSHIP, not tasks
+
+Ensure every bullet point proves how the candidate creates value and owns outcomes, rather than simply listing tasks.
+
+Return ONLY this JSON structure (no markdown, no extra text):
 {
-  "name": "Actual name from resume",
+  "name": "Full Name from resume",
   "location": "City, State",
-  "email": "email",
-  "phone": "phone",
-  "current_title": "PROFESSIONAL TITLE",
-  "tagline": "One powerful sentence",
-  "summary": "2-3 sentences with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong>",
-  "expertise": ["• Actual skill 1 from resume", "• Actual skill 2", "• Actual skill 3", "• Actual skill 4", "• Actual skill 5", "• Actual skill 6", "• Actual skill 7", "• Actual skill 8", "• Actual skill 9", "• Actual skill 10"],
+  "email": "email@example.com",
+  "phone": "(000) 000-0000",
+  "current_title": "${targetTitle}",
+  "tagline": "One powerful sentence describing value proposition",
+  "summary": "2-3 sentences with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong> showing quantifiable achievements",
+  "expertise": [
+    "• Actual skill 1 extracted from resume",
+    "• Actual skill 2 extracted from resume",
+    "• Actual skill 3 extracted from resume",
+    "• Actual skill 4 extracted from resume",
+    "• Actual skill 5 extracted from resume",
+    "• Actual skill 6 extracted from resume",
+    "• Actual skill 7 extracted from resume",
+    "• Actual skill 8 extracted from resume",
+    "• Actual skill 9 extracted from resume",
+    "• Actual skill 10 extracted from resume"
+  ],
   "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
-    "company": "Actual company",
+    "company": "Actual company from resume",
     "location": "City, ST",
     "dates": "Year - Present",
-    "title": "Actual title",
-    "description": "Brief scope",
-    "achievements": ["Achievement with <strong>metrics</strong>"]
+    "title": "Actual job title",
+    "description": "Brief scope paragraph with quantified responsibilities",
+    "achievements": [
+      "Drove <strong>specific metric</strong> achievement with <strong>quantified</strong> impact",
+      "Achieved <strong>measurable outcome</strong> managing <strong>scope size</strong>",
+      "Launched <strong>initiative</strong> generating <strong>$X revenue</strong> or <strong>Y% growth</strong>"
+    ]
   },
-  "previous_jobs": [{
-    "company": "Company",
-    "location": "City, ST",
-    "dates": "Years",
-    "title": "Title",
-    "achievements": ["Achievement with <strong>metrics</strong>"]
-  }],
-  "early_career": ["<strong>Title</strong> – Company (Years)"],
-  "education": ["<strong>Degree</strong> – Institution"],
-  "analysis": {"key_strengths": [], "target_roles": [], "summary": ""}
+  "previous_jobs": [
+    {
+      "company": "Actual previous company",
+      "location": "City, ST",
+      "dates": "Year - Year",
+      "title": "Actual previous title",
+      "achievements": [
+        "Achievement with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong>",
+        "Achievement with <strong>quantified</strong> <strong>impact</strong>"
+      ]
+    }
+  ],
+  "early_career": [
+    "<strong>Actual Title</strong> – Actual Company (Actual Years)"
+  ],
+  "education": [
+    "<strong>Actual Degree</strong> – Actual University",
+    "<strong>Actual Certification</strong> – Actual Institution"
+  ],
+  "analysis": {
+    "key_strengths": ["strength 1", "strength 2", "strength 3"],
+    "areas_for_improvement": ["area 1", "area 2"],
+    "recommended_keywords": ["keyword1", "keyword2", "keyword3"],
+    "target_roles": ["role 1", "role 2"],
+    "summary": "Brief assessment"
+  }
 }`
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
