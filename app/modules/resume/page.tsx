@@ -190,12 +190,25 @@ jobDescTexts.forEach((text, idx) => {
     }
   }
 
-  const downloadResumePDF = async (resumeData: any, variant?: number) => {
-    const page1 = variant !== undefined ? resumeData.variants[variant].page1 : resumeData.master_resume.page1
-    const page2 = variant !== undefined ? resumeData.variants[variant].page2 : resumeData.master_resume.page2
-    const fileName = variant !== undefined ? `resume_variant_${variant + 1}` : 'master_resume'
-    
-    const htmlContent = `
+ const downloadResumePDF = async (resumeData: any, variant?: number) => {
+  // CloudConvert returns a direct PDF URL
+  if (resumeData.pdf_url) {
+    window.open(resumeData.pdf_url, '_blank')
+    return
+  }
+  
+  // Fallback to old HTML method if pdf_url not available
+  const page1 = variant !== undefined ? resumeData.variants[variant].page1 : resumeData.master_resume?.page1
+  const page2 = variant !== undefined ? resumeData.variants[variant].page2 : resumeData.master_resume?.page2
+  
+  if (!page1 || !page2) {
+    alert('Resume data not available')
+    return
+  }
+  
+  const fileName = variant !== undefined ? `resume_variant_${variant + 1}` : 'master_resume'
+  
+  const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -218,25 +231,25 @@ jobDescTexts.forEach((text, idx) => {
   ${page2}
 </body>
 </html>
-    `
-    
-    const blob = new Blob([htmlContent], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${fileName}.html`
-    a.click()
-    URL.revokeObjectURL(url)
-    
-    const printWindow = window.open('', '_blank')
-    if (printWindow) {
-      printWindow.document.write(htmlContent)
-      printWindow.document.close()
-      setTimeout(() => {
-        printWindow.print()
-      }, 250)
-    }
+  `
+  
+  const blob = new Blob([htmlContent], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${fileName}.html`
+  a.click()
+  URL.revokeObjectURL(url)
+  
+  const printWindow = window.open('', '_blank')
+  if (printWindow) {
+    printWindow.document.write(htmlContent)
+    printWindow.document.close()
+    setTimeout(() => {
+      printWindow.print()
+    }, 250)
   }
+}
 
   const downloadJobsExcel = () => {
     if (!jobs || !jobs.jobs) return
