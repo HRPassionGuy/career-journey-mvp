@@ -18,7 +18,7 @@
     "react-dom": "^18.2.0",
     "resend": "^3.2.0",
     "stripe": "^14.17.0",
-    "cloudconvert": "^3.1.1"
+    "cloudconvert": "^3.1.1",
     "pdf-parse": "^1.1.1",
     "lucide-react": "^0.263.1"
   },
