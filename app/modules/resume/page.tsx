@@ -215,7 +215,6 @@ const downloadResumePDF = async () => {
   a.click()
   URL.revokeObjectURL(url)
 }
-```
 
 
  const downloadJobsExcel = () => {
