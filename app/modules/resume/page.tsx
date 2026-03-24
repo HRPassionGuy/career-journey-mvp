@@ -190,56 +190,38 @@ jobDescTexts.forEach((text, idx) => {
     }
   }
 
- const downloadResumePDF = async (resumeData: any, variant?: number) => {
-  // CloudConvert returns a direct PDF URL
-  if (resumeData.pdf_url) {
-    window.open(resumeData.pdf_url, '_blank')
-    return
-  }
+const downloadResumePDF = async (resumeData: any) => {
+  const response = await fetch('/api/generate-pdf', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(resumeData)
+  })
   
-  // Fallback to old HTML method if pdf_url not available
-  const page1 = variant !== undefined ? resumeData.variants[variant].page1 : resumeData.master_resume?.page1
-  const page2 = variant !== undefined ? resumeData.variants[variant].page2 : resumeData.master_resume?.page2
-  
-  if (!page1 || !page2) {
-    alert('Resume data not available')
-    return
-  }
-  
-  const fileName = variant !== undefined ? `resume_variant_${variant + 1}` : 'master_resume'
-  
-  const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${fileName}</title>
-  <style>
-    @page {
-      size: letter;
-      margin: 0.5in;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-    }
-  </style>
-</head>
-<body>
-  ${page1}
-  <div style="page-break-after: always;"></div>
-  ${page2}
-</body>
-</html>
-  `
-  
-  const blob = new Blob([htmlContent], { type: 'text/html' })
+  const blob = await response.blob()
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `${fileName}.html`
+  a.download = 'resume.pdf'
   a.click()
   URL.revokeObjectURL(url)
+}
+```
+
+---
+
+## **FILE STRUCTURE:**
+```
+your-repo/
+├── package.json (add @react-pdf/renderer)
+├── components/
+│   └── ResumePDF.tsx
+├── app/
+│   ├── api/
+│   │   └── generate-pdf/
+│   │       └── route.ts
+│   └── modules/
+│       └── resume/
+│           └── page.tsx (update download function)
   
   const printWindow = window.open('', '_blank')
   if (printWindow) {
