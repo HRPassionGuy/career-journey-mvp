@@ -11,8 +11,11 @@ export async function POST(request: NextRequest) {
     // Generate PDF buffer
     const pdfBuffer = await renderToBuffer(<ResumePDF data={resumeData} />)
     
+    // Convert Buffer to Uint8Array for NextResponse
+    const uint8Array = new Uint8Array(pdfBuffer)
+    
     // Return PDF
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(uint8Array, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="resume.pdf"',
