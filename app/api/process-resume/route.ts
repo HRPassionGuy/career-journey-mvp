@@ -404,7 +404,7 @@ let job = await cloudConvert.jobs.create({
 
 // Upload the HTML file
 const uploadTask = job.tasks.filter(task => task.name === 'upload-html')[0]
-await cloudConvert.tasks.upload(uploadTask, html, 'resume.html')
+await cloudConvert.tasks.upload(uploadTask, Buffer.from(html, 'utf-8'), 'resume.html')
 
 // Wait for job completion
 job = await cloudConvert.jobs.wait(job.id)
