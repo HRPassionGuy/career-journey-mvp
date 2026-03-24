@@ -370,7 +370,11 @@ Return ONLY JSON:
     const html = generateResumeHTML(resumeData)
 
     // CONVERT HTML TO PDF USING CLOUDCONVERT
-    const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY)
+    const apiKey = process.env.CLOUDCONVERT_API_KEY
+if (!apiKey) {
+  throw new Error('CloudConvert API key not configured')
+}
+const cloudConvert = new CloudConvert(apiKey)
 
     const job = await cloudConvert.jobs.create({
       tasks: {
