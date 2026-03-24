@@ -376,13 +376,16 @@ if (!apiKey) {
 }
 const cloudConvert = new CloudConvert(apiKey)
 
-    const job = await cloudConvert.jobs.create({
-      tasks: {
-        'import-html': {
-          operation: 'import/raw',
-          file: Buffer.from(html).toString('base64'),
-          filename: 'resume.html'
-        },
+   const job = await cloudConvert.jobs.create({
+  tasks: {
+    'import-html': {
+      operation: 'import/upload'
+    },
+    'upload-html': {
+      operation: 'upload',
+      file: html,
+      filename: 'resume.html'
+    },
         'convert-to-pdf': {
           operation: 'convert',
           input: 'import-html',
