@@ -532,11 +532,11 @@ ${jobs.jobs.map((job: any) => `    <tr>
                 Master Resume
               </h3>
               <button
-                onClick={() => downloadResumePDF(results)}
-                className="btn btn-primary"
-              >
-                📄 Download Master Resume
-              </button>
+  onClick={() => downloadResumePDF()}
+  className="btn btn-primary"
+>
+  📄 Download Master Resume
+</button>
             </div>
 
             {results.variants && results.variants.length > 0 && (
