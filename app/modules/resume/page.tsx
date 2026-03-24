@@ -218,10 +218,11 @@ const downloadResumePDF = async () => {
 ```
 
 
-  const downloadJobsExcel = () => {
-    if (!jobs || !jobs.jobs) return
-    
-    let xlsContent = `<?xml version="1.0" encoding="UTF-8"?>
+ const downloadJobsExcel = () => {
+  if (!jobs || !jobs.jobs) return
+  
+  const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>'
+  const xlsContent = xmlDeclaration + `
 <html xmlns:x="urn:schemas-microsoft-com:office:excel">
 <head>
   <meta charset="UTF-8">
@@ -258,15 +259,15 @@ ${jobs.jobs.map((job: any) => `    <tr>
   </table>
 </body>
 </html>`
-    
-    const blob = new Blob(['\ufeff' + xlsContent], { type: 'application/vnd.ms-excel;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+  
+  const blob = new Blob(['\ufeff' + xlsContent], { type: 'application/vnd.ms-excel;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
