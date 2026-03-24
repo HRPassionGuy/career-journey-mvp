@@ -202,15 +202,13 @@ export default function ResumeModulePage() {
   }
 }
 
-const downloadResumePDF = async (resumeData: any) => {
-  const response = await fetch('/api/generate-pdf', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(resumeData)
-  })
+const downloadResumePDF = async () => {
+  if (!results || !results.pdf_blob) {
+    alert('No resume available to download')
+    return
+  }
   
-  const blob = await response.blob()
-  const url = URL.createObjectURL(blob)
+  const url = URL.createObjectURL(results.pdf_blob)
   const a = document.createElement('a')
   a.href = url
   a.download = 'resume.pdf'
