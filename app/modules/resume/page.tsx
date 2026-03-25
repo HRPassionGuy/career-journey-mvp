@@ -553,7 +553,7 @@ ${jobs.jobs.map((job: any) => `    <tr>
                         <span className="text-sm text-gray-600">{variant.tailoring_focus}</span>
                       </p>
                       <button
-                        onClick={() => downloadResumePDF(results, idx)}
+                        onClick={() => downloadVariantPDF(idx)}
                         className="btn btn-outline"
                       >
                         📄 Download Variant {idx + 1}
