@@ -1,5 +1,5 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 
 // Define types
 type Job = {
@@ -190,113 +190,119 @@ const styles = StyleSheet.create({
   },
 })
 
-const ResumePDF = ({ data }: { data: ResumeData }) => (
-  <Document>
-    {/* PAGE 1 */}
-    <Page size="LETTER" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.nameBox}>
-          <Text style={styles.name}>{data.name}</Text>
-        </View>
-        <Text style={styles.contact}>
-          {data.location} • {data.email} • {data.phone}
-        </Text>
-      </View>
-      
-      {/* Two Columns */}
-      <View style={styles.columns}>
-        {/* Left Column */}
-        <View style={styles.leftColumn}>
-          <Text style={styles.sectionHeader}>AREAS OF EXPERTISE</Text>
-          {data.expertise.map((skill, idx) => (
-            <Text key={idx} style={styles.skillItem}>{skill}</Text>
-          ))}
+// Remove <strong> tags from text for PDF rendering
+const stripHTML = (text: string) => {
+  if (!text) return ''
+  return text.replace(/<strong>/g, '').replace(/<\/strong>/g, '')
+}
+
+export default function ResumePDF({ data }: { data: ResumeData }) {
+  return (
+    <Document>
+      {/* PAGE 1 */}
+      <Page size="LETTER" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.nameBox}>
+            <Text style={styles.name}>{data.name}</Text>
+          </View>
+          <Text style={styles.contact}>
+            {data.location} • {data.email} • {data.phone}
+          </Text>
         </View>
         
-        {/* Right Column */}
-        <View style={styles.rightColumn}>
-          <Text style={styles.title}>{data.current_title}</Text>
-          {data.tagline && <Text style={styles.tagline}>{data.tagline}</Text>}
+        {/* Two Columns */}
+        <View style={styles.columns}>
+          {/* Left Column */}
+          <View style={styles.leftColumn}>
+            <Text style={styles.sectionHeader}>AREAS OF EXPERTISE</Text>
+            {data.expertise.map((skill, idx) => (
+              <Text key={idx} style={styles.skillItem}>{skill}</Text>
+            ))}
+          </View>
           
-          <Text style={styles.summary}>{data.summary}</Text>
-          
-          {/* Skill Category Boxes */}
-          {data.skill_categories && data.skill_categories.length === 4 && (
-            <View style={styles.skillBoxes}>
-              {data.skill_categories.map((cat, idx) => (
-                <Text key={idx} style={styles.skillBox}>{cat}</Text>
+          {/* Right Column */}
+          <View style={styles.rightColumn}>
+            <Text style={styles.title}>{data.current_title}</Text>
+            {data.tagline && <Text style={styles.tagline}>{data.tagline}</Text>}
+            
+            <Text style={styles.summary}>{stripHTML(data.summary)}</Text>
+            
+            {/* Skill Category Boxes */}
+            {data.skill_categories && data.skill_categories.length === 4 && (
+              <View style={styles.skillBoxes}>
+                {data.skill_categories.map((cat, idx) => (
+                  <Text key={idx} style={styles.skillBox}>{cat}</Text>
+                ))}
+              </View>
+            )}
+            
+            <Text style={styles.sectionHeader}>PROFESSIONAL EXPERIENCE</Text>
+            
+            {/* Current Job */}
+            <View style={styles.job}>
+              <View style={styles.jobHeader}>
+                <Text>{data.current_job.company} • {data.current_job.location}</Text>
+                <Text>{data.current_job.dates}</Text>
+              </View>
+              <Text style={styles.jobTitle}>{data.current_job.title}</Text>
+              {data.current_job.description && (
+                <Text style={styles.jobDesc}>{stripHTML(data.current_job.description)}</Text>
+              )}
+              {data.current_job.achievements.map((achievement, idx) => (
+                <View key={idx} style={{ position: 'relative' }}>
+                  <Text style={styles.achievement}>
+                    <Text style={styles.bullet}>• </Text>
+                    {stripHTML(achievement)}
+                  </Text>
+                </View>
               ))}
             </View>
-          )}
-          
-          <Text style={styles.sectionHeader}>PROFESSIONAL EXPERIENCE</Text>
-          
-          {/* Current Job */}
-          <View style={styles.job}>
+          </View>
+        </View>
+      </Page>
+      
+      {/* PAGE 2 */}
+      <Page size="LETTER" style={styles.page}>
+        <View style={styles.pageHeader}>
+          <Text>{data.name}</Text>
+          <Text>PAGE 2</Text>
+        </View>
+        
+        {/* Previous Jobs */}
+        {data.previous_jobs.map((job, jobIdx) => (
+          <View key={jobIdx} style={styles.job}>
             <View style={styles.jobHeader}>
-              <Text>{data.current_job.company} • {data.current_job.location}</Text>
-              <Text>{data.current_job.dates}</Text>
+              <Text>{job.company} • {job.location}</Text>
+              <Text>{job.dates}</Text>
             </View>
-            <Text style={styles.jobTitle}>{data.current_job.title}</Text>
-            {data.current_job.description && (
-              <Text style={styles.jobDesc}>{data.current_job.description}</Text>
+            <Text style={styles.jobTitle}>{job.title}</Text>
+            {job.description && (
+              <Text style={styles.jobDesc}>{stripHTML(job.description)}</Text>
             )}
-            {data.current_job.achievements.map((achievement, idx) => (
+            {job.achievements.map((achievement, idx) => (
               <View key={idx} style={{ position: 'relative' }}>
                 <Text style={styles.achievement}>
                   <Text style={styles.bullet}>• </Text>
-                  {achievement}
+                  {stripHTML(achievement)}
                 </Text>
               </View>
             ))}
           </View>
-        </View>
-      </View>
-    </Page>
-    
-    {/* PAGE 2 */}
-    <Page size="LETTER" style={styles.page}>
-      <View style={styles.pageHeader}>
-        <Text>{data.name}</Text>
-        <Text>PAGE 2</Text>
-      </View>
-      
-      {/* Previous Jobs */}
-      {data.previous_jobs.map((job, jobIdx) => (
-        <View key={jobIdx} style={styles.job}>
-          <View style={styles.jobHeader}>
-            <Text>{job.company} • {job.location}</Text>
-            <Text>{job.dates}</Text>
-          </View>
-          <Text style={styles.jobTitle}>{job.title}</Text>
-          {job.description && (
-            <Text style={styles.jobDesc}>{job.description}</Text>
-          )}
-          {job.achievements.map((achievement, idx) => (
-            <View key={idx} style={{ position: 'relative' }}>
-              <Text style={styles.achievement}>
-                <Text style={styles.bullet}>• </Text>
-                {achievement}
-              </Text>
-            </View>
-          ))}
-        </View>
-      ))}
-      
-      {/* Early Career */}
-      <Text style={styles.sectionHeader}>EARLY CAREER</Text>
-      {data.early_career.map((item, idx) => (
-        <Text key={idx} style={styles.simpleItem}>{item}</Text>
-      ))}
-      
-      {/* Education */}
-      <Text style={[styles.sectionHeader, { marginTop: 8 }]}>EDUCATION & PROFESSIONAL DEVELOPMENT</Text>
-      {data.education.map((item, idx) => (
-        <Text key={idx} style={styles.simpleItem}>{item}</Text>
-      ))}
-    </Page>
-  </Document>
-)
-
-export default ResumePDF
+        ))}
+        
+        {/* Early Career */}
+        <Text style={styles.sectionHeader}>EARLY CAREER</Text>
+        {data.early_career.map((item, idx) => (
+          <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
+        ))}
+        
+        {/* Education */}
+        <Text style={[styles.sectionHeader, { marginTop: 8 }]}>EDUCATION & PROFESSIONAL DEVELOPMENT</Text>
+        {data.education.map((item, idx) => (
+          <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
+        ))}
+      </Page>
+    </Document>
+  )
+}
