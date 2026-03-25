@@ -31,6 +31,17 @@ export async function POST(request: NextRequest) {
     const resumeText = await extractText(resume)
     if (!resumeText) throw new Error('Could not read resume')
 
+    // Extract job descriptions
+    const jobDescFiles = formData.getAll('jobDescriptions') as File[]
+    const jobDescriptions: string[] = []
+    
+    for (const file of jobDescFiles.slice(0, 5)) {
+      if (file && file.size > 0) {
+        const text = await extractText(file)
+        if (text) jobDescriptions.push(text)
+      }
+    }
+
     const masterPrompt = `You are an expert résumé strategist and writer. Your task is to transform a candidate's résumé into a compelling, metrics-driven document that follows the structure and visual style of the provided template. Use the candidate's original content to create a polished résumé that will be converted to PDF.
 
 CANDIDATE'S RESUME:
@@ -184,11 +195,63 @@ Return ONLY this JSON structure (no markdown, no extra text):
     const jsonMatch = rawText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('No JSON in AI response')
     
-    const resumeData = JSON.parse(jsonMatch[0])
+    const masterResumeData = JSON.parse(jsonMatch[0])
+
+    // GENERATE VARIANTS for each job description
+    const variants = []
+    
+    for (let i = 0; i < jobDescriptions.length; i++) {
+      const variantPrompt = `Tailor this resume for the specific job posting below. Keep all facts accurate but emphasize relevant achievements.
+
+JOB POSTING:
+${jobDescriptions[i]}
+
+MASTER RESUME DATA:
+${JSON.stringify(masterResumeData, null, 2)}
+
+YOUR TASK:
+1. Extract the job title and company from the posting
+2. Identify the top 5 requirements from the job posting
+3. Reorder and emphasize achievements that match those requirements
+4. Add keywords from the job posting to summary and expertise
+5. Keep all facts accurate - just reposition and emphasize
+
+Return the SAME JSON structure but tailored for this specific role.`
+
+      const variantResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 16000,
+          messages: [{ role: 'user', content: variantPrompt }]
+        })
+      })
+
+      if (variantResponse.ok) {
+        const variantData = await variantResponse.json()
+        const variantText = variantData.content[0].text
+        const variantJsonMatch = variantText.match(/\{[\s\S]*\}/)
+        
+        if (variantJsonMatch) {
+          const variantResumeData = JSON.parse(variantJsonMatch[0])
+          variants.push({
+            variant_number: i + 1,
+            job_title: variantResumeData.current_title,
+            resume_data: variantResumeData
+          })
+        }
+      }
+    }
 
     return NextResponse.json({
-      resume_data: resumeData,
-      analysis: resumeData.analysis
+      resume_data: masterResumeData,
+      variants: variants,
+      analysis: masterResumeData.analysis
     })
 
   } catch (error: any) {
