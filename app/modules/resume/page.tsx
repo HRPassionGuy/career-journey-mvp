@@ -282,42 +282,27 @@ try {
  const downloadJobsExcel = () => {
   if (!jobs || !jobs.jobs) return
   
-  // Create proper Excel XML
-  const workbook = `<?xml version="1.0"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/1999/xhtml">
- <Worksheet ss:Name="Job Opportunities">
-  <Table>
-   <Row>
-    <Cell><Data ss:Type="String">Match Score</Data></Cell>
-    <Cell><Data ss:Type="String">Title</Data></Cell>
-    <Cell><Data ss:Type="String">Company</Data></Cell>
-    <Cell><Data ss:Type="String">Location</Data></Cell>
-    <Cell><Data ss:Type="String">Posted Date</Data></Cell>
-    <Cell><Data ss:Type="String">Summary</Data></Cell>
-    <Cell><Data ss:Type="String">Application Link</Data></Cell>
-   </Row>
-${jobs.jobs.map((job: any) => `   <Row>
-    <Cell><Data ss:Type="String">${job.match_score}/10</Data></Cell>
-    <Cell><Data ss:Type="String">${job.title}</Data></Cell>
-    <Cell><Data ss:Type="String">${job.company}</Data></Cell>
-    <Cell><Data ss:Type="String">${job.location}</Data></Cell>
-    <Cell><Data ss:Type="String">${job.posting_date}</Data></Cell>
-    <Cell><Data ss:Type="String">${job.summary}</Data></Cell>
-    <Cell><Data ss:Type="String">${job.link}</Data></Cell>
-   </Row>`).join('\n')}
-  </Table>
- </Worksheet>
-</Workbook>`
+  // Create CSV format (more reliable than XML)
+  let csvContent = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
   
-  const blob = new Blob([workbook], { type: 'application/vnd.ms-excel' })
+  jobs.jobs.forEach((job: any) => {
+    const row = [
+      `${job.match_score}/10`,
+      `"${job.title.replace(/"/g, '""')}"`,
+      `"${job.company.replace(/"/g, '""')}"`,
+      `"${job.location.replace(/"/g, '""')}"`,
+      `"${job.posting_date.replace(/"/g, '""')}"`,
+      `"${job.summary.replace(/"/g, '""')}"`,
+      `"${job.link}"`
+    ]
+    csvContent += row.join(',') + '\n'
+  })
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
+  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }
