@@ -98,4 +98,164 @@ BAD: "Assisted with sales initiatives"
 GOOD: "Drove <strong>$4.2M</strong> in new revenue by launching strategic partnership program across <strong>3</strong> markets"
 
 BAD: "Worked on customer satisfaction"
-GOOD: "Achieved <strong>95%</strong> customer retention rat
+GOOD: "Achieved <strong>95%</strong> customer retention rate managing <strong>200+</strong> enterprise accounts worth <strong>$50M</strong> ARR"
+
+BAD: "Responsible for HR operations"
+GOOD: "Spearheaded HR operations for <strong>10,000+</strong> employees managing <strong>$14M</strong> annual budget"
+
+CRITICAL RULES:
+- Extract ACTUAL data from their resume (names, companies, dates, numbers)
+- DO NOT INVENT any information
+- WRAP EVERY NUMBER in <strong> tags: <strong>20+</strong>, <strong>$14M</strong>, <strong>70%</strong>, <strong>10,000+</strong>
+- Transform weak statements into IMPACT with metrics
+- Every bullet proves VALUE and OWNERSHIP, not tasks
+
+Ensure every bullet point proves how the candidate creates value and owns outcomes, rather than simply listing tasks.
+
+Return ONLY this JSON structure (no markdown, no extra text):
+{
+  "name": "Full Name from resume",
+  "location": "City, State",
+  "email": "email@example.com",
+  "phone": "(000) 000-0000",
+  "current_title": "${targetTitle}",
+  "tagline": "One powerful sentence describing value proposition",
+  "summary": "2-3 sentences with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong> showing quantifiable achievements",
+  "expertise": [
+    "• Actual skill 1 extracted from resume",
+    "• Actual skill 2 extracted from resume",
+    "• Actual skill 3 extracted from resume",
+    "• Actual skill 4 extracted from resume",
+    "• Actual skill 5 extracted from resume",
+    "• Actual skill 6 extracted from resume",
+    "• Actual skill 7 extracted from resume",
+    "• Actual skill 8 extracted from resume",
+    "• Actual skill 9 extracted from resume",
+    "• Actual skill 10 extracted from resume"
+  ],
+  "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
+  "current_job": {
+    "company": "Actual company from resume",
+    "location": "City, ST",
+    "dates": "Year - Present",
+    "title": "Actual job title",
+    "description": "Brief scope paragraph with quantified responsibilities",
+    "achievements": [
+      "Drove <strong>specific metric</strong> achievement with <strong>quantified</strong> impact",
+      "Achieved <strong>measurable outcome</strong> managing <strong>scope size</strong>",
+      "Launched <strong>initiative</strong> generating <strong>$X revenue</strong> or <strong>Y% growth</strong>"
+    ]
+  },
+  "previous_jobs": [
+    {
+      "company": "Actual previous company",
+      "location": "City, ST",
+      "dates": "Year - Year",
+      "title": "Actual previous title",
+      "achievements": [
+        "Achievement with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong>",
+        "Achievement with <strong>quantified</strong> <strong>impact</strong>"
+      ]
+    }
+  ],
+  "early_career": [
+    "<strong>Actual Title</strong> – Actual Company (Actual Years)"
+  ],
+  "education": [
+    "<strong>Actual Degree</strong> – Actual University",
+    "<strong>Actual Certification</strong> – Actual Institution"
+  ],
+  "analysis": {
+    "key_strengths": ["strength 1", "strength 2", "strength 3"],
+    "areas_for_improvement": ["area 1", "area 2"],
+    "recommended_keywords": ["keyword1", "keyword2", "keyword3"],
+    "target_roles": ["role 1", "role 2"],
+    "summary": "Brief assessment"
+  }
+}`
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 16000,
+        messages: [{ role: 'user', content: masterPrompt }]
+      })
+    })
+
+    if (!response.ok) throw new Error('AI API failed')
+
+    const aiResult = await response.json()
+    const rawText = aiResult.content[0].text
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('No JSON in AI response')
+    
+    const masterResumeData = JSON.parse(jsonMatch[0])
+
+    // GENERATE VARIANTS for each job description
+    const variants = []
+    
+    for (let i = 0; i < jobDescriptions.length; i++) {
+      const variantPrompt = `Tailor this resume for the specific job posting below. Keep all facts accurate but emphasize relevant achievements.
+
+JOB POSTING:
+${jobDescriptions[i]}
+
+MASTER RESUME DATA:
+${JSON.stringify(masterResumeData, null, 2)}
+
+YOUR TASK:
+1. Extract the job title and company from the posting
+2. Identify the top 5 requirements from the job posting
+3. Reorder and emphasize achievements that match those requirements
+4. Add keywords from the job posting to summary and expertise
+5. Keep all facts accurate - just reposition and emphasize
+
+Return the SAME JSON structure but tailored for this specific role.`
+
+      const variantResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 16000,
+          messages: [{ role: 'user', content: variantPrompt }]
+        })
+      })
+
+      if (variantResponse.ok) {
+        const variantData = await variantResponse.json()
+        const variantText = variantData.content[0].text
+        const variantJsonMatch = variantText.match(/\{[\s\S]*\}/)
+        
+        if (variantJsonMatch) {
+          const variantResumeData = JSON.parse(variantJsonMatch[0])
+          variants.push({
+            variant_number: i + 1,
+            job_title: variantResumeData.current_title,
+            resume_data: variantResumeData
+          })
+        }
+      }
+    }
+
+    return NextResponse.json({
+      resume_data: masterResumeData,
+      variants: variants,
+      analysis: masterResumeData.analysis
+    })
+
+  } catch (error: any) {
+    console.error('Error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
