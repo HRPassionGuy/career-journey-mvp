@@ -216,7 +216,30 @@ export default function ResumeModulePage() {
             })
         }
       }
+// Save resume generation to database for CRM tracking
+try {
+  const supabase = createClientSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
+  if (user) {
+    await supabase
+      .from('resume_generations')
+      .insert({
+        user_id: user.id,
+        user_email: user.email,
+        user_name: resumeData.resume_data.name,
+        target_title: targetTitle,
+        target_location: location,
+        target_salary: salary,
+        has_variants: (variantBlobs || []).length > 0,
+        variant_count: (variantBlobs || []).length,
+        generated_at: new Date().toISOString()
+      })
+  }
+} catch (dbError) {
+  console.error('Database tracking error:', dbError)
+  // Don't block the user experience if tracking fails
+}
       setStep('results')
     } catch (error) {
       console.error('Error:', error)
