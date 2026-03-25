@@ -169,9 +169,9 @@ const stripHTML = (text: string): string => {
 }
 
 const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
-  // Split jobs between pages - put first 1-2 jobs on page 1, rest on page 2
-  const page1Jobs = [data.current_job]
-  const page2Jobs = data.previous_jobs || []
+  // Put current job + first previous job on page 1, rest on page 2
+  const firstPreviousJob = data.previous_jobs && data.previous_jobs.length > 0 ? data.previous_jobs[0] : null
+  const remainingJobs = data.previous_jobs && data.previous_jobs.length > 1 ? data.previous_jobs.slice(1) : []
   
   return (
     <Document>
@@ -209,7 +209,7 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
             
             <Text style={styles.sectionHeader}>PROFESSIONAL EXPERIENCE</Text>
             
-            {/* Current Job Only on Page 1 */}
+            {/* Current Job */}
             <View style={styles.job}>
               <View style={styles.jobHeader}>
                 <Text>{data.current_job.company} • {data.current_job.location}</Text>
@@ -219,10 +219,27 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
               {data.current_job.description && (
                 <Text style={styles.jobDesc}>{stripHTML(data.current_job.description)}</Text>
               )}
-              {data.current_job.achievements.slice(0, 4).map((achievement, idx) => (
+              {data.current_job.achievements.map((achievement, idx) => (
                 <Text key={idx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
               ))}
             </View>
+            
+            {/* First Previous Job (if exists) to fill page 1 */}
+            {firstPreviousJob && (
+              <View style={styles.job}>
+                <View style={styles.jobHeader}>
+                  <Text>{firstPreviousJob.company} • {firstPreviousJob.location}</Text>
+                  <Text>{firstPreviousJob.dates}</Text>
+                </View>
+                <Text style={styles.jobTitle}>{firstPreviousJob.title}</Text>
+                {firstPreviousJob.description && (
+                  <Text style={styles.jobDesc}>{stripHTML(firstPreviousJob.description)}</Text>
+                )}
+                {firstPreviousJob.achievements.slice(0, 3).map((achievement, idx) => (
+                  <Text key={idx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </Page>
@@ -233,21 +250,21 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
           <Text>PAGE 2</Text>
         </View>
         
-        {/* Remaining achievements from current job if there are more than 4 */}
-        {data.current_job.achievements.length > 4 && (
+        {/* Continue first previous job if it has more than 3 bullets */}
+        {firstPreviousJob && firstPreviousJob.achievements.length > 3 && (
           <View style={styles.job}>
             <View style={styles.jobHeader}>
-              <Text>{data.current_job.company} • {data.current_job.location} (continued)</Text>
-              <Text>{data.current_job.dates}</Text>
+              <Text>{firstPreviousJob.company} • {firstPreviousJob.location} (continued)</Text>
+              <Text>{firstPreviousJob.dates}</Text>
             </View>
-            {data.current_job.achievements.slice(4).map((achievement, idx) => (
+            {firstPreviousJob.achievements.slice(3).map((achievement, idx) => (
               <Text key={idx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
             ))}
           </View>
         )}
         
-        {/* Previous Jobs */}
-        {page2Jobs.map((job, jobIdx) => (
+        {/* Remaining Previous Jobs */}
+        {remainingJobs.map((job, jobIdx) => (
           <View key={jobIdx} style={styles.job}>
             <View style={styles.jobHeader}>
               <Text>{job.company} • {job.location}</Text>
