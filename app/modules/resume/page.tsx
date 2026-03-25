@@ -256,56 +256,48 @@ export default function ResumeModulePage() {
     URL.revokeObjectURL(url)
   }
 
-  const downloadJobsExcel = () => {
-    if (!jobs || !jobs.jobs) return
-    
-    const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>'
-    const xlsContent = xmlDeclaration + `
-<html xmlns:x="urn:schemas-microsoft-com:office:excel">
-<head>
-  <meta charset="UTF-8">
-  <xml>
-    <x:ExcelWorkbook>
-      <x:ExcelWorksheets>
-        <x:ExcelWorksheet>
-          <x:Name>Job Opportunities</x:Name>
-        </x:ExcelWorksheet>
-      </x:ExcelWorksheets>
-    </x:ExcelWorkbook>
-  </xml>
-</head>
-<body>
-  <table border="1">
-    <tr style="background-color: #1e3a8a; color: white; font-weight: bold;">
-      <th>Match Score</th>
-      <th>Title</th>
-      <th>Company</th>
-      <th>Location</th>
-      <th>Posted Date</th>
-      <th>Summary</th>
-      <th>Application Link</th>
-    </tr>
-${jobs.jobs.map((job: any) => `    <tr>
-      <td style="mso-number-format:'\\@';">${job.match_score}/10</td>
-      <td>${job.title}</td>
-      <td>${job.company}</td>
-      <td>${job.location}</td>
-      <td>${job.posting_date}</td>
-      <td>${job.summary}</td>
-      <td><a href="${job.link}" target="_blank">Apply Now</a></td>
-    </tr>`).join('\n')}
-  </table>
-</body>
-</html>`
-    
-    const blob = new Blob(['\ufeff' + xlsContent], { type: 'application/vnd.ms-excel;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+ const downloadJobsExcel = () => {
+  if (!jobs || !jobs.jobs) return
+  
+  // Create proper Excel XML
+  const workbook = `<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/1999/xhtml">
+ <Worksheet ss:Name="Job Opportunities">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">Match Score</Data></Cell>
+    <Cell><Data ss:Type="String">Title</Data></Cell>
+    <Cell><Data ss:Type="String">Company</Data></Cell>
+    <Cell><Data ss:Type="String">Location</Data></Cell>
+    <Cell><Data ss:Type="String">Posted Date</Data></Cell>
+    <Cell><Data ss:Type="String">Summary</Data></Cell>
+    <Cell><Data ss:Type="String">Application Link</Data></Cell>
+   </Row>
+${jobs.jobs.map((job: any) => `   <Row>
+    <Cell><Data ss:Type="String">${job.match_score}/10</Data></Cell>
+    <Cell><Data ss:Type="String">${job.title}</Data></Cell>
+    <Cell><Data ss:Type="String">${job.company}</Data></Cell>
+    <Cell><Data ss:Type="String">${job.location}</Data></Cell>
+    <Cell><Data ss:Type="String">${job.posting_date}</Data></Cell>
+    <Cell><Data ss:Type="String">${job.summary}</Data></Cell>
+    <Cell><Data ss:Type="String">${job.link}</Data></Cell>
+   </Row>`).join('\n')}
+  </Table>
+ </Worksheet>
+</Workbook>`
+  
+  const blob = new Blob([workbook], { type: 'application/vnd.ms-excel' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
