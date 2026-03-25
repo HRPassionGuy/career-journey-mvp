@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
-import ResumePDF from '@/components/ResumePDF'
 import React from 'react'
 
 export const runtime = 'nodejs'
@@ -10,9 +9,11 @@ export async function POST(request: NextRequest) {
   try {
     const resumeData = await request.json()
     
-    const pdfBuffer = await renderToBuffer(
-      React.createElement(ResumePDF, { data: resumeData })
-    )
+    // Dynamic import to avoid build-time type checking
+    const ResumePDF = (await import('@/components/ResumePDF')).default
+    
+    const element = React.createElement(ResumePDF as any, { data: resumeData })
+    const pdfBuffer = await renderToBuffer(element as any)
     
     return new NextResponse(pdfBuffer, {
       headers: {
