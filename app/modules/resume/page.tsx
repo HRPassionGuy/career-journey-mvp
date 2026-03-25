@@ -207,7 +207,20 @@ const downloadResumePDF = async () => {
     alert('No resume available to download')
     return
   }
+  const downloadVariantPDF = (variantIndex: number) => {
+  if (!results || !results.variants || !results.variants[variantIndex]) {
+    alert('Variant not available')
+    return
+  }
   
+  const variant = results.variants[variantIndex]
+  const url = URL.createObjectURL(variant.blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `resume_variant_${variant.variant_number}.pdf`
+  a.click()
+  URL.revokeObjectURL(url)
+}
   const url = URL.createObjectURL(results.pdf_blob)
   const a = document.createElement('a')
   a.href = url
