@@ -51,10 +51,9 @@ export default function ResumeModulePage() {
           reader.onerror = reject
           reader.readAsDataURL(resumeFile)
         })
-     } else {
-  // Convert pasted text to base64 - handle special characters
-  base64File = btoa(unescape(encodeURIComponent(resumeText)))
-}
+      } else {
+        base64File = btoa(unescape(encodeURIComponent(resumeText)))
+      }
       
       const analysisResponse = await fetch('/api/analyze-resume', {
         method: 'POST',
@@ -87,154 +86,181 @@ export default function ResumeModulePage() {
   }
 
   const handleRewrite = async () => {
-  setLoading(true)
-  setStep('processing')
+    setLoading(true)
+    setStep('processing')
 
-  try {
-    const formData = new FormData()
-    
-    if (resumeFile) {
-      formData.append('resume', resumeFile)
-    } else {
-      const blob = new Blob([resumeText], { type: 'text/plain' })
-      formData.append('resume', blob, 'pasted_resume.txt')
-    }
-    
-    formData.append('targetTitle', targetTitle)
-    formData.append('location', location)
-    formData.append('salary', salary)
-
-    // STEP 1: Transform the resume with AI
-    const resumeResponse = await fetch('/api/process-resume', {
-      method: 'POST',
-      body: formData
-    })
-
-    if (!resumeResponse.ok) {
-      throw new Error('Resume processing failed')
-    }
-
-    const resumeData = await resumeResponse.json()
-    
-    // STEP 2: Generate the PDF from the transformed data
-    const pdfResponse = await fetch('/api/generate-pdf', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(resumeData.resume_data)
-    })
-
-    if (!pdfResponse.ok) {
-      throw new Error('PDF generation failed')
-    }
-
-    const pdfBlob = await pdfResponse.blob()
-    
-    // STEP 3: Search for jobs
-    const jobsResponse = await fetch('/api/search-jobs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        resumeAnalysis: resumeData.analysis,
-        targetTitle,
-        location,
-        salary
+    try {
+      const formData = new FormData()
+      
+      if (resumeFile) {
+        formData.append('resume', resumeFile)
+      } else {
+        const blob = new Blob([resumeText], { type: 'text/plain' })
+        formData.append('resume', blob, 'pasted_resume.txt')
+      }
+      
+      jobDescFiles.forEach(file => formData.append('jobDescriptions', file))
+      jobDescTexts.forEach((text, idx) => {
+        if (text.trim().length > 0) {
+          const blob = new Blob([text], { type: 'text/plain' })
+          formData.append('jobDescriptions', blob, `pasted_job_${idx + 1}.txt`)
+        }
       })
-    })
+      
+      formData.append('targetTitle', targetTitle)
+      formData.append('location', location)
+      formData.append('salary', salary)
 
-    if (!jobsResponse.ok) {
-      throw new Error('Job search failed')
-    }
+      // STEP 1: Transform the resume with AI
+      const resumeResponse = await fetch('/api/process-resume', {
+        method: 'POST',
+        body: formData
+      })
 
-    const jobsData = await jobsResponse.json()
-    
-    // Store the PDF blob and resume data for download later
-    setResults({
-      resume_data: resumeData.resume_data,
-      pdf_blob: pdfBlob,
-      analysis: resumeData.analysis
-    })
-    setJobs(jobsData)
-    
-    // Update progress in Supabase
-    const supabase = createClientSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
+      if (!resumeResponse.ok) {
+        throw new Error('Resume processing failed')
+      }
 
-    if (user) {
-      const { data: existing } = await supabase
-        .from('module_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('module_name', 'resume')
-        .single()
+      const resumeData = await resumeResponse.json()
+      
+      // STEP 2: Generate master PDF
+      const masterPdfResponse = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resumeData.resume_data)
+      })
 
-      if (existing) {
-        await supabase
-          .from('module_progress')
-          .update({
-            is_completed: true,
-            progress_percent: 100,
-            completed_at: new Date().toISOString(),
+      if (!masterPdfResponse.ok) {
+        throw new Error('PDF generation failed')
+      }
+
+      const masterPdfBlob = await masterPdfResponse.blob()
+      
+      // STEP 3: Generate variant PDFs
+      const variantBlobs = []
+      for (const variant of resumeData.variants || []) {
+        const variantPdfResponse = await fetch('/api/generate-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(variant.resume_data)
+        })
+        
+        if (variantPdfResponse.ok) {
+          const variantPdfBlob = await variantPdfResponse.blob()
+          variantBlobs.push({
+            variant_number: variant.variant_number,
+            job_title: variant.job_title,
+            blob: variantPdfBlob
           })
+        }
+      }
+      
+      // STEP 4: Search for jobs
+      const jobsResponse = await fetch('/api/search-jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resumeAnalysis: resumeData.analysis,
+          targetTitle,
+          location,
+          salary
+        })
+      })
+
+      if (!jobsResponse.ok) {
+        throw new Error('Job search failed')
+      }
+
+      const jobsData = await jobsResponse.json()
+      
+      setResults({
+        resume_data: resumeData.resume_data,
+        pdf_blob: masterPdfBlob,
+        variants: variantBlobs,
+        analysis: resumeData.analysis
+      })
+      setJobs(jobsData)
+      
+      const supabase = createClientSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        const { data: existing } = await supabase
+          .from('module_progress')
+          .select('*')
           .eq('user_id', user.id)
           .eq('module_name', 'resume')
-      } else {
-        await supabase
-          .from('module_progress')
-          .insert({
-            user_id: user.id,
-            module_name: 'resume',
-            is_unlocked: true,
-            is_completed: true,
-            progress_percent: 100,
-            unlocked_at: new Date().toISOString(),
-            completed_at: new Date().toISOString(),
-          })
+          .single()
+
+        if (existing) {
+          await supabase
+            .from('module_progress')
+            .update({
+              is_completed: true,
+              progress_percent: 100,
+              completed_at: new Date().toISOString(),
+            })
+            .eq('user_id', user.id)
+            .eq('module_name', 'resume')
+        } else {
+          await supabase
+            .from('module_progress')
+            .insert({
+              user_id: user.id,
+              module_name: 'resume',
+              is_unlocked: true,
+              is_completed: true,
+              progress_percent: 100,
+              unlocked_at: new Date().toISOString(),
+              completed_at: new Date().toISOString(),
+            })
+        }
       }
+
+      setStep('results')
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error processing resume. Please try again.')
+      setStep('analysis')
+    } finally {
+      setLoading(false)
     }
-
-    setStep('results')
-  } catch (error) {
-    console.error('Error:', error)
-    alert('Error processing resume. Please try again.')
-    setStep('analysis')
-  } finally {
-    setLoading(false)
   }
-}
 
-const downloadResumePDF = async () => {
-  if (!results || !results.pdf_blob) {
-    alert('No resume available to download')
-    return
+  const downloadResumePDF = () => {
+    if (!results || !results.pdf_blob) {
+      alert('No resume available to download')
+      return
+    }
+    
+    const url = URL.createObjectURL(results.pdf_blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'resume.pdf'
+    a.click()
+    URL.revokeObjectURL(url)
   }
+
   const downloadVariantPDF = (variantIndex: number) => {
-  if (!results || !results.variants || !results.variants[variantIndex]) {
-    alert('Variant not available')
-    return
+    if (!results || !results.variants || !results.variants[variantIndex]) {
+      alert('Variant not available')
+      return
+    }
+    
+    const variant = results.variants[variantIndex]
+    const url = URL.createObjectURL(variant.blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `resume_variant_${variant.variant_number}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
   }
-  
-  const variant = results.variants[variantIndex]
-  const url = URL.createObjectURL(variant.blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `resume_variant_${variant.variant_number}.pdf`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-  const url = URL.createObjectURL(results.pdf_blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'resume.pdf'
-  a.click()
-  URL.revokeObjectURL(url)
-}
 
-
- const downloadJobsExcel = () => {
-  if (!jobs || !jobs.jobs) return
-  
-  const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>'
-  const xlsContent = xmlDeclaration + `
+  const downloadJobsExcel = () => {
+    if (!jobs || !jobs.jobs) return
+    
+    const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>'
+    const xlsContent = xmlDeclaration + `
 <html xmlns:x="urn:schemas-microsoft-com:office:excel">
 <head>
   <meta charset="UTF-8">
@@ -271,21 +297,20 @@ ${jobs.jobs.map((job: any) => `    <tr>
   </table>
 </body>
 </html>`
-  
-  const blob = new Blob(['\ufeff' + xlsContent], { type: 'application/vnd.ms-excel;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
-  a.click()
-  URL.revokeObjectURL(url)
-}
+    
+    const blob = new Blob(['\ufeff' + xlsContent], { type: 'application/vnd.ms-excel;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xls`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         
-        {/* Back to Dashboard Button */}
         <button
           onClick={() => router.push('/dashboard')}
           className="mb-6 text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2 transition"
@@ -311,7 +336,6 @@ ${jobs.jobs.map((job: any) => `    <tr>
             </div>
 
             <div className="space-y-6">
-              {/* Resume Input - Toggle between Upload and Paste */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Your Resume <span className="text-red-500">*</span>
@@ -349,7 +373,6 @@ ${jobs.jobs.map((job: any) => `    <tr>
                 )}
               </div>
 
-              {/* Job Descriptions Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Job Descriptions (Optional - up to 5)
@@ -545,11 +568,11 @@ ${jobs.jobs.map((job: any) => `    <tr>
                 Master Resume
               </h3>
               <button
-  onClick={() => downloadResumePDF()}
-  className="btn btn-primary"
->
-  📄 Download Master Resume
-</button>
+                onClick={() => downloadResumePDF()}
+                className="btn btn-primary"
+              >
+                📄 Download Master Resume
+              </button>
             </div>
 
             {results.variants && results.variants.length > 0 && (
@@ -561,9 +584,7 @@ ${jobs.jobs.map((job: any) => `    <tr>
                   {results.variants.map((variant: any, idx: number) => (
                     <div key={idx} className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-gray-700 mb-3">
-                        <strong>Variant {idx + 1} - {variant.job_title} at {variant.company}</strong>
-                        <br />
-                        <span className="text-sm text-gray-600">{variant.tailoring_focus}</span>
+                        <strong>Variant {idx + 1} - {variant.job_title}</strong>
                       </p>
                       <button
                         onClick={() => downloadVariantPDF(idx)}
