@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const resumeData = await request.json()
     
+    // @ts-expect-error - React.createElement with ResumePDF works at runtime despite type mismatch
     const pdfBuffer = await renderToBuffer(
       React.createElement(ResumePDF, { data: resumeData })
     )
