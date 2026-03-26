@@ -279,21 +279,22 @@ try {
     URL.revokeObjectURL(url)
   }
 
- const downloadJobsExcel = () => {
+const downloadJobsExcel = () => {
   if (!jobs || !jobs.jobs) return
   
-  // Create CSV format (more reliable than XML)
+  // Create CSV with HYPERLINK formula for Excel
   let csvContent = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
   
   jobs.jobs.forEach((job: any) => {
+    const matchScore = `${job.match_score}/10`
     const row = [
-      `${job.match_score}/10`,
+      matchScore,
       `"${job.title.replace(/"/g, '""')}"`,
       `"${job.company.replace(/"/g, '""')}"`,
       `"${job.location.replace(/"/g, '""')}"`,
       `"${job.posting_date.replace(/"/g, '""')}"`,
       `"${job.summary.replace(/"/g, '""')}"`,
-      `"${job.link}"`
+      `"=HYPERLINK(""${job.link}"",""APPLY"")"`
     ]
     csvContent += row.join(',') + '\n'
   })
