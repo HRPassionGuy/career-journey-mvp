@@ -73,10 +73,12 @@ TRANSFORMATION GUIDELINES:
    - Format as "• Skill Name"
 
 5. CAREER HIGHLIGHTS:
-   - Create 3-4 standout achievements that demonstrate executive-level impact
+   - Create 5-7 standout achievements that demonstrate executive-level impact
    - These should be the most impressive metrics from their entire career
-   - Examples: "Delivered <strong>$2.1M</strong> cost savings", "Reduced turnover by <strong>35%</strong>", "Launched <strong>5</strong> strategic initiatives"
+   - Pull from different time periods and different types of achievements
+   - Examples: "Delivered <strong>$2.1M</strong> cost savings", "Reduced turnover by <strong>35%</strong>", "Launched <strong>5</strong> strategic initiatives", "Led <strong>50-person</strong> cross-functional team", "Achieved <strong>98%</strong> compliance rate"
    - WRAP ALL NUMBERS IN <strong> TAGS
+   - These fill the left column - aim for 5-7 items minimum
 
 6. PROFESSIONAL EXPERIENCE:
    - Describe the last 10-15 years of roles in reverse chronological order
