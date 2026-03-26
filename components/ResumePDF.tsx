@@ -28,7 +28,7 @@ interface ResumeData {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 28,  // 0.4in instead of 0.5in
+    padding: 28,
     fontSize: 10,
     fontFamily: 'Helvetica',
     color: '#333333',
@@ -40,17 +40,13 @@ const styles = StyleSheet.create({
     marginLeft: -28,
     marginRight: -28,
     marginTop: -28,
-  },
-  nameBox: {
-    backgroundColor: 'white',
-    padding: '4 16',
-    marginBottom: 4,
-    alignSelf: 'flex-start',
+    alignItems: 'center',  // Center all header content
   },
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2F5496',
+    color: 'white',
+    marginBottom: 4,
   },
   contact: {
     fontSize: 9,
@@ -61,10 +57,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   leftColumn: {
-    width: '27%',
+    width: '30%',  // Increased from 27%
   },
   rightColumn: {
-    width: '73%',
+    width: '70%',  // Decreased from 73%
     borderLeft: '1 solid #CCCCCC',
     paddingLeft: 9,
   },
@@ -81,12 +77,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#B24C00',
     marginBottom: 3,
+    textAlign: 'center',  // Center the title
   },
   tagline: {
     fontSize: 9,
     fontStyle: 'italic',
     color: '#666666',
     marginBottom: 5,
+    textAlign: 'center',  // Center the tagline
   },
   summary: {
     fontSize: 9,
@@ -96,8 +94,8 @@ const styles = StyleSheet.create({
   },
   skillItem: {
     fontSize: 8,
-    marginBottom: 1.5,
-    lineHeight: 1.2,
+    marginBottom: 2,
+    lineHeight: 1.25,
   },
   skillBoxes: {
     flexDirection: 'row',
@@ -169,16 +167,13 @@ const stripHTML = (text: string): string => {
 }
 
 const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
-  // Let content flow naturally - PDF will handle pagination
   const allPreviousJobs = data.previous_jobs || []
   
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
         <View style={styles.header}>
-          <View style={styles.nameBox}>
-            <Text style={styles.name}>{data.name}</Text>
-          </View>
+          <Text style={styles.name}>{data.name}</Text>
           <Text style={styles.contact}>
             {data.location} • {data.email} • {data.phone}
           </Text>
@@ -208,7 +203,6 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
             
             <Text style={styles.sectionHeader}>PROFESSIONAL EXPERIENCE</Text>
             
-            {/* Current Job */}
             <View style={styles.job}>
               <View style={styles.jobHeader}>
                 <Text>{data.current_job.company} • {data.current_job.location}</Text>
@@ -223,7 +217,6 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
               ))}
             </View>
             
-            {/* All Previous Jobs - let them flow naturally */}
             {allPreviousJobs.map((job, idx) => (
               <View key={idx} style={styles.job} wrap={false}>
                 <View style={styles.jobHeader}>
