@@ -279,68 +279,41 @@ try {
     URL.revokeObjectURL(url)
   }
 
-const downloadJobsExcel = async () => {
+const downloadJobsExcel = () => {
   if (!jobs || !jobs.jobs) return
   
-  try {
-    const XLSX = await import('xlsx')
-    
-    // Filter out jobs with match score <= 1
-    const goodMatches = jobs.jobs.filter((job: any) => job.match_score > 1)
-    
-    if (goodMatches.length === 0) {
-      alert('No quality job matches found (all scores were too low)')
-      return
-    }
-    
-    // Prepare data
-    const data = goodMatches.map((job: any) => ({
-      'Match Score': `${job.match_score}/10`,
-      'Title': job.title,
-      'Company': job.company,
-      'Location': job.location,
-      'Posted Date': job.posting_date,
-      'Summary': job.summary,
-      'Apply': job.link
-    }))
-    
-    const wb = XLSX.utils.book_new()
-    const ws = XLSX.utils.json_to_sheet(data)
-    
-    // Set wider column widths
-    ws['!cols'] = [
-      { wch: 12 },  // Match Score
-      { wch: 40 },  // Title (wider)
-      { wch: 30 },  // Company (wider)
-      { wch: 25 },  // Location (wider)
-      { wch: 15 },  // Posted Date
-      { wch: 80 },  // Summary (much wider)
-      { wch: 60 }   // Apply link (wider)
-    ]
-    
-    // Style the Apply column as blue hyperlinks
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
-    for (let row = 1; row <= range.e.r; row++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: row, c: 6 })
-      if (ws[cellAddress]) {
-        const url = ws[cellAddress].v
-        ws[cellAddress] = {
-          v: 'APPLY',
-          l: { Target: url },
-          s: {
-            font: { color: { rgb: '0000FF' }, underline: true }
-          }
-        }
-      }
-    }
-    
-    XLSX.utils.book_append_sheet(wb, ws, 'Job Opportunities')
-    XLSX.writeFile(wb, `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xlsx`)
-    
-  } catch (error) {
-    console.error('Excel generation error:', error)
-    alert('Error generating Excel file')
+  // Filter out poor matches
+  const goodMatches = jobs.jobs.filter((job: any) => job.match_score > 1)
+  
+  if (goodMatches.length === 0) {
+    alert('No quality job matches found')
+    return
   }
+  
+  // Build CSV with proper escaping
+  let csv = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
+  
+  goodMatches.forEach((job: any) => {
+    const escape = (str: string) => `"${String(str).replace(/"/g, '""')}"`
+    
+    csv += [
+      `${job.match_score}/10`,
+      escape(job.title),
+      escape(job.company),
+      escape(job.location),
+      escape(job.posting_date),
+      escape(job.summary),
+      escape(job.link)
+    ].join(',') + '\n'
+  })
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
