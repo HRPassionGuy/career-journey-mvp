@@ -290,43 +290,41 @@ const downloadJobsExcel = () => {
     return
   }
   
-  // Create CSV with explicit column order
-  const headers = ['Match Score', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
-  let csvContent = headers.join(',') + '\n'
+  // Build CSV with proper formatting
+  let csvContent = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
   
   goodMatches.forEach((job: any) => {
-    // Escape function for CSV
-    const csvEscape = (value: any) => {
-      const str = String(value || '')
-      // Escape quotes and wrap in quotes if contains comma, quote, or newline
-      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-        return '"' + str.replace(/"/g, '""') + '"'
-      }
-      return str
+    // Escape function
+    const escape = (val: any) => {
+      const str = String(val || '').replace(/"/g, '""')
+      return `"${str}"`
     }
     
-    const row = [
-      `${job.match_score}/10`,
-      csvEscape(job.title),
-      csvEscape(job.company),
-      csvEscape(job.location),
-      csvEscape(job.posting_date),
-      csvEscape(job.summary),
-      job.link  // Keep as raw URL
-    ]
+    // Format match score as text (prevent Excel date conversion)
+    const matchScore = `"'${job.match_score}/10"`
     
-    csvContent += row.join(',') + '\n'
+    // Build row
+    const row = [
+      matchScore,
+      escape(job.title),
+      escape(job.company),
+      escape(job.location),
+      escape(job.posting_date),
+      escape(job.summary),
+      `"=HYPERLINK(""${job.link}"", ""APPLY"")"`
+    ].join(',')
+    
+    csvContent += row + '\n'
   })
   
-  // Create blob and download
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
   URL.revokeObjectURL(url)
 }
   return (
