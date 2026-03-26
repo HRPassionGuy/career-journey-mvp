@@ -28,18 +28,18 @@ interface ResumeData {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 36,
-    fontSize: 8.5,
+    padding: 28,  // 0.4in instead of 0.5in
+    fontSize: 10,
     fontFamily: 'Helvetica',
     color: '#333333',
   },
   header: {
     backgroundColor: '#2F5496',
-    padding: 16,
-    marginBottom: 10,
-    marginLeft: -36,
-    marginRight: -36,
-    marginTop: -36,
+    padding: 14,
+    marginBottom: 8,
+    marginLeft: -28,
+    marginRight: -28,
+    marginTop: -28,
   },
   nameBox: {
     backgroundColor: 'white',
@@ -48,12 +48,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   name: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#2F5496',
   },
   contact: {
-    fontSize: 7.5,
+    fontSize: 9,
     color: 'white',
   },
   columns: {
@@ -71,94 +71,94 @@ const styles = StyleSheet.create({
   sectionHeader: {
     backgroundColor: '#2F5496',
     color: 'white',
-    fontSize: 7,
+    fontSize: 8.5,
     fontWeight: 'bold',
-    padding: '2.5 5',
+    padding: '3 7',
     marginBottom: 4,
   },
   title: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#B24C00',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   tagline: {
-    fontSize: 7.5,
+    fontSize: 9,
     fontStyle: 'italic',
     color: '#666666',
     marginBottom: 5,
   },
   summary: {
-    fontSize: 8,
+    fontSize: 9,
     textAlign: 'justify',
-    lineHeight: 1.25,
+    lineHeight: 1.3,
     marginBottom: 5,
   },
   skillItem: {
-    fontSize: 7,
+    fontSize: 8,
     marginBottom: 1.5,
-    lineHeight: 1.15,
+    lineHeight: 1.2,
   },
   skillBoxes: {
     flexDirection: 'row',
-    gap: 3,
+    gap: 4,
     marginVertical: 5,
   },
   skillBox: {
     flex: 1,
     backgroundColor: '#FFF4E6',
-    borderLeft: '2 solid #B24C00',
-    padding: '3 2',
-    fontSize: 6,
+    borderLeft: '3 solid #B24C00',
+    padding: '4 3',
+    fontSize: 7,
     fontWeight: 'bold',
     color: '#B24C00',
     textAlign: 'center',
   },
   job: {
-    marginBottom: 6,
+    marginBottom: 5,
   },
   jobHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    fontSize: 8,
+    fontSize: 9.5,
     fontWeight: 'bold',
     marginBottom: 1.5,
   },
   jobTitle: {
-    fontSize: 8,
+    fontSize: 9,
     fontStyle: 'italic',
     color: '#555555',
-    marginBottom: 1.5,
+    marginBottom: 2,
   },
   jobDesc: {
-    fontSize: 7.5,
+    fontSize: 8.5,
     textAlign: 'justify',
     marginBottom: 2,
     lineHeight: 1.2,
   },
   achievement: {
-    fontSize: 7.5,
+    fontSize: 8.5,
     marginBottom: 1.5,
-    paddingLeft: 9,
+    paddingLeft: 10,
     textAlign: 'justify',
-    lineHeight: 1.2,
+    lineHeight: 1.25,
   },
   simpleItem: {
-    fontSize: 7.5,
+    fontSize: 8,
     marginBottom: 1.5,
-    lineHeight: 1.25,
+    lineHeight: 1.3,
   },
   pageHeader: {
     backgroundColor: '#2F5496',
     color: 'white',
     padding: 7,
-    marginBottom: 10,
-    marginLeft: -36,
-    marginRight: -36,
-    marginTop: -36,
+    marginBottom: 8,
+    marginLeft: -28,
+    marginRight: -28,
+    marginTop: -28,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    fontSize: 8.5,
+    fontSize: 10,
     fontWeight: 'bold',
   },
 })
@@ -169,9 +169,8 @@ const stripHTML = (text: string): string => {
 }
 
 const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
-  // Put current job + first TWO previous jobs on page 1
-  const page1PreviousJobs = data.previous_jobs && data.previous_jobs.length > 0 ? data.previous_jobs.slice(0, 2) : []
-  const page2Jobs = data.previous_jobs && data.previous_jobs.length > 2 ? data.previous_jobs.slice(2) : []
+  // Let content flow naturally - PDF will handle pagination
+  const allPreviousJobs = data.previous_jobs || []
   
   return (
     <Document>
@@ -224,52 +223,34 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
               ))}
             </View>
             
-            {/* First TWO Previous Jobs on Page 1 */}
-            {page1PreviousJobs.map((job, idx) => (
-              <View key={idx} style={styles.job}>
+            {/* All Previous Jobs - let them flow naturally */}
+            {allPreviousJobs.map((job, idx) => (
+              <View key={idx} style={styles.job} wrap={false}>
                 <View style={styles.jobHeader}>
                   <Text>{job.company} • {job.location}</Text>
                   <Text>{job.dates}</Text>
                 </View>
                 <Text style={styles.jobTitle}>{job.title}</Text>
-                {job.achievements.slice(0, 3).map((achievement, achIdx) => (
+                {job.description && (
+                  <Text style={styles.jobDesc}>{stripHTML(job.description)}</Text>
+                )}
+                {job.achievements.map((achievement, achIdx) => (
                   <Text key={achIdx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
                 ))}
               </View>
             ))}
-          </View>
-        </View>
-      </Page>
-      
-      <Page size="LETTER" style={styles.page}>
-        <View style={styles.pageHeader}>
-          <Text>{data.name}</Text>
-          <Text>PAGE 2</Text>
-        </View>
-        
-        {/* Remaining Previous Jobs */}
-        {page2Jobs.map((job, jobIdx) => (
-          <View key={jobIdx} style={styles.job}>
-            <View style={styles.jobHeader}>
-              <Text>{job.company} • {job.location}</Text>
-              <Text>{job.dates}</Text>
-            </View>
-            <Text style={styles.jobTitle}>{job.title}</Text>
-            {job.achievements.map((achievement, idx) => (
-              <Text key={idx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
+            
+            <Text style={styles.sectionHeader}>EARLY CAREER</Text>
+            {data.early_career.map((item, idx) => (
+              <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
+            ))}
+            
+            <Text style={[styles.sectionHeader, { marginTop: 5 }]}>EDUCATION & PROFESSIONAL DEVELOPMENT</Text>
+            {data.education.map((item, idx) => (
+              <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
             ))}
           </View>
-        ))}
-        
-        <Text style={styles.sectionHeader}>EARLY CAREER</Text>
-        {data.early_career.map((item, idx) => (
-          <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
-        ))}
-        
-        <Text style={[styles.sectionHeader, { marginTop: 5 }]}>EDUCATION & PROFESSIONAL DEVELOPMENT</Text>
-        {data.education.map((item, idx) => (
-          <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
-        ))}
+        </View>
       </Page>
     </Document>
   )
