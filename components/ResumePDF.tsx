@@ -19,7 +19,7 @@ interface ResumeData {
   tagline?: string
   summary: string
   expertise: string[]
-  career_highlights?: string[]
+  career_highlights?: string[]  // ADDED THIS
   skill_categories?: string[]
   current_job: Job
   previous_jobs: Job[]
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     marginLeft: -28,
     marginRight: -28,
     marginTop: -28,
-    alignItems: 'center',  // Center all header content
+    alignItems: 'center',
   },
   name: {
     fontSize: 18,
@@ -58,10 +58,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   leftColumn: {
-    width: '30%',  // Increased from 27%
+    width: '30%',
   },
   rightColumn: {
-    width: '70%',  // Decreased from 73%
+    width: '70%',
     borderLeft: '1 solid #CCCCCC',
     paddingLeft: 9,
   },
@@ -78,14 +78,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#B24C00',
     marginBottom: 3,
-    textAlign: 'center',  // Center the title
+    textAlign: 'center',
   },
   tagline: {
     fontSize: 9,
     fontStyle: 'italic',
     color: '#666666',
     marginBottom: 5,
-    textAlign: 'center',  // Center the tagline
+    textAlign: 'center',
   },
   summary: {
     fontSize: 9,
@@ -181,13 +181,25 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
         </View>
         
         <View style={styles.columns}>
+          {/* LEFT COLUMN - UPDATED WITH CAREER HIGHLIGHTS */}
           <View style={styles.leftColumn}>
             <Text style={styles.sectionHeader}>AREAS OF EXPERTISE</Text>
             {data.expertise.map((skill, idx) => (
               <Text key={idx} style={styles.skillItem}>{skill}</Text>
             ))}
+            
+            {/* CAREER HIGHLIGHTS SECTION - FILLS WHITE SPACE */}
+            {data.career_highlights && data.career_highlights.length > 0 && (
+              <>
+                <Text style={[styles.sectionHeader, { marginTop: 8 }]}>CAREER HIGHLIGHTS</Text>
+                {data.career_highlights.map((highlight, idx) => (
+                  <Text key={idx} style={styles.skillItem}>• {stripHTML(highlight)}</Text>
+                ))}
+              </>
+            )}
           </View>
           
+          {/* RIGHT COLUMN - NO CHANGES */}
           <View style={styles.rightColumn}>
             <Text style={styles.title}>{data.current_title}</Text>
             {data.tagline && <Text style={styles.tagline}>{data.tagline}</Text>}
