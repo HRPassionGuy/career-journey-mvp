@@ -155,11 +155,15 @@ Return ONLY this JSON structure (no markdown, no extra text):
     "• Actual skill 9 extracted from resume",
     "• Actual skill 10 extracted from resume"
   ],
-  "career_highlights": [
-    "Delivered <strong>$XXM</strong> cost savings through specific initiative",
-    "Reduced metric by <strong>XX%</strong> across scope",
-    "Launched <strong>X</strong> strategic programs impacting outcome"
-  ],
+ "career_highlights": [
+  "Delivered <strong>$XXM</strong> cost savings through specific initiative",
+  "Reduced metric by <strong>XX%</strong> across scope",
+  "Launched <strong>X</strong> strategic programs impacting outcome",
+  "Led <strong>XX-person</strong> team achieving result",
+  "Achieved <strong>XX%</strong> compliance/satisfaction/retention rate",
+  "Managed <strong>$XXM</strong> budget delivering outcome",
+  "Spearheaded initiative impacting <strong>X,XXX+</strong> employees"
+],
   "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
     "company": "Actual company from resume",
