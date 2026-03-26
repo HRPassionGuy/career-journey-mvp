@@ -72,7 +72,13 @@ TRANSFORMATION GUIDELINES:
    - Tailor this list for each role
    - Format as "• Skill Name"
 
-5. PROFESSIONAL EXPERIENCE:
+5. CAREER HIGHLIGHTS:
+   - Create 3-4 standout achievements that demonstrate executive-level impact
+   - These should be the most impressive metrics from their entire career
+   - Examples: "Delivered <strong>$2.1M</strong> cost savings", "Reduced turnover by <strong>35%</strong>", "Launched <strong>5</strong> strategic initiatives"
+   - WRAP ALL NUMBERS IN <strong> TAGS
+
+6. PROFESSIONAL EXPERIENCE:
    - Describe the last 10-15 years of roles in reverse chronological order
    - For each, include company, location, dates, and job title
    - Use concise bullet points (no more than two lines each) focused on outcomes
@@ -82,10 +88,10 @@ TRANSFORMATION GUIDELINES:
    - Showcase entrepreneurial mindset, leadership, and self-motivation, particularly if targeting remote roles
    - WRAP ALL NUMBERS IN <strong> TAGS
 
-6. EDUCATION AND CERTIFICATIONS:
+7. EDUCATION AND CERTIFICATIONS:
    - List degrees and highlight professional development and industry-specific certifications (e.g., AI, PMP, CISSP)
 
-7. LENGTH AND FORMAT:
+8. LENGTH AND FORMAT:
    - Keep the résumé to one or two pages
    - Structure the data for clean PDF conversion
 
@@ -110,6 +116,20 @@ CRITICAL RULES:
 - Transform weak statements into IMPACT with metrics
 - Every bullet proves VALUE and OWNERSHIP, not tasks
 
+TRANSFORMATION INTENSITY LEVEL: AGGRESSIVE
+- Even if a bullet already mentions metrics, EXPAND IT with more context
+- Every bullet should be 1.5-2 lines long with multiple data points
+- Add context: team size, timeline, percentage improvement, dollar impact
+- Transform "Directed $14M budget" into "Architected and executed $14M operational budget across 5 HR divisions serving 10,000+ employees, delivering 15% cost optimization while maintaining 98% service level agreements"
+- NEVER keep original phrasing - completely rewrite every achievement
+
+MANDATORY METRICS TO ADD (extract from resume or infer from context):
+- Budget size AND cost savings/optimization percentage
+- Headcount managed AND team size led
+- Timeline/duration AND efficiency improvement
+- Geographic scope (departments, locations, regions)
+- Compliance rate, satisfaction scores, retention rates
+
 Ensure every bullet point proves how the candidate creates value and owns outcomes, rather than simply listing tasks.
 
 Return ONLY this JSON structure (no markdown, no extra text):
@@ -132,6 +152,11 @@ Return ONLY this JSON structure (no markdown, no extra text):
     "• Actual skill 8 extracted from resume",
     "• Actual skill 9 extracted from resume",
     "• Actual skill 10 extracted from resume"
+  ],
+  "career_highlights": [
+    "Delivered <strong>$XXM</strong> cost savings through specific initiative",
+    "Reduced metric by <strong>XX%</strong> across scope",
+    "Launched <strong>X</strong> strategic programs impacting outcome"
   ],
   "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
