@@ -283,52 +283,58 @@ const downloadJobsExcel = async () => {
   if (!jobs || !jobs.jobs) return
   
   try {
-    // Dynamic import of xlsx
     const XLSX = await import('xlsx')
     
-    // Prepare data for Excel
-    const data = jobs.jobs.map((job: any) => ({
+    // Filter out jobs with match score <= 1
+    const goodMatches = jobs.jobs.filter((job: any) => job.match_score > 1)
+    
+    if (goodMatches.length === 0) {
+      alert('No quality job matches found (all scores were too low)')
+      return
+    }
+    
+    // Prepare data
+    const data = goodMatches.map((job: any) => ({
       'Match Score': `${job.match_score}/10`,
       'Title': job.title,
       'Company': job.company,
       'Location': job.location,
       'Posted Date': job.posting_date,
       'Summary': job.summary,
-      'Application Link': job.link
+      'Apply': job.link
     }))
     
-    // Create workbook and worksheet
     const wb = XLSX.utils.book_new()
     const ws = XLSX.utils.json_to_sheet(data)
     
-    // Set column widths
+    // Set wider column widths
     ws['!cols'] = [
       { wch: 12 },  // Match Score
-      { wch: 30 },  // Title
-      { wch: 25 },  // Company
-      { wch: 20 },  // Location
+      { wch: 40 },  // Title (wider)
+      { wch: 30 },  // Company (wider)
+      { wch: 25 },  // Location (wider)
       { wch: 15 },  // Posted Date
-      { wch: 50 },  // Summary
-      { wch: 10 }   // Application Link (will show as "APPLY")
+      { wch: 80 },  // Summary (much wider)
+      { wch: 60 }   // Apply link (wider)
     ]
     
-    // Make Application Link column show "APPLY" instead of URL
+    // Style the Apply column as blue hyperlinks
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
     for (let row = 1; row <= range.e.r; row++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: row, c: 6 }) // Column G (Application Link)
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: 6 })
       if (ws[cellAddress]) {
         const url = ws[cellAddress].v
-        ws[cellAddress].l = { Target: url, Tooltip: 'Click to apply' }
-        ws[cellAddress].v = 'APPLY'
-        ws[cellAddress].s = {
-          font: { color: { rgb: '0000FF' }, underline: true }
+        ws[cellAddress] = {
+          v: 'APPLY',
+          l: { Target: url },
+          s: {
+            font: { color: { rgb: '0000FF' }, underline: true }
+          }
         }
       }
     }
     
     XLSX.utils.book_append_sheet(wb, ws, 'Job Opportunities')
-    
-    // Generate Excel file
     XLSX.writeFile(wb, `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xlsx`)
     
   } catch (error) {
