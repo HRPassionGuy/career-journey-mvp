@@ -28,37 +28,37 @@ interface ResumeData {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
-    fontSize: 9,
+    padding: 36,
+    fontSize: 8.5,
     fontFamily: 'Helvetica',
     color: '#333333',
   },
   header: {
     backgroundColor: '#2F5496',
-    padding: 18,
-    marginBottom: 12,
-    marginLeft: -40,
-    marginRight: -40,
-    marginTop: -40,
+    padding: 16,
+    marginBottom: 10,
+    marginLeft: -36,
+    marginRight: -36,
+    marginTop: -36,
   },
   nameBox: {
     backgroundColor: 'white',
-    padding: '5 18',
-    marginBottom: 5,
+    padding: '4 16',
+    marginBottom: 4,
     alignSelf: 'flex-start',
   },
   name: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#2F5496',
   },
   contact: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: 'white',
   },
   columns: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   leftColumn: {
     width: '27%',
@@ -66,99 +66,99 @@ const styles = StyleSheet.create({
   rightColumn: {
     width: '73%',
     borderLeft: '1 solid #CCCCCC',
-    paddingLeft: 10,
+    paddingLeft: 9,
   },
   sectionHeader: {
     backgroundColor: '#2F5496',
     color: 'white',
-    fontSize: 7.5,
+    fontSize: 7,
     fontWeight: 'bold',
-    padding: '3 6',
-    marginBottom: 5,
+    padding: '2.5 5',
+    marginBottom: 4,
   },
   title: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#B24C00',
-    marginBottom: 3,
+    marginBottom: 2,
   },
   tagline: {
-    fontSize: 8,
+    fontSize: 7.5,
     fontStyle: 'italic',
     color: '#666666',
-    marginBottom: 6,
+    marginBottom: 5,
   },
   summary: {
-    fontSize: 8.5,
+    fontSize: 8,
     textAlign: 'justify',
-    lineHeight: 1.3,
-    marginBottom: 6,
+    lineHeight: 1.25,
+    marginBottom: 5,
   },
   skillItem: {
-    fontSize: 7.5,
-    marginBottom: 2,
-    lineHeight: 1.2,
+    fontSize: 7,
+    marginBottom: 1.5,
+    lineHeight: 1.15,
   },
   skillBoxes: {
     flexDirection: 'row',
-    gap: 4,
-    marginVertical: 6,
+    gap: 3,
+    marginVertical: 5,
   },
   skillBox: {
     flex: 1,
     backgroundColor: '#FFF4E6',
     borderLeft: '2 solid #B24C00',
-    padding: '4 3',
-    fontSize: 6.5,
+    padding: '3 2',
+    fontSize: 6,
     fontWeight: 'bold',
     color: '#B24C00',
     textAlign: 'center',
   },
   job: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   jobHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    fontSize: 8.5,
+    fontSize: 8,
     fontWeight: 'bold',
-    marginBottom: 2,
+    marginBottom: 1.5,
   },
   jobTitle: {
-    fontSize: 8.5,
+    fontSize: 8,
     fontStyle: 'italic',
     color: '#555555',
-    marginBottom: 2,
+    marginBottom: 1.5,
   },
   jobDesc: {
-    fontSize: 8,
+    fontSize: 7.5,
     textAlign: 'justify',
-    marginBottom: 3,
+    marginBottom: 2,
     lineHeight: 1.2,
   },
   achievement: {
-    fontSize: 8,
-    marginBottom: 2,
-    paddingLeft: 10,
+    fontSize: 7.5,
+    marginBottom: 1.5,
+    paddingLeft: 9,
     textAlign: 'justify',
-    lineHeight: 1.25,
+    lineHeight: 1.2,
   },
   simpleItem: {
-    fontSize: 8,
-    marginBottom: 2,
-    lineHeight: 1.3,
+    fontSize: 7.5,
+    marginBottom: 1.5,
+    lineHeight: 1.25,
   },
   pageHeader: {
     backgroundColor: '#2F5496',
     color: 'white',
-    padding: 8,
-    marginBottom: 12,
-    marginLeft: -40,
-    marginRight: -40,
-    marginTop: -40,
+    padding: 7,
+    marginBottom: 10,
+    marginLeft: -36,
+    marginRight: -36,
+    marginTop: -36,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 'bold',
   },
 })
@@ -169,9 +169,9 @@ const stripHTML = (text: string): string => {
 }
 
 const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
-  // Put current job + first previous job on page 1, rest on page 2
-  const firstPreviousJob = data.previous_jobs && data.previous_jobs.length > 0 ? data.previous_jobs[0] : null
-  const remainingJobs = data.previous_jobs && data.previous_jobs.length > 1 ? data.previous_jobs.slice(1) : []
+  // Put current job + first TWO previous jobs on page 1
+  const page1PreviousJobs = data.previous_jobs && data.previous_jobs.length > 0 ? data.previous_jobs.slice(0, 2) : []
+  const page2Jobs = data.previous_jobs && data.previous_jobs.length > 2 ? data.previous_jobs.slice(2) : []
   
   return (
     <Document>
@@ -224,22 +224,19 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
               ))}
             </View>
             
-            {/* First Previous Job (if exists) to fill page 1 */}
-            {firstPreviousJob && (
-              <View style={styles.job}>
+            {/* First TWO Previous Jobs on Page 1 */}
+            {page1PreviousJobs.map((job, idx) => (
+              <View key={idx} style={styles.job}>
                 <View style={styles.jobHeader}>
-                  <Text>{firstPreviousJob.company} • {firstPreviousJob.location}</Text>
-                  <Text>{firstPreviousJob.dates}</Text>
+                  <Text>{job.company} • {job.location}</Text>
+                  <Text>{job.dates}</Text>
                 </View>
-                <Text style={styles.jobTitle}>{firstPreviousJob.title}</Text>
-                {firstPreviousJob.description && (
-                  <Text style={styles.jobDesc}>{stripHTML(firstPreviousJob.description)}</Text>
-                )}
-                {firstPreviousJob.achievements.slice(0, 3).map((achievement, idx) => (
-                  <Text key={idx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
+                <Text style={styles.jobTitle}>{job.title}</Text>
+                {job.achievements.slice(0, 3).map((achievement, achIdx) => (
+                  <Text key={achIdx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
                 ))}
               </View>
-            )}
+            ))}
           </View>
         </View>
       </Page>
@@ -250,30 +247,14 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
           <Text>PAGE 2</Text>
         </View>
         
-        {/* Continue first previous job if it has more than 3 bullets */}
-        {firstPreviousJob && firstPreviousJob.achievements.length > 3 && (
-          <View style={styles.job}>
-            <View style={styles.jobHeader}>
-              <Text>{firstPreviousJob.company} • {firstPreviousJob.location} (continued)</Text>
-              <Text>{firstPreviousJob.dates}</Text>
-            </View>
-            {firstPreviousJob.achievements.slice(3).map((achievement, idx) => (
-              <Text key={idx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
-            ))}
-          </View>
-        )}
-        
         {/* Remaining Previous Jobs */}
-        {remainingJobs.map((job, jobIdx) => (
+        {page2Jobs.map((job, jobIdx) => (
           <View key={jobIdx} style={styles.job}>
             <View style={styles.jobHeader}>
               <Text>{job.company} • {job.location}</Text>
               <Text>{job.dates}</Text>
             </View>
             <Text style={styles.jobTitle}>{job.title}</Text>
-            {job.description && (
-              <Text style={styles.jobDesc}>{stripHTML(job.description)}</Text>
-            )}
             {job.achievements.map((achievement, idx) => (
               <Text key={idx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
             ))}
@@ -285,7 +266,7 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
           <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
         ))}
         
-        <Text style={[styles.sectionHeader, { marginTop: 6 }]}>EDUCATION & PROFESSIONAL DEVELOPMENT</Text>
+        <Text style={[styles.sectionHeader, { marginTop: 5 }]}>EDUCATION & PROFESSIONAL DEVELOPMENT</Text>
         {data.education.map((item, idx) => (
           <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
         ))}
