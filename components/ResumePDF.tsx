@@ -19,6 +19,7 @@ interface ResumeData {
   tagline?: string
   summary: string
   expertise: string[]
+  career_highlights?: string[]
   skill_categories?: string[]
   current_job: Job
   previous_jobs: Job[]
