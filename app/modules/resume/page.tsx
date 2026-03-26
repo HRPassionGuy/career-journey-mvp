@@ -290,29 +290,43 @@ const downloadJobsExcel = () => {
     return
   }
   
-  // Build CSV with proper escaping
-  let csv = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
+  // Create CSV with explicit column order
+  const headers = ['Match Score', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
+  let csvContent = headers.join(',') + '\n'
   
   goodMatches.forEach((job: any) => {
-    const escape = (str: string) => `"${String(str).replace(/"/g, '""')}"`
+    // Escape function for CSV
+    const csvEscape = (value: any) => {
+      const str = String(value || '')
+      // Escape quotes and wrap in quotes if contains comma, quote, or newline
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return '"' + str.replace(/"/g, '""') + '"'
+      }
+      return str
+    }
     
-    csv += [
+    const row = [
       `${job.match_score}/10`,
-      escape(job.title),
-      escape(job.company),
-      escape(job.location),
-      escape(job.posting_date),
-      escape(job.summary),
-      escape(job.link)
-    ].join(',') + '\n'
+      csvEscape(job.title),
+      csvEscape(job.company),
+      csvEscape(job.location),
+      csvEscape(job.posting_date),
+      csvEscape(job.summary),
+      job.link  // Keep as raw URL
+    ]
+    
+    csvContent += row.join(',') + '\n'
   })
   
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  // Create blob and download
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
+  document.body.appendChild(a)
   a.click()
+  document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
   return (
