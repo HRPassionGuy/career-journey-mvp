@@ -19,7 +19,7 @@ interface ResumeData {
   tagline?: string
   summary: string
   expertise: string[]
-  career_highlights?: string[]  // ADDED THIS
+  career_highlights?: string[]
   skill_categories?: string[]
   current_job: Job
   previous_jobs: Job[]
@@ -58,10 +58,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   leftColumn: {
-    width: '30%',
+    width: '32%',  // INCREASED from 30%
   },
   rightColumn: {
-    width: '70%',
+    width: '68%',  // DECREASED from 70%
     borderLeft: '1 solid #CCCCCC',
     paddingLeft: 9,
   },
@@ -95,8 +95,8 @@ const styles = StyleSheet.create({
   },
   skillItem: {
     fontSize: 8,
-    marginBottom: 2,
-    lineHeight: 1.25,
+    marginBottom: 3,  // INCREASED from 2 for more spacing
+    lineHeight: 1.3,  // INCREASED from 1.25 for better readability
   },
   skillBoxes: {
     flexDirection: 'row',
@@ -181,14 +181,12 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
         </View>
         
         <View style={styles.columns}>
-          {/* LEFT COLUMN - UPDATED WITH CAREER HIGHLIGHTS */}
           <View style={styles.leftColumn}>
             <Text style={styles.sectionHeader}>AREAS OF EXPERTISE</Text>
             {data.expertise.map((skill, idx) => (
               <Text key={idx} style={styles.skillItem}>{skill}</Text>
             ))}
             
-            {/* CAREER HIGHLIGHTS SECTION - FILLS WHITE SPACE */}
             {data.career_highlights && data.career_highlights.length > 0 && (
               <>
                 <Text style={[styles.sectionHeader, { marginTop: 8 }]}>CAREER HIGHLIGHTS</Text>
@@ -199,7 +197,6 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
             )}
           </View>
           
-          {/* RIGHT COLUMN - NO CHANGES */}
           <View style={styles.rightColumn}>
             <Text style={styles.title}>{data.current_title}</Text>
             {data.tagline && <Text style={styles.tagline}>{data.tagline}</Text>}
