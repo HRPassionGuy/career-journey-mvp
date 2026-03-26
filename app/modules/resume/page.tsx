@@ -279,35 +279,63 @@ try {
     URL.revokeObjectURL(url)
   }
 
-const downloadJobsExcel = () => {
+const downloadJobsExcel = async () => {
   if (!jobs || !jobs.jobs) return
   
-  // Create CSV with HYPERLINK formula for Excel
-  let csvContent = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
-  
-  jobs.jobs.forEach((job: any) => {
-    const matchScore = `${job.match_score}/10`
-    const row = [
-      matchScore,
-      `"${job.title.replace(/"/g, '""')}"`,
-      `"${job.company.replace(/"/g, '""')}"`,
-      `"${job.location.replace(/"/g, '""')}"`,
-      `"${job.posting_date.replace(/"/g, '""')}"`,
-      `"${job.summary.replace(/"/g, '""')}"`,
-      `"=HYPERLINK(""${job.link}"",""APPLY"")"`
+  try {
+    // Dynamic import of xlsx
+    const XLSX = await import('xlsx')
+    
+    // Prepare data for Excel
+    const data = jobs.jobs.map((job: any) => ({
+      'Match Score': `${job.match_score}/10`,
+      'Title': job.title,
+      'Company': job.company,
+      'Location': job.location,
+      'Posted Date': job.posting_date,
+      'Summary': job.summary,
+      'Application Link': job.link
+    }))
+    
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(data)
+    
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 12 },  // Match Score
+      { wch: 30 },  // Title
+      { wch: 25 },  // Company
+      { wch: 20 },  // Location
+      { wch: 15 },  // Posted Date
+      { wch: 50 },  // Summary
+      { wch: 10 }   // Application Link (will show as "APPLY")
     ]
-    csvContent += row.join(',') + '\n'
-  })
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+    
+    // Make Application Link column show "APPLY" instead of URL
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
+    for (let row = 1; row <= range.e.r; row++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: 6 }) // Column G (Application Link)
+      if (ws[cellAddress]) {
+        const url = ws[cellAddress].v
+        ws[cellAddress].l = { Target: url, Tooltip: 'Click to apply' }
+        ws[cellAddress].v = 'APPLY'
+        ws[cellAddress].s = {
+          font: { color: { rgb: '0000FF' }, underline: true }
+        }
+      }
+    }
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Job Opportunities')
+    
+    // Generate Excel file
+    XLSX.writeFile(wb, `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xlsx`)
+    
+  } catch (error) {
+    console.error('Excel generation error:', error)
+    alert('Error generating Excel file')
+  }
 }
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
