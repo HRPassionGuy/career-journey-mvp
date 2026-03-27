@@ -1,51 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createClientSupabaseClient } from '@/lib/supabase'
 import { createCheckoutSession } from '@/lib/stripe'
 
 export async function POST(request: NextRequest) {
   try {
-    const { moduleName } = await request.json()
+    const { productId } = await request.json()
 
-    // Get authenticated user
-    const supabase = await createServerSupabaseClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
+    // Only allow bundle_founder purchase
+    if (productId !== 'bundle_founder') {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Invalid product' },
+        { status: 400 }
+      )
+    }
+
+    const supabase = createClientSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
         { status: 401 }
       )
     }
 
-    // Get user email
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('id', user.id)
+    // Check if they already purchased
+    const { data: existingPurchase } = await supabase
+      .from('purchases')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('product_id', 'bundle_founder')
       .single()
 
-    if (!profile) {
+    if (existingPurchase) {
       return NextResponse.json(
-        { error: 'Profile not found' },
-        { status: 404 }
+        { error: 'Already purchased' },
+        { status: 400 }
       )
     }
 
-    // Create Stripe checkout session
     const session = await createCheckoutSession({
       userId: user.id,
-      moduleName,
-      userEmail: profile.email,
-      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true&module=${moduleName}`,
-      cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
+      moduleName: 'bundle_founder',
+      userEmail: user.email!,
+      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/thank-you`,
+      cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
     })
 
     return NextResponse.json({ url: session.url })
-    
   } catch (error: any) {
-    console.error('Checkout session error:', error)
+    console.error('Checkout error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to create checkout session' },
+      { error: error.message },
       { status: 500 }
     )
   }
