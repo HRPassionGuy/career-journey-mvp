@@ -119,7 +119,7 @@ export default function LandingPage() {
                   onClick={() => router.push('/signup')}
                   className="btn btn-primary text-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
                 >
-                  Start Now - $147 →
+                  Get Started - $147 →
                 </button>
                 <button
                   onClick={() => {
@@ -232,13 +232,13 @@ export default function LandingPage() {
             {[
               {
                 step: '1',
-                title: 'Get instant access',
-                description: 'Start immediately after you sign up'
+                title: 'Sign up and unlock access',
+                description: 'Create your account and get instant access to all 5 modules for $147'
               },
               {
                 step: '2',
-                title: 'Complete your quick intake',
-                description: 'We tailor everything to your experience'
+                title: 'Complete your intake',
+                description: 'Tell us about your experience and career goals'
               },
               {
                 step: '3',
@@ -265,127 +265,4 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-              Why this is different
-            </h2>
-            
-            <p className="text-xl text-gray-900 mb-8 font-semibold">
-              Most people fail because they're guessing.
-            </p>
-
-            <div className="space-y-4">
-              {[
-                'Guessing what to put on their resume',
-                'Guessing what jobs to apply for',
-                'Guessing what to say in interviews'
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-start space-x-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-lg text-gray-700">{item}</span>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-xl text-gray-900 mt-8 font-semibold">
-              This system removes the guesswork and gives you a clear path to getting hired.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section className="bg-gradient-to-br from-gray-50 to-primary-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Get Started Today
-            </h2>
-          </div>
-
-          <div className="max-w-lg mx-auto">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-primary-500 relative">
-              <div className="absolute top-0 right-0 bg-yellow-400 text-gray-900 px-6 py-2 rounded-bl-2xl font-bold">
-                🔥 FOUNDER'S ACCESS
-              </div>
-              
-              <div className="p-8 bg-gradient-to-br from-primary-600 to-primary-700 text-white">
-                <h3 className="text-3xl font-bold mb-2">Full System Access</h3>
-                <p className="text-primary-100">50 spots for a limited time</p>
-                <div className="mt-6 flex items-baseline">
-                  <span className="text-6xl font-bold">$147</span>
-                </div>
-              </div>
-
-              <div className="p-8 bg-gray-50">
-                <button
-                  onClick={() => router.push('/signup')}
-                  className="w-full btn btn-primary text-lg py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all mb-4"
-                >
-                  👉 Start Now
-                </button>
-                <p className="text-center text-sm text-gray-600">
-                  Only a limited number of founding spots available before price increases
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="mb-6">
-            <div className="text-2xl font-bold mb-2">Career Journey MVP</div>
-            <p className="text-gray-400">Powered by The HR Passion Guy</p>
-          </div>
-          <div className="text-gray-400 text-sm">
-            <p>
-              <a href="mailto:mgrmarcus@hrpassion.com" className="hover:text-white">
-                mgrmarcus@hrpassion.com
-              </a>
-            </p>
-            <p className="mt-2">© 2026 HR Passion LLC. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        @keyframes blob {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
-        @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animate-bounce-slow {
-          animation: bounce-slow 3s ease-in-out infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
-    </div>
-  )
-}
+              Why this is diffe
