@@ -8,7 +8,6 @@ export default function InnerVuePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
-  const [purchasing, setPurchasing] = useState(false)
 
   useEffect(() => {
     checkAccess()
@@ -19,25 +18,26 @@ export default function InnerVuePage() {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      router.push('/sign-in')
+      router.push('/signin')
       return
     }
 
+    // Check if user purchased the bundle
     const { data: purchases } = await supabase
       .from('purchases')
       .select('*')
       .eq('user_id', user.id)
-      .in('module_name', ['bundle_intro', 'bundle_regular', 'innervue'])
+      .eq('product_id', 'bundle_founder')  // CHANGED: Only check for new bundle
 
     if (purchases && purchases.length > 0) {
       setHasAccess(true)
+    } else {
+      // No access - redirect to signup
+      router.push('/signup')
+      return
     }
     
     setLoading(false)
-  }
-
-  const handlePurchase = async () => {
-    window.location.href = 'https://buy.stripe.com/test_eVq7sK8cDfe7fb1euDdfG00'
   }
 
   if (loading) {
@@ -48,47 +48,7 @@ export default function InnerVuePage() {
     )
   }
 
-  if (hasAccess) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          
-          {/* Back to Dashboard Button */}
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="mb-6 text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2 transition"
-          >
-            <span>←</span> Back to Dashboard
-          </button>
-
-          <div className="card">
-            <h1 className="text-4xl font-bold text-gray-900 mb-6">
-              Inner Vue - Interview Preparation
-            </h1>
-            
-            <div className="bg-primary-50 border-l-4 border-primary-600 p-6 mb-8">
-              <p className="text-gray-700 mb-4">
-                Complete this form to receive your personalized interview preparation materials within an hour.
-              </p>
-            </div>
-
-            <iframe 
-              src="https://docs.google.com/forms/d/e/1FAIpQLSfZwXOXIqu3m3Z8_69v5lYWBSBbGfo7cLnBH4aEfkVfvGFGQQ/viewform?embedded=true"
-              width="100%" 
-              height="2000"
-              frameBorder={0}
-              marginHeight={0} 
-              marginWidth={0}
-              className="w-full border-0"
-            >
-              Loading…
-            </iframe>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+  // User has access - show Google Form
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
@@ -103,39 +63,26 @@ export default function InnerVuePage() {
 
         <div className="card">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">
-            Inner Vue: Interview Mastery
+            Inner Vue - Interview Preparation
           </h1>
           
           <div className="bg-primary-50 border-l-4 border-primary-600 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-3">
-              Respond to Interview Questions Like a Pro
-            </h2>
             <p className="text-gray-700 mb-4">
-              Master the S.O.A.R. framework and ace every interview question with confidence.
+              Complete this form to receive your personalized interview preparation materials within an hour.
             </p>
-            <div className="text-3xl font-bold text-primary-600">
-              $147/year
-            </div>
           </div>
 
-          <div className="space-y-4 mb-8">
-            <h3 className="text-xl font-bold text-gray-900">What You'll Get:</h3>
-            <ul className="space-y-3 text-gray-700">
-              <li>✅ S.O.A.R. Framework Training</li>
-              <li>✅ 50+ Practice Interview Questions</li>
-              <li>✅ Personalized Response Templates</li>
-              <li>✅ Video Examples & Walkthroughs</li>
-              <li>✅ Annual Access to Materials</li>
-            </ul>
-          </div>
-
-          <button
-            onClick={handlePurchase}
-            disabled={purchasing}
-            className="btn btn-primary w-full text-xl py-4"
+          <iframe 
+            src="https://docs.google.com/forms/d/e/1FAIpQLSfZwXOXIqu3m3Z8_69v5lYWBSBbGfo7cLnBH4aEfkVfvGFGQQ/viewform?embedded=true"
+            width="100%" 
+            height="2000"
+            frameBorder={0}
+            marginHeight={0} 
+            marginWidth={0}
+            className="w-full border-0"
           >
-            {purchasing ? 'Processing...' : 'Purchase Inner Vue - $147/year →'}
-          </button>
+            Loading…
+          </iframe>
         </div>
       </div>
     </div>
