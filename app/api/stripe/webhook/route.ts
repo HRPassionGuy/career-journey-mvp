@@ -14,7 +14,6 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')!
-
   let event: Stripe.Event
 
   try {
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
     try {
       // Get customer email
       const customerEmail = session.customer_details?.email || session.metadata?.email
-
+      
       if (!customerEmail) {
         console.error('No customer email found in session')
         return NextResponse.json({ error: 'No email found' }, { status: 400 })
@@ -52,18 +51,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
       }
 
-      // Determine module name from payment link
-      let moduleName = 'innervue'
-      if (session.payment_link === 'plink_1TCsXMBx8VCQp7jplRInlBiI') {
-        moduleName = 'innervue'
-      }
-
       // Log purchase to Supabase
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
           user_id: profile.id,
-          module_name: moduleName,
+          product_id: 'bundle_founder',  // CHANGED: Always bundle_founder
           amount_paid: session.amount_total,
           stripe_payment_intent_id: session.payment_intent as string,
           stripe_customer_id: session.customer as string,
@@ -72,11 +65,30 @@ export async function POST(request: NextRequest) {
 
       if (purchaseError) {
         console.error('Error logging purchase:', purchaseError)
+        return NextResponse.json({ error: 'Purchase log failed' }, { status: 500 })
       }
+
+      // Unlock ALL modules
+      const modules = ['assessment', 'strengths', 'resume', 'networking', 'innervue']
+      
+      for (const moduleName of modules) {
+        await supabase.from('module_progress').upsert({
+          user_id: profile.id,
+          module_name: moduleName,
+          status: 'unlocked',
+          is_unlocked: true,
+          unlocked_at: new Date().toISOString(),
+          progress_percent: 0,
+          is_completed: false
+        }, {
+          onConflict: 'user_id,module_name'
+        })
+      }
+
+      console.log('All modules unlocked for:', customerEmail)
 
       // Send to Zapier webhook
       const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL
-
       if (zapierWebhookUrl) {
         const zapierResponse = await fetch(zapierWebhookUrl, {
           method: 'POST',
@@ -85,7 +97,7 @@ export async function POST(request: NextRequest) {
           },
           body: JSON.stringify({
             email: customerEmail,
-            product_name: 'Inner Vue',
+            product_name: 'Career Journey MVP - Founder Access',
             amount: (session.amount_total! / 100).toFixed(2),
             purchase_date: new Date().toISOString(),
             status: 'completed',
@@ -93,13 +105,9 @@ export async function POST(request: NextRequest) {
             payment_intent_id: session.payment_intent,
           }),
         })
-
         console.log('Zapier webhook response:', await zapierResponse.text())
-      } else {
-        console.warn('ZAPIER_WEBHOOK_URL not configured')
       }
 
-      console.log('Purchase logged successfully for:', customerEmail)
       return NextResponse.json({ received: true })
       
     } catch (error) {
