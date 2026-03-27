@@ -60,8 +60,8 @@ export default function SignUpPage() {
           >
             <span>←</span> Back to Home
           </button>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Get Started Free</h1>
-          <p className="text-gray-600">Create your account to begin your career transformation</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Your Account</h1>
+          <p className="text-gray-600">Sign up to access your career dashboard</p>
         </div>
 
         <div className="card">
@@ -122,6 +122,13 @@ export default function SignUpPage() {
               </button>
             </p>
           </div>
+        </div>
+
+        {/* Info Box */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-gray-700 text-center">
+            💡 After signing in, unlock full access for <span className="font-bold">$147</span> to get all 5 modules
+          </p>
         </div>
       </div>
     </div>
