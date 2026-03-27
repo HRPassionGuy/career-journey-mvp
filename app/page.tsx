@@ -89,9 +89,12 @@ export default function LandingPage() {
                 </span>
               </h1>
               
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Transform your career with AI-powered resume optimization, targeted job matching, 
-                and proven interview strategies. Join hundreds who've accelerated their career growth.
+              <p className="text-2xl text-gray-900 font-semibold leading-relaxed">
+                I fix your resume, give you job leads, and show you exactly what to say in interviews.
+              </p>
+
+              <p className="text-sm text-gray-600">
+                Built by an HR leader who has reviewed thousands of resumes and interviews.
               </p>
 
               {/* Stats */}
@@ -116,7 +119,7 @@ export default function LandingPage() {
                   onClick={() => router.push('/signup')}
                   className="btn btn-primary text-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
                 >
-                  Start Free Assessment →
+                  Start Now - $147 →
                 </button>
                 <button
                   onClick={() => {
@@ -188,71 +191,103 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="bg-white py-20">
+      {/* Here's What Happens Section */}
+      <section className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Your Career Transformation in 5 Steps
+              Here's what happens when you join:
             </h2>
-            <p className="text-xl text-gray-600">
-              A proven system built on 27 years of HR expertise
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-6">
+            {[
+              'Your resume is rebuilt to actually get interviews',
+              'You get up to 15 real job leads based on your experience',
+              'You know EXACTLY what to say in behavioral interviews',
+              'You stop guessing and start getting responses'
+            ].map((item, idx) => (
+              <div key={idx} className="flex items-start space-x-4 bg-gray-50 p-6 rounded-xl">
+                <span className="text-green-500 text-2xl font-bold flex-shrink-0">✅</span>
+                <span className="text-xl text-gray-900">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="bg-gradient-to-br from-gray-50 to-primary-50 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              HOW IT WORKS
+            </h2>
+            <p className="text-2xl text-gray-600 font-semibold">
+              Simple. Fast. Effective.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="max-w-4xl mx-auto space-y-12">
             {[
               {
                 step: '1',
-                icon: '📊',
-                title: 'Free Assessment',
-                description: 'Discover your career breakthrough type and get your personalized roadmap in minutes.'
+                title: 'Get instant access',
+                description: 'Start immediately after you sign up'
               },
               {
                 step: '2',
-                icon: '💪',
-                title: 'Strengths Discovery',
-                description: 'Uncover your unique value proposition and leverage points that make you irresistible to employers.'
+                title: 'Complete your quick intake',
+                description: 'We tailor everything to your experience'
               },
               {
                 step: '3',
-                icon: '📄',
-                title: 'Resume + Job Match',
-                description: 'AI rewrites your resume in proven format + delivers 12-15 targeted job matches with 90%+ fit.'
-              },
-              {
-                step: '4',
-                icon: '🤝',
-                title: 'Networking Accelerator',
-                description: 'Master strategic networking with templates, scripts, and LinkedIn optimization to unlock hidden opportunities.'
-              },
-              {
-                step: '5',
-                icon: '🎯',
-                title: 'Interview Mastery',
-                description: 'Master the S.O.A.R. framework with unlimited AI practice and land offers faster.'
+                title: 'Execute with confidence',
+                description: 'Apply, interview, and land the offer'
               }
             ].map((item, idx) => (
-              <div key={idx} className="relative group">
-                <div className="bg-gray-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full">
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
-                    {item.step}
-                  </div>
-                  <div className="text-5xl mb-4">{item.icon}</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{item.description}</p>
+              <div key={idx} className="flex items-start space-x-8">
+                <div className="flex-shrink-0 w-16 h-16 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-2xl shadow-lg">
+                  {item.step}
+                </div>
+                <div className="flex-1 pt-3">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-lg text-gray-600">{item.description}</p>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="text-center mt-12">
-            <button
-              onClick={() => router.push('/signup')}
-              className="btn btn-primary text-lg px-8 py-4"
-            >
-              Start Your Free Assessment →
-            </button>
+      {/* Why This Is Different Section */}
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+              Why this is different
+            </h2>
+            
+            <p className="text-xl text-gray-900 mb-8 font-semibold">
+              Most people fail because they're guessing.
+            </p>
+
+            <div className="space-y-4">
+              {[
+                'Guessing what to put on their resume',
+                'Guessing what jobs to apply for',
+                'Guessing what to say in interviews'
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start space-x-3">
+                  <span className="text-red-500 text-xl">•</span>
+                  <span className="text-lg text-gray-700">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-xl text-gray-900 mt-8 font-semibold">
+              This system removes the guesswork and gives you a clear path to getting hired.
+            </p>
           </div>
         </div>
       </section>
@@ -262,54 +297,33 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Launch Special: Save $311
+              Get Started Today
             </h2>
-            <p className="text-xl text-gray-600">
-              Everything you need to land your dream role
-            </p>
           </div>
 
           <div className="max-w-lg mx-auto">
             <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-primary-500 relative">
               <div className="absolute top-0 right-0 bg-yellow-400 text-gray-900 px-6 py-2 rounded-bl-2xl font-bold">
-                🎉 SAVE $311
+                🔥 FOUNDER'S ACCESS
               </div>
               
               <div className="p-8 bg-gradient-to-br from-primary-600 to-primary-700 text-white">
-                <h3 className="text-3xl font-bold mb-2">Career Accelerator</h3>
-                <p className="text-primary-100">Complete Bundle - Launch Offer</p>
+                <h3 className="text-3xl font-bold mb-2">Full System Access</h3>
+                <p className="text-primary-100">50 spots for a limited time</p>
                 <div className="mt-6 flex items-baseline">
-                  <span className="text-6xl font-bold">$197</span>
-                  <span className="ml-2 text-2xl line-through text-primary-200">$508</span>
+                  <span className="text-6xl font-bold">$147</span>
                 </div>
-              </div>
-
-              <div className="p-8 space-y-4">
-                {[
-                  'Free Career Breakthrough Assessment',
-                  'Strengths Discovery Module',
-                  'AI-Powered Resume Rewrite + 5 Variants',
-                  '12-15 Targeted Job Matches (90%+ Fit)',
-                  'Networking Accelerator Templates',
-                  'Inner Vue Interview Tool (1 Year Access)',
-                  'Email Support from Marcus (24hr response)'
-                ].map((feature, idx) => (
-                  <div key={idx} className="flex items-start space-x-3">
-                    <span className="text-green-500 font-bold flex-shrink-0">✓</span>
-                    <span className="text-gray-700">{feature}</span>
-                  </div>
-                ))}
               </div>
 
               <div className="p-8 bg-gray-50">
                 <button
                   onClick={() => router.push('/signup')}
-                  className="w-full btn btn-primary text-lg py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
+                  className="w-full btn btn-primary text-lg py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all mb-4"
                 >
-                  Claim Launch Offer →
+                  👉 Start Now
                 </button>
-                <p className="text-center text-sm text-gray-500 mt-4">
-                  30-day money-back guarantee • No risk
+                <p className="text-center text-sm text-gray-600">
+                  Only a limited number of founding spots available before price increases
                 </p>
               </div>
             </div>
