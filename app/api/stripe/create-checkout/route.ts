@@ -15,22 +15,30 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createClientSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
 
+    // Better error logging
     if (!user) {
+      console.error('Auth error:', userError)
       return NextResponse.json(
-        { error: 'Not authenticated' },
+        { error: 'Not authenticated. Please sign in and try again.' },
         { status: 401 }
       )
     }
 
+    console.log('User authenticated:', user.id)
+
     // Check if they already purchased
-    const { data: existingPurchase } = await supabase
+    const { data: existingPurchase, error: purchaseError } = await supabase
       .from('purchases')
       .select('*')
       .eq('user_id', user.id)
-      .eq('product_id', 'bundle_founder')
+      .or('product_id.eq.bundle_founder,module_name.eq.bundle_founder')
       .single()
+
+    if (purchaseError && purchaseError.code !== 'PGRST116') {
+      console.error('Purchase check error:', purchaseError)
+    }
 
     if (existingPurchase) {
       return NextResponse.json(
