@@ -281,52 +281,68 @@ export default function ResumeModulePage() {
     URL.revokeObjectURL(url)
   }
 
-  const downloadJobsExcel = () => {
-    if (!jobs || !jobs.jobs) return
-    
-    const goodMatches = jobs.jobs.filter((job: any) => job.match_score > 1)
-    
-    if (goodMatches.length === 0) {
-      alert('No quality job matches found')
-      return
-    }
-    
-    // Build CSV
-    let csv = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
-    
-    goodMatches.forEach((job: any) => {
-      const escape = (val: any) => {
-        const str = String(val || '').replace(/"/g, '""')
-        return `"${str}"`
-      }
-      
-      // Format match score as plain number (no apostrophe)
-      const matchScore = `"${job.match_score}/10"`
-      
-      const row = [
-        matchScore,
-        escape(job.title),
-        escape(job.company),
-        escape(job.location),
-        escape(job.posting_date),
-        escape(job.summary),
-        escape(job.link)  // Plain link, Excel will auto-detect
-      ].join(',')
-      
-      csv += row + '\n'
-    })
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+ const downloadJobsExcel = async () => {
+  if (!jobs || !jobs.jobs) return
+  
+  const goodMatches = jobs.jobs.filter((job: any) => job.match_score > 1)
+  
+  if (goodMatches.length === 0) {
+    alert('No quality job matches found')
+    return
   }
-
+  
+  // Import xlsx library dynamically
+  const XLSX = await import('xlsx')
+  
+  // Prepare data with proper formatting
+  const worksheetData = [
+    ['Match Score', 'Title', 'Company', 'Location', 'Posted Date', 'Summary', 'Application Link']
+  ]
+  
+  goodMatches.forEach((job: any) => {
+    worksheetData.push([
+      `${job.match_score}/10`,
+      job.title || '',
+      job.company || '',
+      job.location || '',
+      job.posting_date || '',
+      job.summary || '',
+      job.link || ''
+    ])
+  })
+  
+  // Create workbook and worksheet
+  const wb = XLSX.utils.book_new()
+  const ws = XLSX.utils.aoa_to_sheet(worksheetData)
+  
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 12 },  // Match Score
+    { wch: 35 },  // Title
+    { wch: 25 },  // Company
+    { wch: 20 },  // Location
+    { wch: 15 },  // Posted Date
+    { wch: 60 },  // Summary
+    { wch: 50 }   // Application Link
+  ]
+  
+  // Make links clickable (column G - Application Link)
+  goodMatches.forEach((job: any, idx: number) => {
+    const cellRef = `G${idx + 2}` // +2 because: 1 for header, 1 for zero-index
+    if (job.link) {
+      ws[cellRef] = {
+        t: 's',
+        v: 'APPLY',
+        l: { Target: job.link }
+      }
+    }
+  })
+  
+  XLSX.utils.book_append_sheet(wb, ws, 'Job Opportunities')
+  
+  // Write file
+  XLSX.writeFile(wb, `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.xlsx`)
+}
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
