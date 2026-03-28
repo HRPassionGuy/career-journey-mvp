@@ -117,12 +117,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   jobHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    fontSize: 9.5,
-    fontWeight: 'bold',
-    marginBottom: 1.5,
-  },
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  fontSize: 10,
+  fontWeight: 'heavy',
+  marginBottom: 2,
+},
   jobTitle: {
     fontSize: 9,
     fontStyle: 'italic',
