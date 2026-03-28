@@ -88,7 +88,7 @@ export default function DashboardPage() {
         .from('purchases')
         .select('*')
         .eq('user_id', user.id)
-        .eq('product_id', 'bundle_founder')
+        .or('product_id.eq.bundle_founder,module_name.eq.bundle_founder')
 
       const hasPaid = !!(purchaseData && purchaseData.length > 0)
       setHasFullAccess(hasPaid)
