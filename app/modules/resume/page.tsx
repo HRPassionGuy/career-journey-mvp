@@ -216,30 +216,32 @@ export default function ResumeModulePage() {
             })
         }
       }
-// Save resume generation to database for CRM tracking
-try {
-  const supabase = createClientSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+      
+      // Save resume generation to database for CRM tracking
+      try {
+        const supabase = createClientSupabaseClient()
+        const { data: { user } } = await supabase.auth.getUser()
 
-  if (user) {
-    await supabase
-      .from('resume_generations')
-      .insert({
-        user_id: user.id,
-        user_email: user.email,
-        user_name: resumeData.resume_data.name,
-        target_title: targetTitle,
-        target_location: location,
-        target_salary: salary,
-        has_variants: (variantBlobs || []).length > 0,
-        variant_count: (variantBlobs || []).length,
-        generated_at: new Date().toISOString()
-      })
-  }
-} catch (dbError) {
-  console.error('Database tracking error:', dbError)
-  // Don't block the user experience if tracking fails
-}
+        if (user) {
+          await supabase
+            .from('resume_generations')
+            .insert({
+              user_id: user.id,
+              user_email: user.email,
+              user_name: resumeData.resume_data.name,
+              target_title: targetTitle,
+              target_location: location,
+              target_salary: salary,
+              has_variants: (variantBlobs || []).length > 0,
+              variant_count: (variantBlobs || []).length,
+              generated_at: new Date().toISOString()
+            })
+        }
+      } catch (dbError) {
+        console.error('Database tracking error:', dbError)
+        // Don't block the user experience if tracking fails
+      }
+      
       setStep('results')
     } catch (error) {
       console.error('Error:', error)
@@ -279,54 +281,52 @@ try {
     URL.revokeObjectURL(url)
   }
 
-const downloadJobsExcel = () => {
-  if (!jobs || !jobs.jobs) return
-  
-  // Filter out poor matches
-  const goodMatches = jobs.jobs.filter((job: any) => job.match_score > 1)
-  
-  if (goodMatches.length === 0) {
-    alert('No quality job matches found')
-    return
-  }
-  
-  // Build CSV with proper formatting
-  let csvContent = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
-  
-  goodMatches.forEach((job: any) => {
-    // Escape function for CSV
-    const escape = (val: any) => {
-      const str = String(val || '').replace(/"/g, '""')
-      return `"${str}"`
+  const downloadJobsExcel = () => {
+    if (!jobs || !jobs.jobs) return
+    
+    const goodMatches = jobs.jobs.filter((job: any) => job.match_score > 1)
+    
+    if (goodMatches.length === 0) {
+      alert('No quality job matches found')
+      return
     }
     
-    // Format match score as text to prevent Excel date conversion
-    const matchScore = `"'${job.match_score}/10"`
+    // Build CSV
+    let csv = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
     
-    // Build row with HYPERLINK formula for clickable links
-    const row = [
-      matchScore,
-      escape(job.title),
-      escape(job.company),
-      escape(job.location),
-      escape(job.posting_date),
-      escape(job.summary),
-      `"=HYPERLINK(""${job.link}"", ""APPLY"")"`
-    ].join(',')
+    goodMatches.forEach((job: any) => {
+      const escape = (val: any) => {
+        const str = String(val || '').replace(/"/g, '""')
+        return `"${str}"`
+      }
+      
+      // Format match score as plain number (no apostrophe)
+      const matchScore = `"${job.match_score}/10"`
+      
+      const row = [
+        matchScore,
+        escape(job.title),
+        escape(job.company),
+        escape(job.location),
+        escape(job.posting_date),
+        escape(job.summary),
+        escape(job.link)  // Plain link, Excel will auto-detect
+      ].join(',')
+      
+      csv += row + '\n'
+    })
     
-    csvContent += row + '\n'
-  })
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `job_opportunities_${targetTitle.replace(/\s+/g, '_')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
