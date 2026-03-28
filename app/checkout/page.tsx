@@ -39,33 +39,39 @@ export default function CheckoutPage() {
     setCheckingAuth(false)
   }
 
-  const handleCheckout = async () => {
-    setLoading(true)
+const handleCheckout = async () => {
+  setLoading(true)
 
-    try {
-      const response = await fetch('/api/stripe/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: 'bundle_founder'
-        })
+  try {
+    const response = await fetch('/api/stripe/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productId: 'bundle_founder'
       })
+    })
 
-      const data = await response.json()
-      
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        alert(data.error || 'Error creating checkout session')
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error('Checkout error:', error)
-      alert('Error processing payment')
+    const data = await response.json()
+    
+    if (!response.ok) {
+      // Show the actual error message from the API
+      alert(data.error || 'Error creating checkout session')
+      setLoading(false)
+      return
+    }
+    
+    if (data.url) {
+      window.location.href = data.url
+    } else {
+      alert('No checkout URL received')
       setLoading(false)
     }
+  } catch (error) {
+    console.error('Checkout error:', error)
+    alert('Error processing payment')
+    setLoading(false)
   }
-
+}
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
