@@ -1,122 +1,105 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-11-20.acacia',
 })
 
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+
+// Use service role key for admin access
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function POST(request: NextRequest) {
-  const body = await request.text()
-  const signature = request.headers.get('stripe-signature')!
-  let event: Stripe.Event
-
+export async function POST(req: NextRequest) {
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    )
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message)
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-  }
+    const body = await req.text()
+    const headersList = headers()
+    const signature = headersList.get('stripe-signature')
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session
+    if (!signature) {
+      return NextResponse.json({ error: 'No signature' }, { status: 400 })
+    }
 
-    try {
-      // Get customer email
-      const customerEmail = session.customer_details?.email || session.metadata?.email
-      
-      if (!customerEmail) {
-        console.error('No customer email found in session')
-        return NextResponse.json({ error: 'No email found' }, { status: 400 })
+    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session
+
+      const userId = session.metadata?.userId
+      const moduleName = session.metadata?.moduleName || 'bundle_founder'
+
+      if (!userId) {
+        console.error('No userId in metadata')
+        return NextResponse.json({ error: 'No userId' }, { status: 400 })
       }
 
-      // Get user_id from profiles table
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', customerEmail)
-        .single()
-
-      if (!profile) {
-        console.error('No profile found for email:', customerEmail)
-        return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
-      }
-
-      // Log purchase to Supabase
+      // Log the purchase
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
-          user_id: profile.id,
-          product_id: 'bundle_founder',  // CHANGED: Always bundle_founder
-          amount_paid: session.amount_total,
-          stripe_payment_intent_id: session.payment_intent as string,
+          user_id: userId,
+          product_id: 'bundle_founder',
+          module_name: 'bundle_founder',
+          amount_paid: session.amount_total || 14700,
           stripe_customer_id: session.customer as string,
-          status: 'completed',
+          stripe_payment_intent_id: session.payment_intent as string,
+          status: 'completed'
         })
 
       if (purchaseError) {
-        console.error('Error logging purchase:', purchaseError)
+        console.error('Purchase insert error:', purchaseError)
         return NextResponse.json({ error: 'Purchase log failed' }, { status: 500 })
       }
 
       // Unlock ALL modules
       const modules = ['assessment', 'strengths', 'resume', 'networking', 'innervue']
       
-      for (const moduleName of modules) {
-        await supabase.from('module_progress').upsert({
-          user_id: profile.id,
-          module_name: moduleName,
-          status: 'unlocked',
-          is_unlocked: true,
-          unlocked_at: new Date().toISOString(),
-          progress_percent: 0,
-          is_completed: false
-        }, {
-          onConflict: 'user_id,module_name'
-        })
-      }
+      for (const module of modules) {
+        const { error: unlockError } = await supabase
+          .from('module_progress')
+          .upsert({
+            user_id: userId,
+            module_name: module,
+            is_unlocked: true,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,module_name'
+          })
 
-      console.log('All modules unlocked for:', customerEmail)
+        if (unlockError) {
+          console.error(`Error unlocking ${module}:`, unlockError)
+        }
+      }
 
       // Send to Zapier webhook
-      const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL
-      if (zapierWebhookUrl) {
-        const zapierResponse = await fetch(zapierWebhookUrl, {
+      if (process.env.ZAPIER_WEBHOOK_URL) {
+        await fetch(process.env.ZAPIER_WEBHOOK_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: customerEmail,
-            product_name: 'Career Journey MVP - Founder Access',
-            amount: (session.amount_total! / 100).toFixed(2),
-            purchase_date: new Date().toISOString(),
-            status: 'completed',
-            platform: 'Stripe',
-            payment_intent_id: session.payment_intent,
-          }),
-        })
-        console.log('Zapier webhook response:', await zapierResponse.text())
+            email: session.customer_email,
+            name: session.customer_details?.name,
+            amount: (session.amount_total || 0) / 100,
+            product: 'Career Journey MVP - Founder Access',
+            userId: userId
+          })
+        }).catch(err => console.error('Zapier webhook error:', err))
       }
 
-      return NextResponse.json({ received: true })
-      
-    } catch (error) {
-      console.error('Error processing webhook:', error)
-      return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
+      console.log('✅ Purchase completed and modules unlocked for user:', userId)
     }
+
+    return NextResponse.json({ received: true })
+  } catch (err: any) {
+    console.error('Webhook error:', err)
+    return NextResponse.json(
+      { error: err.message },
+      { status: 400 }
+    )
   }
-
-  return NextResponse.json({ received: true })
 }
-
-export const runtime = 'nodejs'
