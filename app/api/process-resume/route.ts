@@ -49,6 +49,8 @@ ${resumeText}
 
 TARGET ROLE: ${targetTitle}
 
+JOB DESCRIPTIONS PROVIDED: ${jobDescriptions.length > 0 ? 'YES - Use these to tailor the resume' : 'NO - Use target title and resume content'}
+
 TRANSFORMATION GUIDELINES:
 
 1. HEADER AND CONTACT INFORMATION:
@@ -64,6 +66,7 @@ TRANSFORMATION GUIDELINES:
    - Identifies relevant industries or markets
    - Highlights one or two quantifiable achievements (e.g., "Drove <strong>$300M</strong> in annual cost savings")
    - WRAP ALL METRICS IN <strong> TAGS
+   - If job descriptions are provided, mirror the key competencies and requirements from those postings in the summary
 
 4. AREAS OF EXPERTISE / SKILLS:
    - List 8-10 skills that mirror keywords from the job description
@@ -71,6 +74,7 @@ TRANSFORMATION GUIDELINES:
    - Use the exact terminology from the job posting to optimize ATS matching
    - Tailor this list for each role
    - Format as "• Skill Name"
+   - If job descriptions are provided, extract and prioritize the specific competencies and keywords from those postings
 
 5. CAREER HIGHLIGHTS:
    - Create 5-7 standout achievements that demonstrate executive-level impact
@@ -89,6 +93,7 @@ TRANSFORMATION GUIDELINES:
    - AVOID passive or generic phrases like "responsible for," "assisted" or "helped"
    - Showcase entrepreneurial mindset, leadership, and self-motivation, particularly if targeting remote roles
    - WRAP ALL NUMBERS IN <strong> TAGS
+   - If job descriptions are provided, adjust experience bullets to mirror the specific needs and requirements from those postings
 
 7. EDUCATION AND CERTIFICATIONS:
    - List degrees and highlight professional development and industry-specific certifications (e.g., AI, PMP, CISSP)
@@ -96,6 +101,7 @@ TRANSFORMATION GUIDELINES:
 8. LENGTH AND FORMAT:
    - Keep the résumé to one or two pages
    - Structure the data for clean PDF conversion
+   - Enforce a consistent, high-impact format throughout
 
 TRANSFORMATION EXAMPLES:
 
@@ -117,6 +123,9 @@ CRITICAL RULES:
 - WRAP EVERY NUMBER in <strong> tags: <strong>20+</strong>, <strong>$14M</strong>, <strong>70%</strong>, <strong>10,000+</strong>
 - Transform weak statements into IMPACT with metrics
 - Every bullet proves VALUE and OWNERSHIP, not tasks
+- Rewrite or transform the résumé into a high-impact version
+- Avoid passive language that dilutes the candidate's impact
+- Emphasize quantifiable achievements and leadership throughout
 
 TRANSFORMATION INTENSITY LEVEL: AGGRESSIVE
 - Even if a bullet already mentions metrics, EXPAND IT with more context
@@ -124,6 +133,7 @@ TRANSFORMATION INTENSITY LEVEL: AGGRESSIVE
 - Add context: team size, timeline, percentage improvement, dollar impact
 - Transform "Directed $14M budget" into "Architected and executed $14M operational budget across 5 HR divisions serving 10,000+ employees, delivering 15% cost optimization while maintaining 98% service level agreements"
 - NEVER keep original phrasing - completely rewrite every achievement
+- Ensure every bullet point proves how the candidate creates value and owns outcomes, rather than simply listing tasks
 
 MANDATORY METRICS TO ADD (extract from resume or infer from context):
 - Budget size AND cost savings/optimization percentage
@@ -132,7 +142,12 @@ MANDATORY METRICS TO ADD (extract from resume or infer from context):
 - Geographic scope (departments, locations, regions)
 - Compliance rate, satisfaction scores, retention rates
 
-Ensure every bullet point proves how the candidate creates value and owns outcomes, rather than simply listing tasks.
+TAILORING PRIORITY:
+1. FIRST PRIORITY: If job descriptions are attached, analyze each job description, pick out the specific competencies and keywords, and adjust the professional summary, core skills, and experience bullets to mirror those needs
+2. SECOND PRIORITY: If no job descriptions but target title is provided, tailor to that title's typical requirements
+3. THIRD PRIORITY: Use the candidate's natural strengths and competencies from their resume content
+
+Create a fully tailored résumé for this submission by following the priority order above.
 
 Return ONLY this JSON structure (no markdown, no extra text):
 {
