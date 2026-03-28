@@ -62,13 +62,22 @@ TRANSFORMATION GUIDELINES:
    - Add the exact title of the position they're applying for below the contact info to match ATS keywords
 
 3. PROFESSIONAL SUMMARY:
-   - Write a concise 2-3 sentence third-person summary that states their role and years of experience
-   - Identifies relevant industries or markets
-   - Highlights one or two quantifiable achievements (e.g., "Drove <strong>$300M</strong> in annual cost savings")
-   - WRAP ALL METRICS IN <strong> TAGS
+   - Label this section "PROFESSIONAL SUMMARY"
+   - Write MAXIMUM 2 LINES (not 3-5 lines)
+   - Third-person format
+   - Include 1-2 key metrics wrapped in <strong> tags
+   - Example: "Strategic HR executive with <strong>27 years</strong> of experience driving organizational transformation and delivering <strong>$21M+</strong> in cost optimization across <strong>10,000+</strong> employee operations."
    - If job descriptions are provided, mirror the key competencies and requirements from those postings in the summary
 
-4. AREAS OF EXPERTISE / SKILLS:
+4. KEY COMPETENCIES:
+   - This section goes in the LEFT COLUMN above "AREAS OF EXPERTISE"
+   - Title it "KEY COMPETENCIES"
+   - List 4-6 core competency categories (e.g., "Strategic Planning", "Change Management", "Talent Development")
+   - Each competency must be SHORT - maximum 2-3 words
+   - If a word doesn't fit on one line, use a shorter synonym
+   - Do NOT break words across lines
+
+5. AREAS OF EXPERTISE / SKILLS:
    - List 8-10 skills that mirror keywords from the job description
    - Include AI-related and remote-work competencies if relevant
    - Use the exact terminology from the job posting to optimize ATS matching
@@ -76,7 +85,7 @@ TRANSFORMATION GUIDELINES:
    - Format as "• Skill Name"
    - If job descriptions are provided, extract and prioritize the specific competencies and keywords from those postings
 
-5. CAREER HIGHLIGHTS:
+6. CAREER HIGHLIGHTS:
    - Create 5-7 standout achievements that demonstrate executive-level impact
    - These should be the most impressive metrics from their entire career
    - Pull from different time periods and different types of achievements
@@ -84,7 +93,7 @@ TRANSFORMATION GUIDELINES:
    - WRAP ALL NUMBERS IN <strong> TAGS
    - These fill the left column - aim for 5-7 items minimum
 
-6. PROFESSIONAL EXPERIENCE:
+7. PROFESSIONAL EXPERIENCE:
    - Describe the last 10-15 years of roles in reverse chronological order
    - For each, include company, location, dates, and job title
    - Use concise bullet points (no more than two lines each) focused on outcomes
@@ -95,11 +104,12 @@ TRANSFORMATION GUIDELINES:
    - WRAP ALL NUMBERS IN <strong> TAGS
    - If job descriptions are provided, adjust experience bullets to mirror the specific needs and requirements from those postings
 
-7. EDUCATION AND CERTIFICATIONS:
+8. EDUCATION AND CERTIFICATIONS:
    - List degrees and highlight professional development and industry-specific certifications (e.g., AI, PMP, CISSP)
 
-8. LENGTH AND FORMAT:
-   - Keep the résumé to one or two pages
+9. LENGTH AND FORMAT:
+   - CRITICAL: Keep the résumé to ONE PAGE ONLY
+   - If content extends to a second page with fewer than 3 lines, reduce bullet points to fit everything on one page
    - Structure the data for clean PDF conversion
    - Enforce a consistent, high-impact format throughout
 
@@ -157,7 +167,13 @@ Return ONLY this JSON structure (no markdown, no extra text):
   "phone": "(000) 000-0000",
   "current_title": "${targetTitle}",
   "tagline": "One powerful sentence describing value proposition",
-  "summary": "2-3 sentences with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong> showing quantifiable achievements",
+  "summary": "MAXIMUM 2 LINES with <strong>metrics</strong> bolded in third person",
+  "key_competencies": [
+    "Strategic Planning",
+    "Change Management", 
+    "Talent Development",
+    "Data Analytics"
+  ],
   "expertise": [
     "• Actual skill 1 extracted from resume",
     "• Actual skill 2 extracted from resume",
@@ -170,15 +186,15 @@ Return ONLY this JSON structure (no markdown, no extra text):
     "• Actual skill 9 extracted from resume",
     "• Actual skill 10 extracted from resume"
   ],
- "career_highlights": [
-  "Delivered <strong>$XXM</strong> cost savings through specific initiative",
-  "Reduced metric by <strong>XX%</strong> across scope",
-  "Launched <strong>X</strong> strategic programs impacting outcome",
-  "Led <strong>XX-person</strong> team achieving result",
-  "Achieved <strong>XX%</strong> compliance/satisfaction/retention rate",
-  "Managed <strong>$XXM</strong> budget delivering outcome",
-  "Spearheaded initiative impacting <strong>X,XXX+</strong> employees"
-],
+  "career_highlights": [
+    "Delivered <strong>$XXM</strong> cost savings through specific initiative",
+    "Reduced metric by <strong>XX%</strong> across scope",
+    "Launched <strong>X</strong> strategic programs impacting outcome",
+    "Led <strong>XX-person</strong> team achieving result",
+    "Achieved <strong>XX%</strong> compliance/satisfaction/retention rate",
+    "Managed <strong>$XXM</strong> budget delivering outcome",
+    "Spearheaded initiative impacting <strong>X,XXX+</strong> employees"
+  ],
   "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
     "company": "Actual company from resume",
