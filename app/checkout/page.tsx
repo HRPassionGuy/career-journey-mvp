@@ -27,7 +27,7 @@ export default function CheckoutPage() {
       .from('purchases')
       .select('*')
       .eq('user_id', user.id)
-      .eq('product_id', 'bundle_founder')
+      .or('product_id.eq.bundle_founder,module_name.eq.bundle_founder')
       .single()
 
     if (purchase) {
