@@ -294,16 +294,16 @@ const downloadJobsExcel = () => {
   let csvContent = 'Match Score,Title,Company,Location,Posted Date,Summary,Application Link\n'
   
   goodMatches.forEach((job: any) => {
-    // Escape function
+    // Escape function for CSV
     const escape = (val: any) => {
       const str = String(val || '').replace(/"/g, '""')
       return `"${str}"`
     }
     
-    // Format match score as text (prevent Excel date conversion)
+    // Format match score as text to prevent Excel date conversion
     const matchScore = `"'${job.match_score}/10"`
     
-    // Build row
+    // Build row with HYPERLINK formula for clickable links
     const row = [
       matchScore,
       escape(job.title),
