@@ -27,7 +27,7 @@ export default function InnerVuePage() {
       .from('purchases')
       .select('*')
       .eq('user_id', user.id)
-      .eq('product_id', 'bundle_founder')  // CHANGED: Only check for new bundle
+      .or('product_id.eq.bundle_founder,module_name.eq.bundle_founder')
 
     if (purchases && purchases.length > 0) {
       setHasAccess(true)
