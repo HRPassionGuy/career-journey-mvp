@@ -18,6 +18,7 @@ interface ResumeData {
   current_title: string
   tagline?: string
   summary: string
+  key_competencies?: string[]
   expertise: string[]
   career_highlights?: string[]
   skill_categories?: string[]
@@ -58,10 +59,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   leftColumn: {
-    width: '32%',  // INCREASED from 30%
+    width: '32%',
   },
   rightColumn: {
-    width: '68%',  // DECREASED from 70%
+    width: '68%',
     borderLeft: '1 solid #CCCCCC',
     paddingLeft: 9,
   },
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     textAlign: 'center',
   },
-  summary: {
+  summaryText: {
     fontSize: 9,
     textAlign: 'justify',
     lineHeight: 1.3,
@@ -95,8 +96,8 @@ const styles = StyleSheet.create({
   },
   skillItem: {
     fontSize: 8,
-    marginBottom: 3,  // INCREASED from 2 for more spacing
-    lineHeight: 1.3,  // INCREASED from 1.25 for better readability
+    marginBottom: 3,
+    lineHeight: 1.3,
   },
   skillBoxes: {
     flexDirection: 'row',
@@ -117,12 +118,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   jobHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  fontSize: 10,
-  fontWeight: 'heavy',
-  marginBottom: 2,
-},
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    fontSize: 10,
+    fontWeight: 'heavy',
+    marginBottom: 2,
+  },
   jobTitle: {
     fontSize: 9,
     fontStyle: 'italic',
@@ -182,7 +183,17 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
         
         <View style={styles.columns}>
           <View style={styles.leftColumn}>
-            <Text style={styles.sectionHeader}>AREAS OF EXPERTISE</Text>
+            {/* KEY COMPETENCIES SECTION - NEW */}
+            {data.key_competencies && data.key_competencies.length > 0 && (
+              <>
+                <Text style={styles.sectionHeader}>KEY COMPETENCIES</Text>
+                {data.key_competencies.map((comp, idx) => (
+                  <Text key={idx} style={styles.skillItem}>{comp}</Text>
+                ))}
+              </>
+            )}
+            
+            <Text style={[styles.sectionHeader, data.key_competencies ? { marginTop: 8 } : {}]}>AREAS OF EXPERTISE</Text>
             {data.expertise.map((skill, idx) => (
               <Text key={idx} style={styles.skillItem}>{skill}</Text>
             ))}
@@ -201,7 +212,11 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
             <Text style={styles.title}>{data.current_title}</Text>
             {data.tagline && <Text style={styles.tagline}>{data.tagline}</Text>}
             
-            <Text style={styles.summary}>{stripHTML(data.summary)}</Text>
+            {/* PROFESSIONAL SUMMARY - WITH LABEL */}
+            <View style={{ marginBottom: 8 }}>
+              <Text style={styles.sectionHeader}>PROFESSIONAL SUMMARY</Text>
+              <Text style={styles.summaryText}>{stripHTML(data.summary)}</Text>
+            </View>
             
             {data.skill_categories && data.skill_categories.length === 4 && (
               <View style={styles.skillBoxes}>
