@@ -20,25 +20,16 @@ export default function SignUpPage() {
       const supabase = createClientSupabaseClient()
       
       // Sign up with magic link
-     const { error } = await supabase.auth.signInWithOtp({
-  email,
-  options: {
-    emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/dashboard`,
-    shouldCreateUser: true,
-    data: {
-      full_name: fullName,
-    },
-  },
-})
-```
-
----
-
-## **ALSO - ADD THE ENV VARIABLE**
-
-In your Vercel environment variables, add:
-```
-NEXT_PUBLIC_APP_URL=https://career-journey-mvp.vercel.app
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          shouldCreateUser: true,
+          data: {
+            full_name: fullName,
+          },
+        },
+      })
 
       if (error) throw error
 
@@ -52,7 +43,7 @@ NEXT_PUBLIC_APP_URL=https://career-journey-mvp.vercel.app
         })
       }
 
-      setMessage('Check your email for the sign-in link!')
+      setMessage('✅ Check your email! Click the link we sent you to complete signup and unlock access.')
     } catch (err: any) {
       setMessage(err.message || 'Something went wrong')
     } finally {
@@ -107,7 +98,7 @@ NEXT_PUBLIC_APP_URL=https://career-journey-mvp.vercel.app
             </div>
 
             {message && (
-              <div className={`p-4 rounded-lg ${message.includes('Check') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+              <div className={`p-4 rounded-lg ${message.includes('Check') || message.includes('✅') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
                 {message}
               </div>
             )}
