@@ -76,16 +76,14 @@ export default function SignInPage() {
           </form>
 
           <div className="mt-6 text-center">
-           <p className="text-sm text-gray-600">
-  Don't have an account?{' '}
-  <button
-    onClick={() => router.push('/signup')}
-    className="text-primary-600 hover:text-primary-700 font-semibold"
-  >
-    Create Account
-  </button>
-</p>
-              </a>
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <button
+                onClick={() => router.push('/signup')}
+                className="text-primary-600 hover:text-primary-700 font-semibold"
+              >
+                Create Account
+              </button>
             </p>
           </div>
         </div>
