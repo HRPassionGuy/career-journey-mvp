@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClientSupabaseClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { createCheckoutSession } from '@/lib/stripe'
 
 export async function POST(request: NextRequest) {
@@ -14,10 +14,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createClientSupabaseClient()
+    // Get the authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'Not authenticated. Please sign in and try again.' },
+        { status: 401 }
+      )
+    }
+
+    // Create Supabase client with the auth token
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: authHeader
+          }
+        }
+      }
+    )
+
     const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-    // Better error logging
     if (!user) {
       console.error('Auth error:', userError)
       return NextResponse.json(
