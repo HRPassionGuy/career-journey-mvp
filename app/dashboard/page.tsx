@@ -48,8 +48,8 @@ export default function DashboardPage() {
     {
       name: 'networking',
       displayName: 'Networking Accelerator',
-      description: 'Strategic frameworks, templates, and LinkedIn optimization',
-      longDescription: 'Master the art of professional networking with proven templates, scripts, and LinkedIn strategies that open doors to hidden opportunities.',
+      description: 'Watch our how-to networking video to build authentic professional relationships',
+      longDescription: 'Master the art of professional networking with our comprehensive how-to video that shows you proven strategies to open doors to hidden opportunities.',
       icon: '🤝',
     },
     {
@@ -196,6 +196,27 @@ export default function DashboardPage() {
               >
                 Share Your Success Story →
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Action Plan - ONLY SHOW IF NOT PAID */}
+        {!hasFullAccess && (
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">🚀 Your Personalized Action Plan</h2>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                <p className="text-gray-700 pt-1">Complete the Strengths Discovery module</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                <p className="text-gray-700 pt-1">Map your resume to available roles</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                <p className="text-gray-700 pt-1">Apply to roles and begin prepping for interviews</p>
+              </div>
             </div>
           </div>
         )}
