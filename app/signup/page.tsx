@@ -20,15 +20,25 @@ export default function SignUpPage() {
       const supabase = createClientSupabaseClient()
       
       // Sign up with magic link
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            full_name: fullName,
-          },
-        },
-      })
+     const { error } = await supabase.auth.signInWithOtp({
+  email,
+  options: {
+    emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/dashboard`,
+    shouldCreateUser: true,
+    data: {
+      full_name: fullName,
+    },
+  },
+})
+```
+
+---
+
+## **ALSO - ADD THE ENV VARIABLE**
+
+In your Vercel environment variables, add:
+```
+NEXT_PUBLIC_APP_URL=https://career-journey-mvp.vercel.app
 
       if (error) throw error
 
