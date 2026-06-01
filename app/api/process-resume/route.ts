@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const masterPrompt = `You are an expert résumé strategist and writer. Your task is to transform a candidate's résumé into a compelling, metrics-driven document that follows the structure and visual style of the provided template. Use the candidate's original content to create a polished résumé that will be converted to PDF.
+    const masterPrompt = `You are an expert résumé strategist and writer. Your task is to transform a candidate's résumé into a compelling, metrics-driven executive document that follows a premium two-column résumé template. Use the candidate's original content to create a polished résumé that will be converted to PDF by a locked layout system.
 
 CANDIDATE'S RESUME:
 ${resumeText}
@@ -55,48 +55,47 @@ TRANSFORMATION GUIDELINES:
 
 1. HEADER AND CONTACT INFORMATION:
    - Put the candidate's full name in title case at the top
-   - Include email, phone, and hyperlink to LinkedIn or portfolio
-   - City/state only if in-person work is required
+   - Include location, email, and phone
+   - Do not include labels such as "Email:" or "Phone:"
 
 2. TARGET ROLE:
-   - Add the exact title of the position they're applying for below the contact info to match ATS keywords
+   - Use a concise executive headline for current_title, such as "Business Leader", "Product Leader", "Operations Executive", or the target role when appropriate
+   - Keep it short enough to look premium as a centered headline
 
 3. PROFESSIONAL SUMMARY:
-   - Label this section "PROFESSIONAL SUMMARY"
-   - Write MAXIMUM 2 LINES (not 3-5 lines)
+   - Do NOT label this section "PROFESSIONAL SUMMARY"; the PDF template places it beneath the headline as narrative text
+   - Write 3-4 polished sentences
    - Third-person format
-   - Include 1-2 key metrics wrapped in <strong> tags
+   - Include 1-3 key metrics wrapped in <strong> tags
    - Example: "Strategic HR executive with <strong>27 years</strong> of experience driving organizational transformation and delivering <strong>$21M+</strong> in cost optimization across <strong>10,000+</strong> employee operations."
    - If job descriptions are provided, mirror the key competencies and requirements from those postings in the summary
 
 4. KEY COMPETENCIES:
-   - This section goes in the LEFT COLUMN above "AREAS OF EXPERTISE"
-   - Title it "KEY COMPETENCIES"
-   - List 4-6 core competency categories (e.g., "Strategic Planning", "Change Management", "Talent Development")
+   - These become small blue callout boxes on the first page
+   - List exactly 4 core competency categories (e.g., "Team Building & Development", "Large Account Leadership", "Market Growth Strategy", "Sales & Revenue Growth")
    - Each competency must be SHORT - maximum 2-3 words
-   - If a word doesn't fit on one line, use a shorter synonym
-   - Do NOT break words across lines
 
 5. AREAS OF EXPERTISE / SKILLS:
-   - List 8-10 skills that mirror keywords from the job description
+   - List 14-18 concise skills that mirror keywords from the job description
    - Include AI-related and remote-work competencies if relevant
    - Use the exact terminology from the job posting to optimize ATS matching
    - Tailor this list for each role
-   - Format as "• Skill Name"
+   - Do NOT use bullets; return clean skill names only
    - If job descriptions are provided, extract and prioritize the specific competencies and keywords from those postings
 
 6. CAREER HIGHLIGHTS:
-   - Create 5-7 standout achievements that demonstrate executive-level impact
+   - Create exactly 5 standout achievements that demonstrate executive-level impact
    - These should be the most impressive metrics from their entire career
    - Pull from different time periods and different types of achievements
    - Examples: "Delivered <strong>$2.1M</strong> cost savings", "Reduced turnover by <strong>35%</strong>", "Launched <strong>5</strong> strategic initiatives", "Led <strong>50-person</strong> cross-functional team", "Achieved <strong>98%</strong> compliance rate"
    - WRAP ALL NUMBERS IN <strong> TAGS
-   - These fill the left column - aim for 5-7 items minimum
+   - These appear under the summary as italic copper feature bullets
 
 7. PROFESSIONAL EXPERIENCE:
    - Describe the last 10-15 years of roles in reverse chronological order
    - For each, include company, location, dates, and job title
-   - Use concise bullet points (no more than two lines each) focused on outcomes
+   - Use concise bullet points focused on outcomes
+   - Include 2-4 achievement bullets for the current role and 2-3 bullets for each previous role
    - Quantify scope, revenue growth, cost savings, headcount managed, budgets, client impact, and KPIs exceeded
    - Use active, ownership verbs ("Drove," "Achieved," "Launched," "Spearheaded," "Orchestrated")
    - AVOID passive or generic phrases like "responsible for," "assisted" or "helped"
@@ -108,8 +107,9 @@ TRANSFORMATION GUIDELINES:
    - List degrees and highlight professional development and industry-specific certifications (e.g., AI, PMP, CISSP)
 
 9. LENGTH AND FORMAT:
-   - CRITICAL: Keep the résumé to ONE PAGE ONLY
-   - If content extends to a second page with fewer than 3 lines, reduce bullet points to fit everything on one page
+   - Use a polished executive format that may run 1-2 pages
+   - Do not force senior or executive content into one cramped page
+   - If the résumé is light, keep it to one page; if the candidate has substantial experience, allow two pages
    - Structure the data for clean PDF conversion
    - Enforce a consistent, high-impact format throughout
 
@@ -137,18 +137,17 @@ CRITICAL RULES:
 - Avoid passive language that dilutes the candidate's impact
 - Emphasize quantifiable achievements and leadership throughout
 
-TRANSFORMATION INTENSITY LEVEL: AGGRESSIVE
-- Even if a bullet already mentions metrics, EXPAND IT with more context
-- Every bullet should be 1.5-2 lines long with multiple data points
-- Add context: team size, timeline, percentage improvement, dollar impact
-- Transform "Directed $14M budget" into "Architected and executed $14M operational budget across 5 HR divisions serving 10,000+ employees, delivering 15% cost optimization while maintaining 98% service level agreements"
-- NEVER keep original phrasing - completely rewrite every achievement
+TRANSFORMATION INTENSITY LEVEL: EXECUTIVE AND FACTUAL
+- Rewrite weak phrasing into high-impact language
+- Keep bullets specific, credible, and readable
+- Do not invent metrics or operational scope
+- Add context only when it is clearly supported by the original résumé or job descriptions
 - Ensure every bullet point proves how the candidate creates value and owns outcomes, rather than simply listing tasks
 
-MANDATORY METRICS TO ADD (extract from resume or infer from context):
-- Budget size AND cost savings/optimization percentage
-- Headcount managed AND team size led
-- Timeline/duration AND efficiency improvement
+METRICS TO PRIORITIZE WHEN PRESENT IN THE SOURCE:
+- Budget size and cost savings/optimization percentage
+- Headcount managed and team size led
+- Timeline/duration and efficiency improvement
 - Geographic scope (departments, locations, regions)
 - Compliance rate, satisfaction scores, retention rates
 
@@ -167,33 +166,35 @@ Return ONLY this JSON structure (no markdown, no extra text):
   "phone": "(000) 000-0000",
   "current_title": "${targetTitle}",
   "tagline": "One powerful sentence describing value proposition",
-  "summary": "MAXIMUM 2 LINES with <strong>metrics</strong> bolded in third person",
+  "summary": "3-4 polished executive sentences with <strong>metrics</strong> bolded in third person",
   "key_competencies": [
-    "Strategic Planning",
-    "Change Management", 
-    "Talent Development",
-    "Data Analytics"
+    "Team Building",
+    "Account Leadership", 
+    "Growth Strategy",
+    "Revenue Growth"
   ],
   "expertise": [
-    "• Actual skill 1 extracted from resume",
-    "• Actual skill 2 extracted from resume",
-    "• Actual skill 3 extracted from resume",
-    "• Actual skill 4 extracted from resume",
-    "• Actual skill 5 extracted from resume",
-    "• Actual skill 6 extracted from resume",
-    "• Actual skill 7 extracted from resume",
-    "• Actual skill 8 extracted from resume",
-    "• Actual skill 9 extracted from resume",
-    "• Actual skill 10 extracted from resume"
+    "Actual skill 1 extracted from resume",
+    "Actual skill 2 extracted from resume",
+    "Actual skill 3 extracted from resume",
+    "Actual skill 4 extracted from resume",
+    "Actual skill 5 extracted from resume",
+    "Actual skill 6 extracted from resume",
+    "Actual skill 7 extracted from resume",
+    "Actual skill 8 extracted from resume",
+    "Actual skill 9 extracted from resume",
+    "Actual skill 10 extracted from resume",
+    "Actual skill 11 extracted from resume",
+    "Actual skill 12 extracted from resume",
+    "Actual skill 13 extracted from resume",
+    "Actual skill 14 extracted from resume"
   ],
   "career_highlights": [
     "Delivered <strong>$XXM</strong> cost savings through specific initiative",
     "Reduced metric by <strong>XX%</strong> across scope",
     "Launched <strong>X</strong> strategic programs impacting outcome",
     "Led <strong>XX-person</strong> team achieving result",
-    "Achieved <strong>XX%</strong> compliance/satisfaction/retention rate",
-    "Managed <strong>$XXM</strong> budget delivering outcome",
-    "Spearheaded initiative impacting <strong>X,XXX+</strong> employees"
+    "Achieved <strong>XX%</strong> compliance/satisfaction/retention rate"
   ],
   "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
