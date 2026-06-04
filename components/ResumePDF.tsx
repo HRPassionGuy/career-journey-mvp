@@ -1,5 +1,7 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { Document, Font, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+
+Font.registerHyphenationCallback((word) => [word])
 
 interface Job {
   company: string
@@ -100,11 +102,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   executiveTitle: {
-    fontSize: 20,
+    fontSize: 18,
     color: COPPER,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
+    lineHeight: 1.15,
     textTransform: 'uppercase',
   },
   tagline: {
@@ -205,9 +208,9 @@ const styles = StyleSheet.create({
   },
   sideTags: {
     position: 'absolute',
-    right: 18,
+    right: 14,
     top: 330,
-    width: 78,
+    width: 86,
   },
   sideTag: {
     backgroundColor: STEEL,
