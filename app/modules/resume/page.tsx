@@ -256,18 +256,31 @@ export default function ResumeModulePage() {
     }
   }
 
+  const openOrDownloadBlob = (blob: Blob, fileName: string) => {
+    const url = URL.createObjectURL(blob)
+    const opened = window.open(url, '_blank', 'noopener,noreferrer')
+
+    if (opened) {
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000)
+      return
+    }
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
   const downloadResumePDF = () => {
     if (!results || !results.pdf_blob) {
       alert('No resume available to download')
       return
     }
     
-    const url = URL.createObjectURL(results.pdf_blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'resume.pdf'
-    a.click()
-    URL.revokeObjectURL(url)
+    openOrDownloadBlob(results.pdf_blob, 'resume.pdf')
   }
 
   const downloadVariantPDF = (variantIndex: number) => {
@@ -277,12 +290,7 @@ export default function ResumeModulePage() {
     }
     
     const variant = results.variants[variantIndex]
-    const url = URL.createObjectURL(variant.blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `resume_variant_${variant.variant_number}.pdf`
-    a.click()
-    URL.revokeObjectURL(url)
+    openOrDownloadBlob(variant.blob, `resume_variant_${variant.variant_number}.pdf`)
   }
 
  const downloadJobsExcel = async () => {
