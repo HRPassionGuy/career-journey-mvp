@@ -62,12 +62,15 @@ export default function ResumeModulePage() {
         },
         body: JSON.stringify({
           fileName: resumeFile?.name || 'pasted_resume.txt',
-          fileData: base64File
+          fileData: base64File,
+          targetTitle,
+          location
         })
       })
 
       if (!analysisResponse.ok) {
-        throw new Error('Analysis failed')
+        const errorData = await analysisResponse.json().catch(() => null)
+        throw new Error(errorData?.error || 'Analysis failed')
       }
 
       const analysisData = await analysisResponse.json()
@@ -78,7 +81,7 @@ export default function ResumeModulePage() {
       setStep('analysis')
     } catch (error) {
       console.error('Error:', error)
-      alert('Error analyzing resume. Please try again.')
+      alert(error instanceof Error ? error.message : 'Error analyzing resume. Please try again.')
       setStep('upload')
     } finally {
       setLoading(false)
@@ -118,7 +121,8 @@ export default function ResumeModulePage() {
       })
 
       if (!resumeResponse.ok) {
-        throw new Error('Resume processing failed')
+        const errorData = await resumeResponse.json().catch(() => null)
+        throw new Error(errorData?.error || 'Resume processing failed')
       }
 
       const resumeData = await resumeResponse.json()
@@ -245,7 +249,7 @@ export default function ResumeModulePage() {
       setStep('results')
     } catch (error) {
       console.error('Error:', error)
-      alert('Error processing resume. Please try again.')
+      alert(error instanceof Error ? error.message : 'Error processing resume. Please try again.')
       setStep('analysis')
     } finally {
       setLoading(false)
