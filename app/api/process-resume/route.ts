@@ -73,8 +73,10 @@ TRANSFORMATION GUIDELINES:
    - Do not include labels such as "Email:" or "Phone:"
 
 2. TARGET ROLE:
-   - Use a concise executive headline for current_title, such as "Business Leader", "Product Leader", "Operations Executive", or the target role when appropriate
-   - Keep it short enough to look premium as a centered headline
+   - Use a broad, concise executive headline for current_title, such as "Business Leader", "Customer Experience Leader", "Product Leader", "Operations Leader", or "Sales Leader"
+   - Do NOT use a long job title as the headline
+   - Keep current_title to 2-4 words and under 28 characters whenever possible
+   - The headline must look premium as a centered, all-caps title
 
 3. PROFESSIONAL SUMMARY:
    - Do NOT label this section "PROFESSIONAL SUMMARY"; the PDF template places it beneath the headline as narrative text
@@ -178,7 +180,7 @@ Return ONLY this JSON structure (no markdown, no extra text):
   "location": "City, State",
   "email": "email@example.com",
   "phone": "(000) 000-0000",
-  "current_title": "${targetTitle}",
+  "current_title": "Broad 2-4 word executive headline, not a long job title",
   "tagline": "One powerful sentence describing value proposition",
   "summary": "3-4 polished executive sentences with <strong>metrics</strong> bolded in third person",
   "key_competencies": [
