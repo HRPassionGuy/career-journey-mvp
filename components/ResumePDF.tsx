@@ -300,8 +300,6 @@ const JobBlock = ({ job }: { job: Job }) => (
 
 const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
   const previousJobs = data.previous_jobs || []
-  const firstPreviousJob = previousJobs[0]
-  const remainingPreviousJobs = previousJobs.slice(1)
   const expertise = compact(data.expertise, 18)
   const highlights = compact(data.career_highlights, 5)
   const sideTags = compact(data.key_competencies?.length ? data.key_competencies : data.skill_categories, 4)
@@ -345,7 +343,6 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
         <View style={styles.experienceRow}>
           <View style={styles.experienceMain}>
             <JobBlock job={data.current_job} />
-            {firstPreviousJob && <JobBlock job={firstPreviousJob} />}
           </View>
 
           {sideTags.length > 0 && (
@@ -363,7 +360,7 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
         </View>
       </Page>
 
-      {(remainingPreviousJobs.length > 0 || data.early_career?.length > 0 || data.education?.length > 0) && (
+      {(previousJobs.length > 0 || data.early_career?.length > 0 || data.education?.length > 0) && (
         <Page size="LETTER" style={styles.page}>
           <View style={styles.pageHeader}>
             <Text>{data.name}</Text>
@@ -371,7 +368,7 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
           </View>
 
           <Text style={styles.sectionBar}>Professional Experience</Text>
-          {remainingPreviousJobs.map((job, idx) => (
+          {previousJobs.map((job, idx) => (
             <JobBlock key={idx} job={job} />
           ))}
 
