@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 // @ts-ignore
 import pdf from 'pdf-parse'
+// @ts-ignore
+import mammoth from 'mammoth'
 
 export const runtime = 'nodejs'
 
 async function extractText(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer())
+  const lowerName = file.name.toLowerCase()
   
-  if (file.name.toLowerCase().endsWith('.pdf')) {
+  if (lowerName.endsWith('.pdf')) {
     try {
       const pdfData = await pdf(buffer)
       return pdfData.text
@@ -15,9 +18,18 @@ async function extractText(file: File): Promise<string> {
       console.error('PDF parse error:', err)
       return ''
     }
-  } else {
-    return buffer.toString('utf-8')
   }
+
+  if (lowerName.endsWith('.docx')) {
+    const result = await mammoth.extractRawText({ buffer })
+    return result.value
+  }
+
+  if (lowerName.endsWith('.doc')) {
+    throw new Error('Older .doc files are not supported yet. Please save the resume as a PDF, DOCX, or paste the text.')
+  }
+
+  return buffer.toString('utf-8')
 }
 
 export async function POST(request: NextRequest) {
@@ -29,7 +41,9 @@ export async function POST(request: NextRequest) {
     if (!resume) return NextResponse.json({ error: 'Resume required' }, { status: 400 })
 
     const resumeText = await extractText(resume)
-    if (!resumeText) throw new Error('Could not read resume')
+    if (!resumeText || resumeText.trim().length < 100) {
+      throw new Error('Could not extract enough text from the resume. Please use a text-based PDF, DOCX, TXT, or paste the resume text directly.')
+    }
 
     // Extract job descriptions
     const jobDescFiles = formData.getAll('jobDescriptions') as File[]
