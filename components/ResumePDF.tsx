@@ -34,229 +34,250 @@ const NAVY = '#284564'
 const STEEL = '#89A3C7'
 const LIGHT_BLUE = '#EEF4FB'
 const COPPER = '#A64F13'
-const INK = '#1F2933'
+const INK = '#111111'
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 26,
-    paddingBottom: 30,
+    paddingTop: 31,
+    paddingBottom: 32,
     paddingHorizontal: 36,
-    fontSize: 9.4,
     fontFamily: 'Helvetica',
     color: INK,
-    lineHeight: 1.28,
   },
-  topBanner: {
+  banner: {
+    height: 70,
     backgroundColor: NAVY,
-    marginTop: -26,
-    marginHorizontal: -36,
-    paddingTop: 10,
-    paddingBottom: 8,
+    borderWidth: 1,
+    borderColor: '#B8C3D0',
     alignItems: 'center',
+    paddingTop: 10,
+    marginBottom: 18,
   },
   namePlate: {
+    width: 232,
+    height: 34,
     backgroundColor: 'white',
-    paddingVertical: 6,
-    paddingHorizontal: 46,
-    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 9,
   },
   name: {
+    color: NAVY,
     fontSize: 18,
     fontWeight: 'bold',
-    color: NAVY,
+    letterSpacing: 1.3,
     textTransform: 'uppercase',
   },
   contact: {
-    fontSize: 9.5,
     color: 'white',
+    fontSize: 11,
     fontWeight: 'bold',
   },
-  intro: {
+  profileRegion: {
+    height: 384,
     flexDirection: 'row',
-    marginTop: 16,
-    marginBottom: 13,
-  },
-  leftColumn: {
-    width: 176,
-    marginRight: 24,
+    marginBottom: 14,
   },
   expertisePanel: {
+    width: 162,
+    height: 380,
     backgroundColor: LIGHT_BLUE,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingTop: 12,
+    paddingHorizontal: 8,
   },
-  sidebarTitle: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-  },
-  expertiseItem: {
-    fontSize: 9,
-    textAlign: 'center',
-    marginBottom: 3.5,
-    lineHeight: 1.2,
-  },
-  mainIntro: {
-    flex: 1,
-  },
-  executiveTitle: {
-    fontSize: 18,
-    color: COPPER,
+  expertiseTitle: {
+    fontSize: 9.2,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
-    lineHeight: 1.15,
     textTransform: 'uppercase',
   },
-  tagline: {
-    fontSize: 9.5,
-    fontStyle: 'italic',
-    fontWeight: 'bold',
+  expertiseItem: {
+    fontSize: 10,
+    lineHeight: 1.38,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 1.6,
+  },
+  profileMain: {
+    flex: 1,
+    paddingLeft: 8,
+  },
+  executiveTitle: {
+    color: COPPER,
+    fontSize: 21,
+    fontWeight: 'bold',
+    letterSpacing: 1.8,
+    lineHeight: 1.05,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  tagline: {
+    fontSize: 10.2,
+    fontWeight: 'bold',
+    fontStyle: 'italic',
     lineHeight: 1.35,
+    textAlign: 'center',
+    marginHorizontal: 24,
+    marginBottom: 13,
   },
   summary: {
-    fontSize: 9.5,
+    fontSize: 10.15,
+    lineHeight: 1.55,
     textAlign: 'justify',
-    lineHeight: 1.45,
-    marginBottom: 10,
+    marginBottom: 16,
   },
   highlightRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 5.2,
   },
   highlightRule: {
-    width: 18,
+    width: 21,
     borderTopWidth: 1,
     borderTopColor: COPPER,
-    borderTopStyle: 'solid',
-    marginTop: 5,
-    marginRight: 8,
+    marginTop: 6,
+    marginRight: 9,
   },
   highlightText: {
     flex: 1,
     color: COPPER,
-    fontSize: 9.2,
-    fontStyle: 'italic',
+    fontSize: 9.8,
     fontWeight: 'bold',
-    lineHeight: 1.3,
+    fontStyle: 'italic',
+    lineHeight: 1.32,
   },
   sectionBar: {
+    height: 27,
     backgroundColor: NAVY,
+    borderWidth: 1,
+    borderColor: '#B8C3D0',
     color: 'white',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
+    letterSpacing: 2,
     textAlign: 'center',
-    paddingVertical: 5,
-    marginTop: 2,
-    marginBottom: 10,
+    paddingTop: 6,
     textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  firstExperience: {
+    position: 'relative',
+    minHeight: 300,
+  },
+  firstExperienceText: {
+    paddingHorizontal: 2,
+    paddingRight: 138,
+  },
+  continuationExperience: {
+    paddingHorizontal: 1,
   },
   job: {
-    marginBottom: 9,
-  },
-  jobHeader: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 3,
+    marginBottom: 11,
   },
   company: {
-    fontSize: 9.4,
+    fontSize: 10.3,
     fontWeight: 'bold',
-    textTransform: 'uppercase',
+    letterSpacing: 1.7,
+    lineHeight: 1.15,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    marginBottom: 4,
   },
   jobTitle: {
-    fontSize: 9.2,
-    fontStyle: 'italic',
+    fontSize: 10.2,
     fontWeight: 'bold',
+    fontStyle: 'italic',
+    lineHeight: 1.2,
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   jobDesc: {
-    fontSize: 9.2,
+    fontSize: 10.1,
+    lineHeight: 1.31,
     textAlign: 'justify',
-    lineHeight: 1.35,
     marginBottom: 5,
   },
   achievementRow: {
     flexDirection: 'row',
-    marginBottom: 3.5,
-    paddingLeft: 8,
+    marginBottom: 4,
+    paddingLeft: 9,
   },
   bullet: {
-    width: 10,
-    fontSize: 9,
+    width: 13,
+    fontSize: 10,
+    lineHeight: 1.25,
   },
   achievementText: {
     flex: 1,
-    fontSize: 9.1,
-    textAlign: 'justify',
+    fontSize: 9.95,
     lineHeight: 1.3,
+    textAlign: 'justify',
+  },
+  calloutRail: {
+    position: 'absolute',
+    right: 17,
+    top: 128,
+    width: 88,
+  },
+  callout: {
+    minHeight: 44,
+    backgroundColor: STEEL,
+    color: 'white',
+    fontSize: 10,
+    lineHeight: 1.18,
+    textAlign: 'center',
+    paddingTop: 8,
+    paddingHorizontal: 5,
+    marginBottom: 11,
+  },
+  calloutDark: {
+    backgroundColor: '#5E83BA',
   },
   pageHeader: {
-    marginTop: -14,
-    marginBottom: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     fontSize: 9,
-    color: INK,
     fontWeight: 'bold',
+    marginTop: -6,
+    marginBottom: 14,
   },
-  sideTags: {
-    width: 86,
-    marginLeft: 16,
-    marginTop: 132,
-  },
-  sideTag: {
-    backgroundColor: STEEL,
-    color: 'white',
-    fontSize: 8.6,
-    textAlign: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 4,
-    marginBottom: 10,
-    lineHeight: 1.15,
-  },
-  sideTagDark: {
-    backgroundColor: '#5F83B5',
+  simpleSection: {
+    marginTop: 5,
   },
   simpleItem: {
-    fontSize: 9,
+    fontSize: 9.6,
+    lineHeight: 1.35,
     marginBottom: 4,
-    lineHeight: 1.28,
-  },
-  footerSpace: {
-    height: 6,
-  },
-  experienceRow: {
-    flexDirection: 'row',
-  },
-  experienceMain: {
-    flex: 1,
   },
 })
 
-const stripHTML = (text: string): string => {
+const stripHTML = (text?: string): string => {
   if (!text) return ''
   return text
     .replace(/<\/?strong>/g, '')
     .replace(/^•\s*/, '')
+    .replace(/\s+/g, ' ')
     .trim()
 }
 
-const compact = (items?: string[], limit = 0): string[] => {
+const truncate = (text: string, limit: number): string => {
+  const clean = stripHTML(text)
+  if (clean.length <= limit) return clean
+  const sliced = clean.slice(0, limit - 1)
+  const lastSpace = sliced.lastIndexOf(' ')
+  return `${sliced.slice(0, lastSpace > 80 ? lastSpace : limit - 1).trim()}.`
+}
+
+const compact = (items?: string[], limit = 0, charLimit = 0): string[] => {
   const cleaned = (items || []).map(stripHTML).filter(Boolean)
-  return limit > 0 ? cleaned.slice(0, limit) : cleaned
+  const limited = limit > 0 ? cleaned.slice(0, limit) : cleaned
+  return charLimit > 0 ? limited.map((item) => truncate(item, charLimit)) : limited
 }
 
 const normalizeTitle = (title: string): string => {
   if (!title) return 'Business Leader'
-  const clean = title.replace(/\s+/g, ' ').trim()
-  if (clean.length <= 28) return clean
+  const clean = stripHTML(title)
+  if (clean.length <= 26) return clean
 
   const lower = clean.toLowerCase()
   if (lower.includes('customer') || lower.includes('contact center') || lower.includes('client service')) {
@@ -269,67 +290,77 @@ const normalizeTitle = (title: string): string => {
   if (lower.includes('sales') || lower.includes('revenue')) return 'Sales Leader'
   if (lower.includes('technology') || lower.includes('digital')) return 'Technology Leader'
 
-  return clean.replace(/\b(Senior|Executive|Director|Manager)\b/gi, '').replace(/\s+/g, ' ').trim() || 'Business Leader'
+  return 'Business Leader'
 }
 
-const BulletList = ({ items }: { items: string[] }) => (
+const formatCompany = (job: Job): string => (
+  [job.company, job.location, job.dates].map(stripHTML).filter(Boolean).join(' • ')
+)
+
+const BulletList = ({ items, limit = 3, charLimit = 190 }: { items: string[], limit?: number, charLimit?: number }) => (
   <>
-    {items.map((item, idx) => (
+    {compact(items, limit, charLimit).map((item, idx) => (
       <View key={idx} style={styles.achievementRow}>
         <Text style={styles.bullet}>•</Text>
-        <Text style={styles.achievementText}>{stripHTML(item)}</Text>
+        <Text style={styles.achievementText}>{item}</Text>
       </View>
     ))}
   </>
 )
 
-const JobBlock = ({ job }: { job: Job }) => (
+const JobBlock = ({
+  job,
+  descriptionLimit = 560,
+  bulletLimit = 3,
+  bulletCharLimit = 190,
+}: {
+  job: Job,
+  descriptionLimit?: number,
+  bulletLimit?: number,
+  bulletCharLimit?: number,
+}) => (
   <View style={styles.job}>
-    <View style={styles.jobHeader}>
-      <Text style={styles.company}>
-        {job.company} • {job.location} • {job.dates}
-      </Text>
-    </View>
-    <Text style={styles.jobTitle}>{job.title}</Text>
-    {job.description && (
-      <Text style={styles.jobDesc}>{stripHTML(job.description)}</Text>
+    <Text style={styles.company}>{formatCompany(job)}</Text>
+    <Text style={styles.jobTitle}>{truncate(job.title, 95)}</Text>
+    {job.description && descriptionLimit > 0 && (
+      <Text style={styles.jobDesc}>{truncate(job.description, descriptionLimit)}</Text>
     )}
-    <BulletList items={job.achievements || []} />
+    <BulletList items={job.achievements || []} limit={bulletLimit} charLimit={bulletCharLimit} />
   </View>
 )
 
 const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
+  const expertise = compact(data.expertise, 19, 34)
+  const highlights = compact(data.career_highlights, 5, 150)
+  const sideTags = compact(data.key_competencies?.length ? data.key_competencies : data.skill_categories, 4, 28)
   const previousJobs = data.previous_jobs || []
-  const expertise = compact(data.expertise, 18)
-  const highlights = compact(data.career_highlights, 5)
-  const sideTags = compact(data.key_competencies?.length ? data.key_competencies : data.skill_categories, 4)
 
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
-        <View style={styles.topBanner}>
+        <View style={styles.banner}>
           <View style={styles.namePlate}>
-            <Text style={styles.name}>{data.name}</Text>
+            <Text style={styles.name}>{truncate(data.name, 30)}</Text>
           </View>
           <Text style={styles.contact}>
-            {data.location} • {data.email} • {data.phone}
+            {truncate([data.location, data.email, data.phone].map(stripHTML).filter(Boolean).join(' • '), 90)}
           </Text>
         </View>
 
-        <View style={styles.intro}>
-          <View style={styles.leftColumn}>
-            <View style={styles.expertisePanel}>
-              <Text style={styles.sidebarTitle}>Areas of Expertise</Text>
-              {expertise.map((skill, idx) => (
-                <Text key={idx} style={styles.expertiseItem}>{skill}</Text>
-              ))}
-            </View>
+        <View style={styles.profileRegion}>
+          <View style={styles.expertisePanel}>
+            <Text style={styles.expertiseTitle}>Areas of Expertise</Text>
+            {expertise.map((skill, idx) => (
+              <Text key={idx} style={styles.expertiseItem}>{skill}</Text>
+            ))}
           </View>
 
-          <View style={styles.mainIntro}>
+          <View style={styles.profileMain}>
             <Text style={styles.executiveTitle}>{normalizeTitle(data.current_title)}</Text>
-            {data.tagline && <Text style={styles.tagline}>{stripHTML(data.tagline)}</Text>}
-            <Text style={styles.summary}>{stripHTML(data.summary)}</Text>
+            {data.tagline && (
+              <Text style={styles.tagline}>{truncate(data.tagline, 150)}</Text>
+            )}
+            <Text style={styles.summary}>{truncate(data.summary, 690)}</Text>
             {highlights.map((highlight, idx) => (
               <View key={idx} style={styles.highlightRow}>
                 <View style={styles.highlightRule} />
@@ -340,18 +371,19 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
         </View>
 
         <Text style={styles.sectionBar}>Professional Experience</Text>
-        <View style={styles.experienceRow}>
-          <View style={styles.experienceMain}>
-            <JobBlock job={data.current_job} />
+        <View style={styles.firstExperience}>
+          <View style={styles.firstExperienceText}>
+            <JobBlock
+              job={data.current_job}
+              descriptionLimit={720}
+              bulletLimit={3}
+              bulletCharLimit={210}
+            />
           </View>
-
           {sideTags.length > 0 && (
-            <View style={styles.sideTags}>
+            <View style={styles.calloutRail}>
               {sideTags.map((tag, idx) => (
-                <Text
-                  key={idx}
-                  style={[styles.sideTag, idx < 2 ? styles.sideTagDark : {}]}
-                >
+                <Text key={idx} style={[styles.callout, idx < 2 ? styles.calloutDark : {}]}>
                   {tag}
                 </Text>
               ))}
@@ -363,33 +395,40 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
       {(previousJobs.length > 0 || data.early_career?.length > 0 || data.education?.length > 0) && (
         <Page size="LETTER" style={styles.page}>
           <View style={styles.pageHeader}>
-            <Text>{data.name}</Text>
+            <Text>{truncate(data.name, 45)}</Text>
             <Text>PAGE 2</Text>
           </View>
 
           <Text style={styles.sectionBar}>Professional Experience</Text>
-          {previousJobs.map((job, idx) => (
-            <JobBlock key={idx} job={job} />
-          ))}
+          <View style={styles.continuationExperience}>
+            {previousJobs.map((job, idx) => (
+              <JobBlock
+                key={idx}
+                job={job}
+                descriptionLimit={idx === 0 ? 260 : 0}
+                bulletLimit={idx === 0 ? 3 : 2}
+                bulletCharLimit={175}
+              />
+            ))}
+          </View>
 
           {data.early_career?.length > 0 && (
-            <>
+            <View style={styles.simpleSection}>
               <Text style={styles.sectionBar}>Early Career</Text>
-              {compact(data.early_career).map((item, idx) => (
+              {compact(data.early_career, 3, 120).map((item, idx) => (
                 <Text key={idx} style={styles.simpleItem}>{item}</Text>
               ))}
-            </>
+            </View>
           )}
 
           {data.education?.length > 0 && (
-            <>
+            <View style={styles.simpleSection}>
               <Text style={styles.sectionBar}>Education & Professional Development</Text>
-              {compact(data.education).map((item, idx) => (
+              {compact(data.education, 5, 130).map((item, idx) => (
                 <Text key={idx} style={styles.simpleItem}>{item}</Text>
               ))}
-            </>
+            </View>
           )}
-          <View style={styles.footerSpace} />
         </Page>
       )}
     </Document>
