@@ -207,10 +207,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   sideTags: {
-    position: 'absolute',
-    right: 14,
-    top: 330,
     width: 86,
+    marginLeft: 16,
+    marginTop: 132,
   },
   sideTag: {
     backgroundColor: STEEL,
@@ -233,6 +232,12 @@ const styles = StyleSheet.create({
   footerSpace: {
     height: 6,
   },
+  experienceRow: {
+    flexDirection: 'row',
+  },
+  experienceMain: {
+    flex: 1,
+  },
 })
 
 const stripHTML = (text: string): string => {
@@ -250,7 +255,21 @@ const compact = (items?: string[], limit = 0): string[] => {
 
 const normalizeTitle = (title: string): string => {
   if (!title) return 'Business Leader'
-  return title.replace(/\s+/g, ' ').trim()
+  const clean = title.replace(/\s+/g, ' ').trim()
+  if (clean.length <= 28) return clean
+
+  const lower = clean.toLowerCase()
+  if (lower.includes('customer') || lower.includes('contact center') || lower.includes('client service')) {
+    return 'Customer Experience Leader'
+  }
+  if (lower.includes('human resources') || lower.includes('people') || lower.includes('talent')) {
+    return 'Human Resources Leader'
+  }
+  if (lower.includes('operation')) return 'Operations Leader'
+  if (lower.includes('sales') || lower.includes('revenue')) return 'Sales Leader'
+  if (lower.includes('technology') || lower.includes('digital')) return 'Technology Leader'
+
+  return clean.replace(/\b(Senior|Executive|Director|Manager)\b/gi, '').replace(/\s+/g, ' ').trim() || 'Business Leader'
 }
 
 const BulletList = ({ items }: { items: string[] }) => (
@@ -323,21 +342,25 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
         </View>
 
         <Text style={styles.sectionBar}>Professional Experience</Text>
-        <JobBlock job={data.current_job} />
-        {firstPreviousJob && <JobBlock job={firstPreviousJob} />}
-
-        {sideTags.length > 0 && (
-          <View style={styles.sideTags}>
-            {sideTags.map((tag, idx) => (
-              <Text
-                key={idx}
-                style={[styles.sideTag, idx < 2 ? styles.sideTagDark : {}]}
-              >
-                {tag}
-              </Text>
-            ))}
+        <View style={styles.experienceRow}>
+          <View style={styles.experienceMain}>
+            <JobBlock job={data.current_job} />
+            {firstPreviousJob && <JobBlock job={firstPreviousJob} />}
           </View>
-        )}
+
+          {sideTags.length > 0 && (
+            <View style={styles.sideTags}>
+              {sideTags.map((tag, idx) => (
+                <Text
+                  key={idx}
+                  style={[styles.sideTag, idx < 2 ? styles.sideTagDark : {}]}
+                >
+                  {tag}
+                </Text>
+              ))}
+            </View>
+          )}
+        </View>
       </Page>
 
       {(remainingPreviousJobs.length > 0 || data.early_career?.length > 0 || data.education?.length > 0) && (
