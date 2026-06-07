@@ -6,6 +6,23 @@ import mammoth from 'mammoth'
 
 export const runtime = 'nodejs'
 
+async function fetchAnthropic(init: RequestInit): Promise<Response> {
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      return await fetch('https://api.anthropic.com/v1/messages', init)
+    } catch (error) {
+      lastError = error
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1500))
+      }
+    }
+  }
+
+  throw lastError
+}
+
 async function extractText(buffer: Buffer, fileName: string): Promise<string> {
   const lowerName = fileName.toLowerCase()
 
@@ -42,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Call Anthropic API
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +79,7 @@ ${resumeText}
 Provide:
 1. Key strengths
 2. Areas for improvement
-3. Recommended keywords for ${targetTitle || 'the target role'}
+3. Recommended keywords for ${targetTitle}
 4. Target roles this resume qualifies for
 
 Return ONLY valid JSON (no markdown):
