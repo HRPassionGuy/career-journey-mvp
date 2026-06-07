@@ -6,6 +6,23 @@ import mammoth from 'mammoth'
 
 export const runtime = 'nodejs'
 
+async function fetchAnthropic(init: RequestInit): Promise<Response> {
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      return await fetch('https://api.anthropic.com/v1/messages', init)
+    } catch (error) {
+      lastError = error
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1500))
+      }
+    }
+  }
+
+  throw lastError
+}
+
 async function extractText(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer())
   const lowerName = file.name.toLowerCase()
@@ -253,7 +270,7 @@ Return ONLY this JSON structure (no markdown, no extra text):
   }
 }`
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -297,7 +314,7 @@ YOUR TASK:
 
 Return the SAME JSON structure but tailored for this specific role.`
 
-      const variantResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      const variantResponse = await fetchAnthropic({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
