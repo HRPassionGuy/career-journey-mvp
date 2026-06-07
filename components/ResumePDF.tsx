@@ -395,7 +395,7 @@ const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
 
   return (
     <Document>
-      <Page size="LETTER" style={styles.pageOne} wrap={false}>
+      <Page size="LETTER" style={styles.pageOne}>
         <View style={styles.banner} wrap={false}>
           <View style={styles.namePlate} wrap={false}>
             <Text style={styles.name}>{truncate(data.name, 34)}</Text>
