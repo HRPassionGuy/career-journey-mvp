@@ -1,6 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
 // @ts-ignore
 import pdf from 'pdf-parse'
+// @ts-ignore
+import mammoth from 'mammoth'
+
+export const runtime = 'nodejs'
+
+async function fetchAnthropic(init: RequestInit): Promise<Response> {
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      return await fetch('https://api.anthropic.com/v1/messages', init)
+    } catch (error) {
+      lastError = error
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1500))
+      }
+    }
+  }
+
+  throw lastError
+}
+
+async function extractText(buffer: Buffer, fileName: string): Promise<string> {
+  const lowerName = fileName.toLowerCase()
+
+  if (lowerName.endsWith('.pdf')) {
+    const pdfData = await pdf(buffer)
+    return pdfData.text
+  }
+
+  if (lowerName.endsWith('.docx')) {
+    const result = await mammoth.extractRawText({ buffer })
+    return result.value
+  }
+
+  if (lowerName.endsWith('.doc')) {
+    throw new Error('Older .doc files are not supported yet. Please save the resume as a PDF, DOCX, or paste the text.')
+  }
+
+  return buffer.toString('utf-8')
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,25 +50,16 @@ export async function POST(request: NextRequest) {
     // Convert base64 to buffer
     const buffer = Buffer.from(fileData, 'base64')
     
-    // Extract text from PDF
-    let resumeText = ''
-    
-    if (fileName.toLowerCase().endsWith('.pdf')) {
-      const pdfData = await pdf(buffer)
-      resumeText = pdfData.text
-    } else {
-      // For .txt, .doc, .docx files
-      resumeText = buffer.toString('utf-8')
-    }
+    const resumeText = await extractText(buffer, fileName)
     
     if (!resumeText || resumeText.trim().length < 100) {
       return NextResponse.json({
-        error: 'Could not extract text from file. Please ensure it\'s not a scanned image or password-protected.'
+        error: 'Could not extract enough text from the resume. Please use a text-based PDF, DOCX, TXT, or paste the resume text directly.'
       }, { status: 400 })
     }
     
     // Call Anthropic API
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -39,7 +71,7 @@ export async function POST(request: NextRequest) {
         max_tokens: 4000,
         messages: [{
           role: 'user',
-          content: `Analyze this resume for a ${targetTitle} role in ${location}.
+          content: `Analyze this resume for a ${targetTitle || 'target'} role in ${location || 'the target location'}.
 
 RESUME:
 ${resumeText}
@@ -74,7 +106,7 @@ Return ONLY valid JSON (no markdown):
   } catch (error) {
     console.error('Resume Analysis API Error:', error)
     return NextResponse.json({ 
-      error: 'Analysis failed', 
+      error: error instanceof Error ? error.message : 'Analysis failed', 
       message: error instanceof Error ? error.message : 'Unknown error' 
     }, { status: 500 })
   }

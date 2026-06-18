@@ -62,12 +62,15 @@ export default function ResumeModulePage() {
         },
         body: JSON.stringify({
           fileName: resumeFile?.name || 'pasted_resume.txt',
-          fileData: base64File
+          fileData: base64File,
+          targetTitle,
+          location
         })
       })
 
       if (!analysisResponse.ok) {
-        throw new Error('Analysis failed')
+        const errorData = await analysisResponse.json().catch(() => null)
+        throw new Error(errorData?.error || 'Analysis failed')
       }
 
       const analysisData = await analysisResponse.json()
@@ -78,7 +81,7 @@ export default function ResumeModulePage() {
       setStep('analysis')
     } catch (error) {
       console.error('Error:', error)
-      alert('Error analyzing resume. Please try again.')
+      alert(error instanceof Error ? error.message : 'Error analyzing resume. Please try again.')
       setStep('upload')
     } finally {
       setLoading(false)
@@ -118,7 +121,8 @@ export default function ResumeModulePage() {
       })
 
       if (!resumeResponse.ok) {
-        throw new Error('Resume processing failed')
+        const errorData = await resumeResponse.json().catch(() => null)
+        throw new Error(errorData?.error || 'Resume processing failed')
       }
 
       const resumeData = await resumeResponse.json()
@@ -245,11 +249,29 @@ export default function ResumeModulePage() {
       setStep('results')
     } catch (error) {
       console.error('Error:', error)
-      alert('Error processing resume. Please try again.')
+      alert(error instanceof Error ? error.message : 'Error processing resume. Please try again.')
       setStep('analysis')
     } finally {
       setLoading(false)
     }
+  }
+
+  const openOrDownloadBlob = (blob: Blob, fileName: string) => {
+    const url = URL.createObjectURL(blob)
+    const opened = window.open(url, '_blank', 'noopener,noreferrer')
+
+    if (opened) {
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000)
+      return
+    }
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   const downloadResumePDF = () => {
@@ -258,12 +280,7 @@ export default function ResumeModulePage() {
       return
     }
     
-    const url = URL.createObjectURL(results.pdf_blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'resume.pdf'
-    a.click()
-    URL.revokeObjectURL(url)
+    openOrDownloadBlob(results.pdf_blob, 'resume.pdf')
   }
 
   const downloadVariantPDF = (variantIndex: number) => {
@@ -273,12 +290,7 @@ export default function ResumeModulePage() {
     }
     
     const variant = results.variants[variantIndex]
-    const url = URL.createObjectURL(variant.blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `resume_variant_${variant.variant_number}.pdf`
-    a.click()
-    URL.revokeObjectURL(url)
+    openOrDownloadBlob(variant.blob, `resume_variant_${variant.variant_number}.pdf`)
   }
 
  const downloadJobsExcel = async () => {

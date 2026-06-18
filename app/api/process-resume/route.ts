@@ -1,23 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 // @ts-ignore
 import pdf from 'pdf-parse'
+// @ts-ignore
+import mammoth from 'mammoth'
 
 export const runtime = 'nodejs'
 
+async function fetchAnthropic(init: RequestInit): Promise<Response> {
+  let lastError: unknown
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try { return await fetch('https://api.anthropic.com/v1/messages', init) }
+    catch (error) {
+      lastError = error
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 1500))
+    }
+  }
+  throw lastError
+}
+
 async function extractText(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer())
-  
-  if (file.name.toLowerCase().endsWith('.pdf')) {
-    try {
-      const pdfData = await pdf(buffer)
-      return pdfData.text
-    } catch (err) {
-      console.error('PDF parse error:', err)
-      return ''
-    }
-  } else {
-    return buffer.toString('utf-8')
+  const lowerName = file.name.toLowerCase()
+  if (lowerName.endsWith('.pdf')) {
+    try { const pdfData = await pdf(buffer); return pdfData.text }
+    catch (err) { console.error('PDF parse error:', err); return '' }
   }
+  if (lowerName.endsWith('.docx')) { const result = await mammoth.extractRawText({ buffer }); return result.value }
+  if (lowerName.endsWith('.doc')) throw new Error('Older .doc files are not supported yet. Please save the resume as a PDF, DOCX, or paste the text.')
+  return buffer.toString('utf-8')
 }
 
 export async function POST(request: NextRequest) {
@@ -25,208 +35,68 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const resume = formData.get('resume') as File
     const targetTitle = formData.get('targetTitle') as string || 'Executive Leader'
-
     if (!resume) return NextResponse.json({ error: 'Resume required' }, { status: 400 })
-
     const resumeText = await extractText(resume)
-    if (!resumeText) throw new Error('Could not read resume')
+    if (!resumeText || resumeText.trim().length < 100) throw new Error('Could not extract enough text from the resume. Please use a text-based PDF, DOCX, TXT, or paste the resume text directly.')
 
-    // Extract job descriptions
     const jobDescFiles = formData.getAll('jobDescriptions') as File[]
     const jobDescriptions: string[] = []
-    
     for (const file of jobDescFiles.slice(0, 5)) {
-      if (file && file.size > 0) {
-        const text = await extractText(file)
-        if (text) jobDescriptions.push(text)
-      }
+      if (file && file.size > 0) { const text = await extractText(file); if (text) jobDescriptions.push(text) }
     }
 
-    const masterPrompt = `You are an expert résumé strategist and writer. Your task is to transform a candidate's résumé into a compelling, metrics-driven document that follows the structure and visual style of the provided template. Use the candidate's original content to create a polished résumé that will be converted to PDF.
+    const masterPrompt = `You are an expert résumé strategist and writer. Transform the candidate's résumé into a compelling, factual executive document for a locked premium template.
 
 CANDIDATE'S RESUME:
 ${resumeText}
 
 TARGET ROLE: ${targetTitle}
+JOB DESCRIPTIONS PROVIDED: ${jobDescriptions.length > 0 ? 'YES - tailor to them' : 'NO'}
 
-JOB DESCRIPTIONS PROVIDED: ${jobDescriptions.length > 0 ? 'YES - Use these to tailor the resume' : 'NO - Use target title and resume content'}
-
-TRANSFORMATION GUIDELINES:
-
-1. HEADER AND CONTACT INFORMATION:
-   - Put the candidate's full name in title case at the top
-   - Include email, phone, and hyperlink to LinkedIn or portfolio
-   - City/state only if in-person work is required
-
-2. TARGET ROLE:
-   - Add the exact title of the position they're applying for below the contact info to match ATS keywords
-
-3. PROFESSIONAL SUMMARY:
-   - Label this section "PROFESSIONAL SUMMARY"
-   - Write MAXIMUM 2 LINES (not 3-5 lines)
-   - Third-person format
-   - Include 1-2 key metrics wrapped in <strong> tags
-   - Example: "Strategic HR executive with <strong>27 years</strong> of experience driving organizational transformation and delivering <strong>$21M+</strong> in cost optimization across <strong>10,000+</strong> employee operations."
-   - If job descriptions are provided, mirror the key competencies and requirements from those postings in the summary
-
-4. KEY COMPETENCIES:
-   - This section goes in the LEFT COLUMN above "AREAS OF EXPERTISE"
-   - Title it "KEY COMPETENCIES"
-   - List 4-6 core competency categories (e.g., "Strategic Planning", "Change Management", "Talent Development")
-   - Each competency must be SHORT - maximum 2-3 words
-   - If a word doesn't fit on one line, use a shorter synonym
-   - Do NOT break words across lines
-
-5. AREAS OF EXPERTISE / SKILLS:
-   - List 8-10 skills that mirror keywords from the job description
-   - Include AI-related and remote-work competencies if relevant
-   - Use the exact terminology from the job posting to optimize ATS matching
-   - Tailor this list for each role
-   - Format as "• Skill Name"
-   - If job descriptions are provided, extract and prioritize the specific competencies and keywords from those postings
-
-6. CAREER HIGHLIGHTS:
-   - Create 5-7 standout achievements that demonstrate executive-level impact
-   - These should be the most impressive metrics from their entire career
-   - Pull from different time periods and different types of achievements
-   - Examples: "Delivered <strong>$2.1M</strong> cost savings", "Reduced turnover by <strong>35%</strong>", "Launched <strong>5</strong> strategic initiatives", "Led <strong>50-person</strong> cross-functional team", "Achieved <strong>98%</strong> compliance rate"
-   - WRAP ALL NUMBERS IN <strong> TAGS
-   - These fill the left column - aim for 5-7 items minimum
-
-7. PROFESSIONAL EXPERIENCE:
-   - Describe the last 10-15 years of roles in reverse chronological order
-   - For each, include company, location, dates, and job title
-   - Use concise bullet points (no more than two lines each) focused on outcomes
-   - Quantify scope, revenue growth, cost savings, headcount managed, budgets, client impact, and KPIs exceeded
-   - Use active, ownership verbs ("Drove," "Achieved," "Launched," "Spearheaded," "Orchestrated")
-   - AVOID passive or generic phrases like "responsible for," "assisted" or "helped"
-   - Showcase entrepreneurial mindset, leadership, and self-motivation, particularly if targeting remote roles
-   - WRAP ALL NUMBERS IN <strong> TAGS
-   - If job descriptions are provided, adjust experience bullets to mirror the specific needs and requirements from those postings
-
-8. EDUCATION AND CERTIFICATIONS:
-   - List degrees and highlight professional development and industry-specific certifications (e.g., AI, PMP, CISSP)
-
-9. LENGTH AND FORMAT:
-   - CRITICAL: Keep the résumé to ONE PAGE ONLY
-   - If content extends to a second page with fewer than 3 lines, reduce bullet points to fit everything on one page
-   - Structure the data for clean PDF conversion
-   - Enforce a consistent, high-impact format throughout
-
-TRANSFORMATION EXAMPLES:
-
-BAD: "Managed team and responsible for budget oversight"
-GOOD: "Led <strong>15-person</strong> cross-functional team delivering <strong>$2.5M</strong> project <strong>20%</strong> under budget"
-
-BAD: "Assisted with sales initiatives"
-GOOD: "Drove <strong>$4.2M</strong> in new revenue by launching strategic partnership program across <strong>3</strong> markets"
-
-BAD: "Worked on customer satisfaction"
-GOOD: "Achieved <strong>95%</strong> customer retention rate managing <strong>200+</strong> enterprise accounts worth <strong>$50M</strong> ARR"
-
-BAD: "Responsible for HR operations"
-GOOD: "Spearheaded HR operations for <strong>10,000+</strong> employees managing <strong>$14M</strong> annual budget"
+CONTENT CONTRACT:
+1. HEADER: Extract the exact full name, location, email, and phone. Do not add labels.
+2. HEADLINE: current_title must be a broad 2-4 word executive headline under 28 characters when possible, such as Business Leader, Customer Experience Leader, Operations Leader, Sales Leader, or Human Resources Leader. Do not use a long job title.
+3. TAGLINE: One strong sentence, 90-150 characters.
+4. SUMMARY: 3-4 polished third-person sentences totaling 450-600 characters. Include 1-3 source-supported metrics wrapped in <strong> tags. Do not label it Professional Summary.
+5. KEY COMPETENCIES: Exactly 4 categories for blue callout boxes. Each must be 2-3 words and no more than 30 characters.
+6. EXPERTISE: Exactly 18 skills. Each must be 2-5 words and no more than 38 characters. Use job-posting terminology when provided. Return clean skill names without bullets.
+7. CAREER HIGHLIGHTS: Exactly 5 source-supported executive achievements from different parts of the career. Each must be 85-135 characters so the five highlights fill the designed feature area. Wrap every number in <strong> tags.
+8. CURRENT ROLE: Write a 300-450 character scope paragraph and exactly 3 achievement bullets. Each bullet must be 120-185 characters and focus on outcomes, leadership, scope, and source-supported metrics.
+9. PREVIOUS ROLES: Cover the last 10-15 years in reverse chronological order with 2-3 concise achievement bullets each.
+10. EDUCATION: Include actual degrees, certifications, and professional development.
 
 CRITICAL RULES:
-- Extract ACTUAL data from their resume (names, companies, dates, numbers)
-- DO NOT INVENT any information
-- WRAP EVERY NUMBER in <strong> tags: <strong>20+</strong>, <strong>$14M</strong>, <strong>70%</strong>, <strong>10,000+</strong>
-- Transform weak statements into IMPACT with metrics
-- Every bullet proves VALUE and OWNERSHIP, not tasks
-- Rewrite or transform the résumé into a high-impact version
-- Avoid passive language that dilutes the candidate's impact
-- Emphasize quantifiable achievements and leadership throughout
+- Use only facts supported by the source résumé or supplied job descriptions.
+- Never invent metrics, employers, dates, education, credentials, or operational scope.
+- Wrap every number in <strong> tags.
+- Use active ownership verbs and avoid responsible for, assisted, or helped.
+- Tailor summary, expertise, and achievements to supplied job descriptions first, target title second, and natural strengths third.
+- Return only valid JSON, with no markdown or commentary.
 
-TRANSFORMATION INTENSITY LEVEL: AGGRESSIVE
-- Even if a bullet already mentions metrics, EXPAND IT with more context
-- Every bullet should be 1.5-2 lines long with multiple data points
-- Add context: team size, timeline, percentage improvement, dollar impact
-- Transform "Directed $14M budget" into "Architected and executed $14M operational budget across 5 HR divisions serving 10,000+ employees, delivering 15% cost optimization while maintaining 98% service level agreements"
-- NEVER keep original phrasing - completely rewrite every achievement
-- Ensure every bullet point proves how the candidate creates value and owns outcomes, rather than simply listing tasks
-
-MANDATORY METRICS TO ADD (extract from resume or infer from context):
-- Budget size AND cost savings/optimization percentage
-- Headcount managed AND team size led
-- Timeline/duration AND efficiency improvement
-- Geographic scope (departments, locations, regions)
-- Compliance rate, satisfaction scores, retention rates
-
-TAILORING PRIORITY:
-1. FIRST PRIORITY: If job descriptions are attached, analyze each job description, pick out the specific competencies and keywords, and adjust the professional summary, core skills, and experience bullets to mirror those needs
-2. SECOND PRIORITY: If no job descriptions but target title is provided, tailor to that title's typical requirements
-3. THIRD PRIORITY: Use the candidate's natural strengths and competencies from their resume content
-
-Create a fully tailored résumé for this submission by following the priority order above.
-
-Return ONLY this JSON structure (no markdown, no extra text):
+Return exactly this structure:
 {
   "name": "Full Name from resume",
   "location": "City, State",
   "email": "email@example.com",
   "phone": "(000) 000-0000",
-  "current_title": "${targetTitle}",
-  "tagline": "One powerful sentence describing value proposition",
-  "summary": "MAXIMUM 2 LINES with <strong>metrics</strong> bolded in third person",
-  "key_competencies": [
-    "Strategic Planning",
-    "Change Management", 
-    "Talent Development",
-    "Data Analytics"
-  ],
-  "expertise": [
-    "• Actual skill 1 extracted from resume",
-    "• Actual skill 2 extracted from resume",
-    "• Actual skill 3 extracted from resume",
-    "• Actual skill 4 extracted from resume",
-    "• Actual skill 5 extracted from resume",
-    "• Actual skill 6 extracted from resume",
-    "• Actual skill 7 extracted from resume",
-    "• Actual skill 8 extracted from resume",
-    "• Actual skill 9 extracted from resume",
-    "• Actual skill 10 extracted from resume"
-  ],
-  "career_highlights": [
-    "Delivered <strong>$XXM</strong> cost savings through specific initiative",
-    "Reduced metric by <strong>XX%</strong> across scope",
-    "Launched <strong>X</strong> strategic programs impacting outcome",
-    "Led <strong>XX-person</strong> team achieving result",
-    "Achieved <strong>XX%</strong> compliance/satisfaction/retention rate",
-    "Managed <strong>$XXM</strong> budget delivering outcome",
-    "Spearheaded initiative impacting <strong>X,XXX+</strong> employees"
-  ],
+  "current_title": "Broad 2-4 word executive headline",
+  "tagline": "One powerful 90-150 character value proposition",
+  "summary": "450-600 character executive narrative with <strong>metrics</strong>",
+  "key_competencies": ["Competency One", "Competency Two", "Competency Three", "Competency Four"],
+  "expertise": ["Skill 1", "Skill 2", "Skill 3", "Skill 4", "Skill 5", "Skill 6", "Skill 7", "Skill 8", "Skill 9", "Skill 10", "Skill 11", "Skill 12", "Skill 13", "Skill 14", "Skill 15", "Skill 16", "Skill 17", "Skill 18"],
+  "career_highlights": ["85-135 character highlight 1", "85-135 character highlight 2", "85-135 character highlight 3", "85-135 character highlight 4", "85-135 character highlight 5"],
   "skill_categories": ["Category 1", "Category 2", "Category 3", "Category 4"],
   "current_job": {
-    "company": "Actual company from resume",
+    "company": "Actual company",
     "location": "City, ST",
     "dates": "Year - Present",
-    "title": "Actual job title",
-    "description": "Brief scope paragraph with quantified responsibilities",
-    "achievements": [
-      "Drove <strong>specific metric</strong> achievement with <strong>quantified</strong> impact",
-      "Achieved <strong>measurable outcome</strong> managing <strong>scope size</strong>",
-      "Launched <strong>initiative</strong> generating <strong>$X revenue</strong> or <strong>Y% growth</strong>"
-    ]
+    "title": "Actual title",
+    "description": "300-450 character scope paragraph",
+    "achievements": ["120-185 character achievement 1", "120-185 character achievement 2", "120-185 character achievement 3"]
   },
-  "previous_jobs": [
-    {
-      "company": "Actual previous company",
-      "location": "City, ST",
-      "dates": "Year - Year",
-      "title": "Actual previous title",
-      "achievements": [
-        "Achievement with <strong>all</strong> <strong>metrics</strong> <strong>bolded</strong>",
-        "Achievement with <strong>quantified</strong> <strong>impact</strong>"
-      ]
-    }
-  ],
-  "early_career": [
-    "<strong>Actual Title</strong> – Actual Company (Actual Years)"
-  ],
-  "education": [
-    "<strong>Actual Degree</strong> – Actual University",
-    "<strong>Actual Certification</strong> – Actual Institution"
-  ],
+  "previous_jobs": [{"company": "Actual company", "location": "City, ST", "dates": "Year - Year", "title": "Actual title", "achievements": ["Achievement 1", "Achievement 2"]}],
+  "early_career": ["<strong>Actual Title</strong> – Actual Company (Actual Years)"],
+  "education": ["<strong>Actual Degree</strong> – Actual University"],
   "analysis": {
     "key_strengths": ["strength 1", "strength 2", "strength 3"],
     "areas_for_improvement": ["area 1", "area 2"],
@@ -236,34 +106,21 @@ Return ONLY this JSON structure (no markdown, no extra text):
   }
 }`
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic({
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY || '',
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 16000,
-        messages: [{ role: 'user', content: masterPrompt }]
-      })
+      headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY || '', 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 16000, messages: [{ role: 'user', content: masterPrompt }] })
     })
-
     if (!response.ok) throw new Error('AI API failed')
-
     const aiResult = await response.json()
     const rawText = aiResult.content[0].text
     const jsonMatch = rawText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('No JSON in AI response')
-    
     const masterResumeData = JSON.parse(jsonMatch[0])
 
-    // GENERATE VARIANTS for each job description
     const variants = []
-    
     for (let i = 0; i < jobDescriptions.length; i++) {
-      const variantPrompt = `Tailor this resume for the specific job posting below. Keep all facts accurate but emphasize relevant achievements.
+      const variantPrompt = `Tailor this resume for the job posting below without changing any facts. Preserve the exact JSON structure and all content-count and length requirements from the master resume.
 
 JOB POSTING:
 ${jobDescriptions[i]}
@@ -271,51 +128,24 @@ ${jobDescriptions[i]}
 MASTER RESUME DATA:
 ${JSON.stringify(masterResumeData, null, 2)}
 
-YOUR TASK:
-1. Extract the job title and company from the posting
-2. Identify the top 5 requirements from the job posting
-3. Reorder and emphasize achievements that match those requirements
-4. Add keywords from the job posting to summary and expertise
-5. Keep all facts accurate - just reposition and emphasize
-
-Return the SAME JSON structure but tailored for this specific role.`
-
-      const variantResponse = await fetch('https://api.anthropic.com/v1/messages', {
+Prioritize relevant achievements and job-posting keywords. Return only valid JSON.`
+      const variantResponse = await fetchAnthropic({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY || '',
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 16000,
-          messages: [{ role: 'user', content: variantPrompt }]
-        })
+        headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY || '', 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 16000, messages: [{ role: 'user', content: variantPrompt }] })
       })
-
       if (variantResponse.ok) {
         const variantData = await variantResponse.json()
         const variantText = variantData.content[0].text
         const variantJsonMatch = variantText.match(/\{[\s\S]*\}/)
-        
         if (variantJsonMatch) {
           const variantResumeData = JSON.parse(variantJsonMatch[0])
-          variants.push({
-            variant_number: i + 1,
-            job_title: variantResumeData.current_title,
-            resume_data: variantResumeData
-          })
+          variants.push({ variant_number: i + 1, job_title: variantResumeData.current_title, resume_data: variantResumeData })
         }
       }
     }
 
-    return NextResponse.json({
-      resume_data: masterResumeData,
-      variants: variants,
-      analysis: masterResumeData.analysis
-    })
-
+    return NextResponse.json({ resume_data: masterResumeData, variants, analysis: masterResumeData.analysis })
   } catch (error: any) {
     console.error('Error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })

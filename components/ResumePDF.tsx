@@ -1,5 +1,7 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { Document, Font, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+
+Font.registerHyphenationCallback((word) => [word])
 
 interface Job {
   company: string
@@ -28,248 +30,159 @@ interface ResumeData {
   education: string[]
 }
 
+const NAVY = '#294766'
+const STEEL = '#86A3CC'
+const STEEL_DARK = '#5E84BC'
+const LIGHT_BLUE = '#EDF3FA'
+const COPPER = '#A54A08'
+const INK = '#111111'
+
 const styles = StyleSheet.create({
-  page: {
-    padding: 28,
-    fontSize: 10,
-    fontFamily: 'Helvetica',
-    color: '#333333',
-  },
-  header: {
-    backgroundColor: '#2F5496',
-    padding: 14,
-    marginBottom: 8,
-    marginLeft: -28,
-    marginRight: -28,
-    marginTop: -28,
-    alignItems: 'center',
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 4,
-  },
-  contact: {
-    fontSize: 9,
-    color: 'white',
-  },
-  columns: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  leftColumn: {
-    width: '32%',
-  },
-  rightColumn: {
-    width: '68%',
-    borderLeft: '1 solid #CCCCCC',
-    paddingLeft: 9,
-  },
-  sectionHeader: {
-    backgroundColor: '#2F5496',
-    color: 'white',
-    fontSize: 8.5,
-    fontWeight: 'bold',
-    padding: '3 7',
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#B24C00',
-    marginBottom: 3,
-    textAlign: 'center',
-  },
-  tagline: {
-    fontSize: 9,
-    fontStyle: 'italic',
-    color: '#666666',
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  summaryText: {
-    fontSize: 9,
-    textAlign: 'justify',
-    lineHeight: 1.3,
-    marginBottom: 5,
-  },
-  skillItem: {
-    fontSize: 8,
-    marginBottom: 3,
-    lineHeight: 1.3,
-  },
-  skillBoxes: {
-    flexDirection: 'row',
-    gap: 4,
-    marginVertical: 5,
-  },
-  skillBox: {
-    flex: 1,
-    backgroundColor: '#FFF4E6',
-    borderLeft: '3 solid #B24C00',
-    padding: '4 3',
-    fontSize: 7,
-    fontWeight: 'bold',
-    color: '#B24C00',
-    textAlign: 'center',
-  },
-  job: {
-    marginBottom: 5,
-  },
-  jobHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    fontSize: 10,
-    fontWeight: 'heavy',
-    marginBottom: 2,
-  },
-  jobTitle: {
-    fontSize: 9,
-    fontStyle: 'italic',
-    color: '#555555',
-    marginBottom: 2,
-  },
-  jobDesc: {
-    fontSize: 8.5,
-    textAlign: 'justify',
-    marginBottom: 2,
-    lineHeight: 1.2,
-  },
-  achievement: {
-    fontSize: 8.5,
-    marginBottom: 1.5,
-    paddingLeft: 10,
-    textAlign: 'justify',
-    lineHeight: 1.25,
-  },
-  simpleItem: {
-    fontSize: 8,
-    marginBottom: 1.5,
-    lineHeight: 1.3,
-  },
-  pageHeader: {
-    backgroundColor: '#2F5496',
-    color: 'white',
-    padding: 7,
-    marginBottom: 8,
-    marginLeft: -28,
-    marginRight: -28,
-    marginTop: -28,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
+  pageOne: { position: 'relative', fontFamily: 'Helvetica', color: INK, backgroundColor: 'white' },
+  banner: { position: 'absolute', top: 26, left: 36, width: 540, height: 60, backgroundColor: NAVY, borderWidth: 0.7, borderColor: '#AAB8C7', alignItems: 'center' },
+  namePlate: { position: 'absolute', top: 8, left: 145, width: 250, height: 28, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' },
+  name: { color: NAVY, fontSize: 16.5, fontWeight: 'bold', letterSpacing: 0.8, textTransform: 'uppercase' },
+  contact: { position: 'absolute', top: 43, left: 20, width: 500, color: 'white', fontSize: 10.5, fontWeight: 'bold', textAlign: 'center' },
+  expertisePanel: { position: 'absolute', top: 101, left: 36, width: 162, height: 328, backgroundColor: LIGHT_BLUE, paddingTop: 10, paddingHorizontal: 7 },
+  expertiseTitle: { fontSize: 8.8, fontWeight: 'bold', textAlign: 'center', marginBottom: 6, textTransform: 'uppercase' },
+  expertiseItem: { fontSize: 9.35, lineHeight: 1.28, textAlign: 'center', marginBottom: 1.4 },
+  profileMain: { position: 'absolute', top: 98, left: 204, width: 372, height: 331 },
+  executiveTitle: { position: 'absolute', top: 0, left: 0, width: 372, color: COPPER, fontWeight: 'bold', letterSpacing: 0.7, lineHeight: 1.05, textAlign: 'center', textTransform: 'uppercase' },
+  tagline: { position: 'absolute', top: 34, left: 0, width: 372, fontSize: 9.7, fontWeight: 'bold', fontStyle: 'italic', lineHeight: 1.35, textAlign: 'center', paddingHorizontal: 18 },
+  summary: { position: 'absolute', top: 78, left: 0, width: 372, fontSize: 9.45, lineHeight: 1.48, textAlign: 'justify' },
+  highlights: { position: 'absolute', top: 218, left: 18, width: 354 },
+  highlightRow: { flexDirection: 'row', marginBottom: 4.5 },
+  highlightRule: { width: 18, borderTopWidth: 0.8, borderTopColor: COPPER, marginTop: 5, marginRight: 8 },
+  highlightText: { flex: 1, color: COPPER, fontSize: 9.05, fontWeight: 'bold', fontStyle: 'italic', lineHeight: 1.25 },
+  sectionBar: { position: 'absolute', top: 442, left: 36, width: 540, height: 24, backgroundColor: NAVY, borderWidth: 0.7, borderColor: '#AAB8C7', color: 'white', fontSize: 10.8, fontWeight: 'bold', letterSpacing: 1.2, textAlign: 'center', paddingTop: 5.2, textTransform: 'uppercase' },
+  currentCompany: { position: 'absolute', top: 478, left: 39, width: 534, fontSize: 9.5, fontWeight: 'bold', letterSpacing: 0.8, textAlign: 'center', textTransform: 'uppercase' },
+  currentTitle: { position: 'absolute', top: 494, left: 39, width: 534, fontSize: 9.6, fontWeight: 'bold', fontStyle: 'italic', textAlign: 'center' },
+  currentDescription: { position: 'absolute', top: 514, left: 39, width: 534, fontSize: 9.25, lineHeight: 1.28, textAlign: 'justify' },
+  currentBullets: { position: 'absolute', top: 570, left: 45, width: 430 },
+  achievementRow: { flexDirection: 'row', marginBottom: 4 },
+  bullet: { width: 13, fontSize: 9.5, lineHeight: 1.27 },
+  achievementText: { flex: 1, fontSize: 9.15, lineHeight: 1.27, textAlign: 'justify' },
+  calloutRail: { position: 'absolute', top: 558, left: 489, width: 72 },
+  callout: { height: 43, backgroundColor: STEEL, color: 'white', fontSize: 9.1, lineHeight: 1.16, textAlign: 'center', paddingTop: 7, paddingHorizontal: 3, marginBottom: 9 },
+  calloutDark: { backgroundColor: STEEL_DARK },
+  pageTwo: { paddingTop: 30, paddingBottom: 30, paddingHorizontal: 36, fontFamily: 'Helvetica', color: INK, fontSize: 9.4 },
+  pageHeader: { flexDirection: 'row', justifyContent: 'space-between', fontSize: 9, fontWeight: 'bold', marginBottom: 13 },
+  continuationBar: { height: 24, backgroundColor: NAVY, borderWidth: 0.7, borderColor: '#AAB8C7', color: 'white', fontSize: 10.8, fontWeight: 'bold', letterSpacing: 1.2, textAlign: 'center', paddingTop: 5.2, textTransform: 'uppercase', marginBottom: 11 },
+  job: { marginBottom: 10 },
+  company: { fontSize: 9.5, fontWeight: 'bold', letterSpacing: 0.7, lineHeight: 1.15, textAlign: 'center', textTransform: 'uppercase', marginBottom: 3 },
+  jobTitle: { fontSize: 9.5, fontWeight: 'bold', fontStyle: 'italic', lineHeight: 1.2, textAlign: 'center', marginBottom: 6 },
+  simpleItem: { fontSize: 9.2, lineHeight: 1.3, marginBottom: 3 },
 })
 
-const stripHTML = (text: string): string => {
+const stripHTML = (text?: string): string => {
   if (!text) return ''
-  return text.replace(/<\/?strong>/g, '')
+  return text.replace(/<\/?strong>/g, '').replace(/^•\s*/, '').replace(/\s+/g, ' ').trim()
 }
 
+const truncate = (text: string, limit: number): string => {
+  const clean = stripHTML(text)
+  if (clean.length <= limit) return clean
+  const sliced = clean.slice(0, limit - 1)
+  const lastSpace = sliced.lastIndexOf(' ')
+  return `${sliced.slice(0, lastSpace > 40 ? lastSpace : limit - 1).trim()}...`
+}
+
+const compact = (items?: string[], limit = 0, charLimit = 0): string[] => {
+  const cleaned = (items || []).map(stripHTML).filter(Boolean)
+  const limited = limit > 0 ? cleaned.slice(0, limit) : cleaned
+  return charLimit > 0 ? limited.map((item) => truncate(item, charLimit)) : limited
+}
+
+const normalizeTitle = (title: string): string => {
+  if (!title) return 'Business Leader'
+  const clean = stripHTML(title)
+  if (clean.length <= 27) return clean
+  const lower = clean.toLowerCase()
+  if (lower.includes('customer') || lower.includes('contact center') || lower.includes('client service')) return 'Customer Experience Leader'
+  if (lower.includes('human resources') || lower.includes('people') || lower.includes('talent')) return 'Human Resources Leader'
+  if (lower.includes('operation')) return 'Operations Leader'
+  if (lower.includes('sales') || lower.includes('revenue')) return 'Sales Leader'
+  if (lower.includes('technology') || lower.includes('digital')) return 'Technology Leader'
+  return 'Business Leader'
+}
+
+const titleSize = (title: string): number => {
+  const length = normalizeTitle(title).length
+  if (length > 24) return 16
+  if (length > 19) return 17.5
+  return 20.5
+}
+
+const formatCompany = (job: Job): string => [job.company, job.location, job.dates].map(stripHTML).filter(Boolean).join(' • ')
+
+const BulletList = ({ items, limit = 3, charLimit = 180 }: { items: string[], limit?: number, charLimit?: number }) => (
+  <>
+    {compact(items, limit, charLimit).map((item, idx) => (
+      <View key={idx} style={styles.achievementRow} wrap={false}>
+        <Text style={styles.bullet}>•</Text>
+        <Text style={styles.achievementText}>{item}</Text>
+      </View>
+    ))}
+  </>
+)
+
+const ContinuationJob = ({ job, index }: { job: Job, index: number }) => (
+  <View style={styles.job} wrap={false}>
+    <Text style={styles.company}>{truncate(formatCompany(job), 100)}</Text>
+    <Text style={styles.jobTitle}>{truncate(job.title, 95)}</Text>
+    <BulletList items={job.achievements || []} limit={index === 0 ? 3 : 2} charLimit={175} />
+  </View>
+)
+
 const ResumePDF: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const allPreviousJobs = data.previous_jobs || []
-  
+  const expertise = compact(data.expertise, 18, 38)
+  const highlights = compact(data.career_highlights, 5, 145)
+  const sideTags = compact(data.key_competencies?.length ? data.key_competencies : data.skill_categories, 4, 30)
+  const previousJobs = data.previous_jobs || []
+  const headline = normalizeTitle(data.current_title)
+
   return (
     <Document>
-      <Page size="LETTER" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.name}>{data.name}</Text>
-          <Text style={styles.contact}>
-            {data.location} • {data.email} • {data.phone}
-          </Text>
+      <Page size="LETTER" style={styles.pageOne}>
+        <View style={styles.banner} wrap={false}>
+          <View style={styles.namePlate} wrap={false}><Text style={styles.name}>{truncate(data.name, 34)}</Text></View>
+          <Text style={styles.contact}>{truncate([data.location, data.email, data.phone].map(stripHTML).filter(Boolean).join(' • '), 92)}</Text>
         </View>
-        
-        <View style={styles.columns}>
-          <View style={styles.leftColumn}>
-            {/* KEY COMPETENCIES SECTION - NEW */}
-            {data.key_competencies && data.key_competencies.length > 0 && (
-              <>
-                <Text style={styles.sectionHeader}>KEY COMPETENCIES</Text>
-                {data.key_competencies.map((comp, idx) => (
-                  <Text key={idx} style={styles.skillItem}>{comp}</Text>
-                ))}
-              </>
-            )}
-            
-            <Text style={[styles.sectionHeader, data.key_competencies ? { marginTop: 8 } : {}]}>AREAS OF EXPERTISE</Text>
-            {data.expertise.map((skill, idx) => (
-              <Text key={idx} style={styles.skillItem}>{skill}</Text>
-            ))}
-            
-            {data.career_highlights && data.career_highlights.length > 0 && (
-              <>
-                <Text style={[styles.sectionHeader, { marginTop: 8 }]}>CAREER HIGHLIGHTS</Text>
-                {data.career_highlights.map((highlight, idx) => (
-                  <Text key={idx} style={styles.skillItem}>• {stripHTML(highlight)}</Text>
-                ))}
-              </>
-            )}
-          </View>
-          
-          <View style={styles.rightColumn}>
-            <Text style={styles.title}>{data.current_title}</Text>
-            {data.tagline && <Text style={styles.tagline}>{data.tagline}</Text>}
-            
-            {/* PROFESSIONAL SUMMARY - WITH LABEL */}
-            <View style={{ marginBottom: 8 }}>
-              <Text style={styles.sectionHeader}>PROFESSIONAL SUMMARY</Text>
-              <Text style={styles.summaryText}>{stripHTML(data.summary)}</Text>
-            </View>
-            
-            {data.skill_categories && data.skill_categories.length === 4 && (
-              <View style={styles.skillBoxes}>
-                {data.skill_categories.map((cat, idx) => (
-                  <Text key={idx} style={styles.skillBox}>{cat}</Text>
-                ))}
+        <View style={styles.expertisePanel} wrap={false}>
+          <Text style={styles.expertiseTitle}>Areas of Expertise</Text>
+          {expertise.map((skill, idx) => <Text key={idx} style={styles.expertiseItem}>{skill}</Text>)}
+        </View>
+        <View style={styles.profileMain} wrap={false}>
+          <Text style={[styles.executiveTitle, { fontSize: titleSize(headline) }]}>{headline}</Text>
+          {data.tagline && <Text style={styles.tagline}>{truncate(data.tagline, 155)}</Text>}
+          <Text style={styles.summary}>{truncate(data.summary, 610)}</Text>
+          <View style={styles.highlights} wrap={false}>
+            {highlights.map((highlight, idx) => (
+              <View key={idx} style={styles.highlightRow} wrap={false}>
+                <View style={styles.highlightRule} />
+                <Text style={styles.highlightText}>{highlight}</Text>
               </View>
-            )}
-            
-            <Text style={styles.sectionHeader}>PROFESSIONAL EXPERIENCE</Text>
-            
-            <View style={styles.job}>
-              <View style={styles.jobHeader}>
-                <Text>{data.current_job.company} • {data.current_job.location}</Text>
-                <Text>{data.current_job.dates}</Text>
-              </View>
-              <Text style={styles.jobTitle}>{data.current_job.title}</Text>
-              {data.current_job.description && (
-                <Text style={styles.jobDesc}>{stripHTML(data.current_job.description)}</Text>
-              )}
-              {data.current_job.achievements.map((achievement, idx) => (
-                <Text key={idx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
-              ))}
-            </View>
-            
-            {allPreviousJobs.map((job, idx) => (
-              <View key={idx} style={styles.job} wrap={false}>
-                <View style={styles.jobHeader}>
-                  <Text>{job.company} • {job.location}</Text>
-                  <Text>{job.dates}</Text>
-                </View>
-                <Text style={styles.jobTitle}>{job.title}</Text>
-                {job.description && (
-                  <Text style={styles.jobDesc}>{stripHTML(job.description)}</Text>
-                )}
-                {job.achievements.map((achievement, achIdx) => (
-                  <Text key={achIdx} style={styles.achievement}>• {stripHTML(achievement)}</Text>
-                ))}
-              </View>
-            ))}
-            
-            <Text style={styles.sectionHeader}>EARLY CAREER</Text>
-            {data.early_career.map((item, idx) => (
-              <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
-            ))}
-            
-            <Text style={[styles.sectionHeader, { marginTop: 5 }]}>EDUCATION & PROFESSIONAL DEVELOPMENT</Text>
-            {data.education.map((item, idx) => (
-              <Text key={idx} style={styles.simpleItem}>{stripHTML(item)}</Text>
             ))}
           </View>
+        </View>
+        <Text style={styles.sectionBar}>Professional Experience</Text>
+        <Text style={styles.currentCompany}>{truncate(formatCompany(data.current_job), 100)}</Text>
+        <Text style={styles.currentTitle}>{truncate(data.current_job.title, 100)}</Text>
+        {data.current_job.description && <Text style={styles.currentDescription}>{truncate(data.current_job.description, 510)}</Text>}
+        <View style={styles.currentBullets} wrap={false}><BulletList items={data.current_job.achievements || []} limit={3} charLimit={185} /></View>
+        <View style={styles.calloutRail} wrap={false}>
+          {sideTags.map((tag, idx) => <Text key={idx} style={[styles.callout, idx < 2 ? styles.calloutDark : {}]}>{tag}</Text>)}
         </View>
       </Page>
+      {(previousJobs.length > 0 || data.early_career?.length > 0 || data.education?.length > 0) && (
+        <Page size="LETTER" style={styles.pageTwo}>
+          <View style={styles.pageHeader} fixed><Text>{truncate(data.name, 45)}</Text><Text>PAGE 2</Text></View>
+          <Text style={styles.continuationBar}>Professional Experience</Text>
+          {previousJobs.map((job, idx) => <ContinuationJob key={idx} job={job} index={idx} />)}
+          {data.early_career?.length > 0 && <><Text style={styles.continuationBar}>Early Career</Text>{compact(data.early_career, 3, 125).map((item, idx) => <Text key={idx} style={styles.simpleItem}>{item}</Text>)}</>}
+          {data.education?.length > 0 && <><Text style={styles.continuationBar}>Education & Professional Development</Text>{compact(data.education, 5, 135).map((item, idx) => <Text key={idx} style={styles.simpleItem}>{item}</Text>)}</>}
+        </Page>
+      )}
     </Document>
   )
 }
